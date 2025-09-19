@@ -1,0 +1,28 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab"
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": false,
+			"suspicious": {
+				"noImplicitAnyLet": "warn",
+				"noDuplicateObjectKeys": "warn"
+			},
+			"performance": {
+				"noDelete": "error"
+			},
+			"complexity": {
+				"noForEach": "warn",
+				"noUselessSwitchCase": "warn",
+				"noUselessTypeConstraint": "warn"
+			}
+		}
+	},
+	"files": {
+		"ignore": ["dist", ".next", ".svelte-kit", "package.json", ".contentlayer"]
+	}
+}
