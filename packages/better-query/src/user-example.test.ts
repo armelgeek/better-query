@@ -1,23 +1,44 @@
-import { betterQuery } from "../../../../packages/better-query/src/query";
-import { createQueryClient, createResource } from "../../../../packages/better-query/src/";
-import { 
-	productSchema, 
-	categorySchema, 
-	orderSchema, 
-	reviewSchema, 
-	userProfileSchema 
-} from "./schemas";
+import { describe, it, expect, vi } from "vitest";
+import { createResource } from "./utils/schema";
+import { z } from "zod";
 
-export const query = betterQuery({
-	basePath: "/api/query",
-	database: {
-		provider: "sqlite",
-		url: "data.db",
-		autoMigrate: true,
-	},
-	resources: [
+// Schemas from the user's example
+const productSchema = z.object({
+	id: z.string().optional(),
+	name: z.string(),
+	price: z.number(),
+	status: z.string().optional(),
+	seo: z.object({
+		slug: z.string().optional(),
+	}).optional(),
+	createdAt: z.date().optional(),
+	updatedAt: z.date().optional(),
+});
+
+const categorySchema = z.object({
+	id: z.string().optional(),
+	name: z.string(),
+	slug: z.string().optional(),
+});
+
+const orderSchema = z.object({
+	id: z.string().optional(),
+	userId: z.string().optional(),
+	items: z.array(z.object({
+		price: z.number(),
+		quantity: z.number(),
+	})),
+	subtotal: z.number().optional(),
+	tax: z.number().default(0),
+	shipping: z.number().default(0),
+	discount: z.number().default(0),
+	total: z.number().optional(),
+});
+
+describe("User Example Integration Test", () => {
+	it("should work with the exact user example structure", () => {
 		// Product resource - demonstrates full CRUD with complex permissions
-		createResource({
+		const productResource = createResource({
 			name: "product",
 			schema: productSchema,
 			permissions: {
@@ -82,10 +103,10 @@ export const query = betterQuery({
 				delete: true,
 				list: true,
 			},
-		}),
+		});
 
 		// Category resource - demonstrates hierarchical data
-		createResource({
+		const categoryResource = createResource({
 			name: "category",
 			schema: categorySchema,
 			permissions: {
@@ -106,10 +127,10 @@ export const query = betterQuery({
 					}
 				},
 			},
-		}),
+		});
 
 		// Order resource - demonstrates complex business logic
-		createResource({
+		const orderResource = createResource({
 			name: "order",
 			schema: orderSchema,
 			permissions: {
@@ -145,7 +166,7 @@ export const query = betterQuery({
 					}
 					
 					// Calculate totals
-					const subtotal = context.data.items.reduce((sum, item) => 
+					const subtotal = context.data.items.reduce((sum: number, item: any) => 
 						sum + (item.price * item.quantity), 0
 					);
 					context.data.subtotal = subtotal;
@@ -159,7 +180,7 @@ export const query = betterQuery({
 					
 					// Recalculate totals if items changed
 					if (context.data.items) {
-						const subtotal = context.data.items.reduce((sum, item) => 
+						const subtotal = context.data.items.reduce((sum: number, item: any) => 
 							sum + (item.price * item.quantity), 0
 						);
 						context.data.subtotal = subtotal;
@@ -168,119 +189,105 @@ export const query = betterQuery({
 					}
 				},
 			},
-		}),
+		});
 
-		// Review resource - demonstrates user-generated content
-		createResource({
-			name: "review",
-			schema: reviewSchema,
-			permissions: {
-				read: async () => true, // Anyone can read approved reviews
-				list: async () => true,
-				create: async (context) => !!context.user,
-				update: async (context) => {
-					// Users can update their own reviews, admins can update any
-					return !!context.user && (
-						context.user.role === "admin" || 
-						context.existingData?.userId === context.user.id
-					);
-				},
-				delete: async (context) => {
-					return !!context.user && (
-						context.user.role === "admin" || 
-						context.existingData?.userId === context.user.id
-					);
-				},
-			},
+		// Verify all resources were created correctly
+		expect(productResource.name).toBe("product");
+		expect(productResource.hooks?.beforeCreate).toBeDefined();
+		expect(productResource.hooks?.beforeUpdate).toBeDefined();
+		expect(productResource.hooks?.afterCreate).toBeDefined();
+
+		expect(categoryResource.name).toBe("category");
+		expect(categoryResource.hooks?.beforeCreate).toBeDefined();
+
+		expect(orderResource.name).toBe("order");
+		expect(orderResource.hooks?.beforeCreate).toBeDefined();
+		expect(orderResource.hooks?.beforeUpdate).toBeDefined();
+	});
+
+	it("should execute product beforeCreate hook correctly", async () => {
+		const productResource = createResource({
+			name: "product",
+			schema: productSchema,
 			hooks: {
 				beforeCreate: async (context) => {
-					if (context.user) {
-						context.data.userId = context.user.id;
+					// Generate slug from name if not provided
+					if (!context.data.seo?.slug && context.data.name) {
+						const slug = context.data.name
+							.toLowerCase()
+							.replace(/[^a-z0-9]+/g, '-')
+							.replace(/(^-|-$)/g, '');
+						context.data.seo = { ...context.data.seo, slug };
 					}
-					// Set default status
-					context.data.status = "pending";
-				},
-			},
-		}),
-
-		// User Profile resource - demonstrates profile management
-		createResource({
-			name: "userProfile",
-			schema: userProfileSchema,
-			permissions: {
-				read: async (context) => {
-					// Users can read their own profile, admins can read any
-					return !!context.user && (
-						context.user.role === "admin" || 
-						context.existingData?.userId === context.user.id
-					);
-				},
-				list: async (context) => {
-					// Only admins can list all profiles
-					return !!context.user && context.user.role === "admin";
-				},
-				create: async (context) => !!context.user,
-				update: async (context) => {
-					return !!context.user && (
-						context.user.role === "admin" || 
-						context.existingData?.userId === context.user.id
-					);
-				},
-				delete: async (context) => {
-					return !!context.user && (
-						context.user.role === "admin" || 
-						context.existingData?.userId === context.user.id
-					);
-				},
-			},
-			hooks: {
-				beforeCreate: async (context) => {
-					if (context.user) {
-						context.data.userId = context.user.id;
+					
+					// Set default status if not provided
+					if (!context.data.status) {
+						context.data.status = "draft";
 					}
 				},
 			},
-		}),
-	],
-	
-	// Global hooks that apply to all resources
-	hooks: {
-		beforeCreate: async (context) => {
-			console.log(`Creating ${context.resource}:`, context.data);
-		},
-		afterCreate: async (context) => {
-			console.log(`Created ${context.resource} with ID:`, context.result.id);
-		},
-		beforeUpdate: async (context) => {
-			console.log(`Updating ${context.resource}:`, context.data);
-		},
-		afterUpdate: async (context) => {
-			console.log(`Updated ${context.resource}:`, context.result.id);
-		},
-		beforeDelete: async (context) => {
-			console.log(`Deleting ${context.resource}:`, context.id);
-		},
-		afterDelete: async (context) => {
-			console.log(`Deleted ${context.resource} with ID:`, context.id);
-		},
-	},
+		});
 
-	// Enable CORS for development
-	cors: {
-		origin: ["http://localhost:3000"],
-		credentials: true,
-	},
+		const mockContext = {
+			user: { id: "user123" },
+			resource: "product",
+			operation: "create" as const,
+			data: { 
+				name: "Awesome Product With Spaces!",
+				price: 99.99 
+			},
+			adapter: {} as any,
+		};
+
+		await productResource.hooks?.beforeCreate?.(mockContext);
+
+		// Verify the hook logic worked
+		expect((mockContext.data as any).seo?.slug).toBe("awesome-product-with-spaces");
+		expect((mockContext.data as any).status).toBe("draft");
+	});
+
+	it("should execute order beforeCreate hook correctly", async () => {
+		const orderResource = createResource({
+			name: "order",
+			schema: orderSchema,
+			hooks: {
+				beforeCreate: async (context) => {
+					// Set userId from authenticated user
+					if (context.user) {
+						context.data.userId = context.user.id;
+					}
+					
+					// Calculate totals
+					const subtotal = context.data.items.reduce((sum: number, item: any) => 
+						sum + (item.price * item.quantity), 0
+					);
+					context.data.subtotal = subtotal;
+					context.data.total = subtotal + context.data.tax + context.data.shipping - context.data.discount;
+				},
+			},
+		});
+
+		const mockContext = {
+			user: { id: "user123" },
+			resource: "order",
+			operation: "create" as const,
+			data: { 
+				items: [
+					{ price: 10.00, quantity: 2 },
+					{ price: 15.00, quantity: 1 }
+				],
+				tax: 5.00,
+				shipping: 3.00,
+				discount: 2.00
+			},
+			adapter: {} as any,
+		};
+
+		await orderResource.hooks?.beforeCreate?.(mockContext);
+
+		// Verify the hook logic worked
+		expect((mockContext.data as any).userId).toBe("user123");
+		expect((mockContext.data as any).subtotal).toBe(35.00); // (10*2) + (15*1)
+		expect((mockContext.data as any).total).toBe(41.00); // 35 + 5 + 3 - 2
+	});
 });
-
-// Type-safe query client
-export const queryClient = createQueryClient<typeof query>({
-	baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/query",
-});
-
-export type Query = typeof query;
-export type QueryClient = typeof queryClient;
-
-// Legacy aliases for backward compatibility
-export const crud = query;
-export const crudClient = queryClient;
-export type Crud = typeof query;
