@@ -451,7 +451,7 @@ const userSchema = z.object({
   updatedAt: z.date().default(() => new Date()),
 });
 
-const crud = adiemus({
+const crud = betterQuery({
   resources: [
     createResource({
       name: "user",
@@ -470,10 +470,10 @@ const client = createCrudClient<typeof crud>();
 
 ## Schema Helpers
 
-Adiemus provides helpful utilities for creating schemas:
+betterQuery provides helpful utilities for creating schemas:
 
 ```typescript
-import { withId, withTimestamps } from "adiemus";
+import { withId, withTimestamps } from "better-query";
 import { z } from "zod";
 
 // Helper for creating schemas with id and timestamps
@@ -562,7 +562,7 @@ createResource({
 ### Base Path
 
 ```typescript
-const crud = adiemus({
+const crud = betterQuery({
   resources: [/* ... */],
   database: {/* ... */},
   basePath: "/api/v1", // All endpoints will be prefixed with /api/v1
@@ -571,7 +571,7 @@ const crud = adiemus({
 
 ## Database Support
 
-Adiemus supports multiple database providers through Kysely:
+betterQuery supports multiple database providers through Kysely:
 
 - **SQLite**: Perfect for development and small applications
 - **PostgreSQL**: Production-ready with advanced features
@@ -582,7 +582,7 @@ Adiemus supports multiple database providers through Kysely:
 Enable auto-migration to automatically create tables based on your schemas:
 
 ```typescript
-const crud = adiemus({
+const crud = betterQuery({
   resources: [/* ... */],
   database: {
     provider: "sqlite",
@@ -594,7 +594,7 @@ const crud = adiemus({
 
 ## Error Handling
 
-Adiemus returns standard HTTP status codes:
+betterQuery returns standard HTTP status codes:
 
 - `200` - Success
 - `201` - Created
@@ -635,7 +635,7 @@ The TypeScript integration provides full type safety:
 type Product = z.infer<typeof productSchema>;
 
 // CRUD instance is fully typed
-const crud = adiemus({...});
+const crud = betterQuery({...});
 // crud.api.createProduct, crud.api.getProduct, etc. are all typed
 
 // Client is fully typed based on your CRUD configuration

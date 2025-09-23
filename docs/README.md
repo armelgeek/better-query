@@ -121,7 +121,7 @@ Type-safe client similar to Better-Auth's client:
 
 ### Type Safety
 
-Adiemus provides end-to-end type safety:
+betterQuery provides end-to-end type safety:
 
 ```typescript
 // Server: Define your resource with Zod
@@ -132,7 +132,7 @@ const productSchema = z.object({
 });
 
 // Server: Create CRUD instance
-const crud = adiemus({
+const crud = betterQuery({
   resources: [createResource({ name: "product", schema: productSchema })],
   database: { provider: "sqlite", url: "database.db" }
 });
@@ -277,7 +277,7 @@ app.all("/api/*", async (req, res) => {
 
 ```typescript
 // lib/crud-client.ts
-import { createCrudClient } from "adiemus";
+import { createCrudClient } from "better-query";
 import type { crud } from "./crud";
 
 export const crudClient = createCrudClient<typeof crud>({
@@ -329,7 +329,7 @@ For each resource, the following endpoints are automatically created:
 
 ### Schema Helpers
 
-Adiemus provides helpful utilities for creating custom schemas:
+betterQuery provides helpful utilities for creating custom schemas:
 
 ```typescript
 import { 
@@ -337,7 +337,7 @@ import {
   withTimestamps,
   belongsTo,
   hasMany 
-} from "adiemus";
+} from "better-query";
 import { z } from "zod";
 
 // Create schemas with helper utilities
@@ -355,7 +355,7 @@ const categorySchema = withId({
   slug: z.string().min(1),
 });
 
-const crud = adiemus({
+const crud = betterQuery({
   resources: [
     createResource({ 
       name: "product", 
@@ -378,7 +378,7 @@ const crud = adiemus({
 
 ### Error Handling & Response Format
 
-Adiemus uses a consistent response format across all endpoints:
+betterQuery uses a consistent response format across all endpoints:
 
 #### Success Response
 ```typescript
@@ -445,7 +445,7 @@ if (result.error) {
 
 ### Supported Databases
 
-Adiemus supports multiple database providers through the Kysely query builder:
+betterQuery supports multiple database providers through the Kysely query builder:
 
 - **SQLite**: Perfect for development and small applications
 - **PostgreSQL**: Production-ready with advanced features
@@ -456,7 +456,7 @@ Adiemus supports multiple database providers through the Kysely query builder:
 #### SQLite
 
 ```typescript
-const crud = adiemus({
+const crud = betterQuery({
   resources: [/* ... */],
   database: {
     provider: "sqlite",
@@ -469,7 +469,7 @@ const crud = adiemus({
 #### PostgreSQL
 
 ```typescript
-const crud = adiemus({
+const crud = betterQuery({
   resources: [/* ... */],
   database: {
     provider: "postgres",
@@ -482,7 +482,7 @@ const crud = adiemus({
 #### MySQL
 
 ```typescript
-const crud = adiemus({
+const crud = betterQuery({
   resources: [/* ... */],
   database: {
     provider: "mysql",
@@ -497,7 +497,7 @@ const crud = adiemus({
 Auto-migration automatically creates and updates database tables based on your Zod schemas:
 
 ```typescript
-const crud = adiemus({
+const crud = betterQuery({
   resources: [
     createResource({
       name: "product",
@@ -519,7 +519,7 @@ const crud = adiemus({
 ```
 
 **How it works:**
-1. Adiemus converts your Zod schemas to database field definitions
+1. betterQuery converts your Zod schemas to database field definitions
 2. On startup, it compares current schema with database structure
 3. Missing tables and columns are automatically created
 4. Existing data is preserved during migrations
@@ -541,12 +541,12 @@ createResource({
 
 ### Adapter System
 
-Adiemus uses an adapter pattern for database abstraction. The built-in Kysely adapter supports SQLite, PostgreSQL, and MySQL, but you can create custom adapters for other systems.
+betterQuery uses an adapter pattern for database abstraction. The built-in Kysely adapter supports SQLite, PostgreSQL, and MySQL, but you can create custom adapters for other systems.
 
 #### Custom Adapter
 
 ```typescript
-import { CrudAdapter } from "adiemus";
+import { CrudAdapter } from "better-query";
 
 class PrismaAdapter implements CrudAdapter {
   constructor(private prisma: PrismaClient) {}
@@ -566,7 +566,7 @@ class PrismaAdapter implements CrudAdapter {
 }
 
 // Use custom adapter
-const crud = adiemus({
+const crud = betterQuery({
   resources: [/* ... */],
   database: {
     adapter: new PrismaAdapter(prisma),
@@ -576,10 +576,10 @@ const crud = adiemus({
 
 ### Relationships
 
-Adiemus supports defining relationships between resources:
+betterQuery supports defining relationships between resources:
 
 ```typescript
-import { RelationshipManager } from "adiemus";
+import { RelationshipManager } from "better-query";
 
 const productSchema = z.object({
   id: z.string(),
@@ -592,7 +592,7 @@ const categorySchema = z.object({
   name: z.string(),
 });
 
-const crud = adiemus({
+const crud = betterQuery({
   resources: [
     createResource({ name: "product", schema: productSchema }),
     createResource({ name: "category", schema: categorySchema }),
@@ -677,7 +677,7 @@ createResource({
 Apply hooks to all resources:
 
 ```typescript
-const crud = adiemus({
+const crud = betterQuery({
   resources: [/* ... */],
   database: { provider: "sqlite", url: "database.db" },
   hooks: {
@@ -828,10 +828,10 @@ createResource({
 
 ### Built-in Hook Utilities
 
-Adiemus provides utility functions for common hook patterns:
+betterQuery provides utility functions for common hook patterns:
 
 ```typescript
-import { HookUtils } from "adiemus";
+import { HookUtils } from "better-query";
 
 createResource({
   name: "product",
@@ -864,7 +864,7 @@ If any before hook throws an error or sets `context.skip = true`, the operation 
 
 ## Plugins
 
-The plugin system allows you to extend Adiemus functionality without modifying the core library. Plugins can add endpoints, extend schemas, provide hooks, and integrate with external services.
+The plugin system allows you to extend betterQuery functionality without modifying the core library. Plugins can add endpoints, extend schemas, provide hooks, and integrate with external services.
 
 ### Plugin Architecture
 
@@ -890,9 +890,9 @@ interface Plugin {
 Automatically logs all CRUD operations:
 
 ```typescript
-import { auditPlugin } from "adiemus/plugins";
+import { auditPlugin } from "betterQuery/plugins";
 
-const crud = adiemus({
+const crud = betterQuery({
   resources: [/* ... */],
   database: { provider: "sqlite", url: "database.db" },
   plugins: [
@@ -925,9 +925,9 @@ const crud = adiemus({
 Enhanced validation with sanitization:
 
 ```typescript
-import { validationPlugin } from "adiemus/plugins";
+import { validationPlugin } from "betterQuery/plugins";
 
-const crud = adiemus({
+const crud = betterQuery({
   resources: [/* ... */],
   plugins: [
     validationPlugin({
@@ -959,9 +959,9 @@ const crud = adiemus({
 Intelligent caching for read operations:
 
 ```typescript
-import { cachePlugin } from "adiemus/plugins";
+import { cachePlugin } from "betterQuery/plugins";
 
-const crud = adiemus({
+const crud = betterQuery({
   resources: [/* ... */],
   plugins: [
     cachePlugin({
@@ -993,9 +993,9 @@ const crud = adiemus({
 Automatic API documentation generation:
 
 ```typescript
-import { openApiPlugin } from "adiemus/plugins";
+import { openApiPlugin } from "betterQuery/plugins";
 
-const crud = adiemus({
+const crud = betterQuery({
   resources: [/* ... */],
   plugins: [
     openApiPlugin({
@@ -1022,7 +1022,7 @@ const crud = adiemus({
 #### Basic Plugin
 
 ```typescript
-import { createPlugin } from "adiemus";
+import { createPlugin } from "better-query";
 
 const timestampPlugin = createPlugin({
   id: "timestamp",
@@ -1099,7 +1099,7 @@ const auditTrailPlugin = createPlugin({
 Plugins can be composed and configured together:
 
 ```typescript
-const crud = adiemus({
+const crud = betterQuery({
   resources: [/* ... */],
   database: { provider: "sqlite", url: "database.db" },
   plugins: [
@@ -1390,7 +1390,7 @@ npm run build
 
 ### Environment Variables
 
-Adiemus supports automatic base URL inference from environment variables:
+betterQuery supports automatic base URL inference from environment variables:
 
 ```env
 # For standalone usage
@@ -1406,7 +1406,7 @@ NEXT_PUBLIC_VERCEL_URL=https://your-app.vercel.app
 
 ### Browser Compatibility
 
-Adiemus works in any environment that supports:
+betterQuery works in any environment that supports:
 - Modern JavaScript (ES2020+)
 - Fetch API or polyfill
 - Web API Request/Response objects
@@ -1421,7 +1421,7 @@ This includes:
 
 ## Contributing
 
-Adiemus follows the patterns established by Better-Auth. When contributing:
+betterQuery follows the patterns established by Better-Auth. When contributing:
 
 1. **Code Style**: Follow the existing TypeScript patterns and use Biome for formatting
 2. **Testing**: Add tests for new functionality using Vitest
@@ -1456,4 +1456,4 @@ MIT License - same as the Better-Auth project.
 
 ---
 
-This documentation provides a comprehensive overview of Adiemus, covering all the essential concepts, setup, and usage patterns. The modular structure makes it easy to navigate and find specific information, while the examples provide practical guidance for implementation.
+This documentation provides a comprehensive overview of betterQuery, covering all the essential concepts, setup, and usage patterns. The modular structure makes it easy to navigate and find specific information, while the examples provide practical guidance for implementation.

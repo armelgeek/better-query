@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { adiemus } from "../src";
+import { betterQuery } from "../src";
 import { createResource } from "../src";
 
 const testProductSchema = z.object({
@@ -14,7 +14,7 @@ const testProductSchema = z.object({
 
 describe("BetterQuery", () => {
 	it("should create a CRUD instance", () => {
-		const crud = adiemus({
+		const crud = betterQuery({
 			resources: [
 				createResource({
 					name: "product",
@@ -43,7 +43,7 @@ describe("BetterQuery", () => {
 			active: z.boolean().default(true),
 		});
 
-		const crud = adiemus({
+		const crud = betterQuery({
 			resources: [
 				createResource({
 					name: "test",
@@ -76,7 +76,7 @@ describe("BetterQuery", () => {
 	});
 
 	it("should support custom permissions", () => {
-		const crud = adiemus({
+		const crud = betterQuery({
 			resources: [
 				createResource({
 					name: "product",
@@ -100,7 +100,7 @@ describe("BetterQuery", () => {
 	});
 
 	it("should support custom table names", () => {
-		const crud = adiemus({
+		const crud = betterQuery({
 			resources: [
 				createResource({
 					name: "product",
@@ -118,7 +118,7 @@ describe("BetterQuery", () => {
 	});
 
 	it("should support selective endpoint enabling", () => {
-		const crud = adiemus({
+		const crud = betterQuery({
 			resources: [
 				createResource({
 					name: "product",
@@ -144,11 +144,11 @@ describe("BetterQuery", () => {
 	it("should handle auto-migration without errors", () => {
 		// This test specifically checks the initTables function fix
 		expect(() => {
-			const crud = adiemus({
+			const crud = betterQuery({
 				resources: [
 					createResource({
 						name: "product",
-						schema: productSchema,
+						schema: testProductSchema,
 					}),
 				],
 				database: {

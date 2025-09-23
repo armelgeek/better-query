@@ -253,7 +253,7 @@ export type BetterCrud<
 > = BetterQuery<O, Endpoints, PluginEndpoints>;
 
 // Legacy alias for the old package name
-export type Adiemus<
+export type betterQuery<
 	O extends QueryOptions = QueryOptions,
 	Endpoints extends Record<string, any> = Record<string, any>,
 	PluginEndpoints extends Record<string, any> = UnionToIntersection<

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { z } from "zod";
-import { adiemus } from "../crud";
+import { betterQuery } from "../crud";
 import { belongsTo, hasMany, belongsToMany } from "../schemas/relationships";
 
 // Define test schemas since we no longer have predefined ones
@@ -51,7 +51,7 @@ describe("CRUD Relationship Management", () => {
 
 	beforeAll(async () => {
 		// Create CRUD instance with relationships
-		crud = adiemus({
+		crud = betterQuery({
 			database: {
 				provider: "sqlite",
 				url: "sqlite::memory:",

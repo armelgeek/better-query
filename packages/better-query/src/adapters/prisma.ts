@@ -2,7 +2,7 @@ import { CrudAdapter, CrudWhere, CrudOrderBy } from "../types/adapter";
 import { IncludeOptions, FieldAttribute } from "../types";
 
 /**
- * Prisma ORM adapter for adiemus
+ * Prisma ORM adapter for betterQuery
  * 
  * Usage:
  * ```typescript
