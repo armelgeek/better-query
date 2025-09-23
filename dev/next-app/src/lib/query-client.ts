@@ -1,5 +1,5 @@
 import { betterQuery } from "../../../../packages/better-query/src/query";
-import { createQueryClient, createResource } from "../../../../packages/better-query/src/";
+import { createQueryClient, createResource } from "../../../../packages/better-query/src";
 import { 
 	productSchema, 
 	categorySchema, 
@@ -144,23 +144,24 @@ export const query = betterQuery({
 						context.data.userId = context.user.id;
 					}
 					
-					// Calculate totals
-					const subtotal = context.data.items.reduce((sum, item) => 
-						sum + (item.price * item.quantity), 0
+					const subtotal = context.data.items.reduce(
+						(sum: number, item: { price: number; quantity: number }) => 
+							sum + (item.price * item.quantity), 
+						0
 					);
 					context.data.subtotal = subtotal;
 					context.data.total = subtotal + context.data.tax + context.data.shipping - context.data.discount;
 				},
 				beforeUpdate: async (context) => {
-					// Prevent changing userId after creation
 					if (context.data.userId && context.existingData?.userId !== context.data.userId) {
 						throw new Error("Cannot change order owner");
 					}
 					
-					// Recalculate totals if items changed
 					if (context.data.items) {
-						const subtotal = context.data.items.reduce((sum, item) => 
-							sum + (item.price * item.quantity), 0
+						const subtotal = context.data.items.reduce(
+							(sum: number, item: { price: number; quantity: number }) => 
+								sum + (item.price * item.quantity), 
+							0
 						);
 						context.data.subtotal = subtotal;
 						context.data.total = subtotal + (context.data.tax || 0) + 

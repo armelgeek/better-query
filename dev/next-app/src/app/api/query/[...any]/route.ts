@@ -1,4 +1,4 @@
-import { query } from "@/lib/crud-auth";
+import { query } from "@/lib/query-client";
 import { NextRequest } from "next/server";
 
 const handler = query.handler;

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-	title: "BetterCRUD Demo - Next.js App",
+	title: "BetterQuery Demo - Next.js App",
 	description:
-		"Demo application showcasing BetterCRUD integration with Next.js",
+		"Demo application showcasing BetterQuery integration with Next.js",
 };
 
 export default function RootLayout({

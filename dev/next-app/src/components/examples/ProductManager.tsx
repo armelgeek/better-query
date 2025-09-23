@@ -18,7 +18,6 @@ export default function ProductManager() {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
 
-  // Form state for create/edit
   const {
     values: formValues,
     errors: formErrors,
@@ -65,10 +64,47 @@ export default function ProductManager() {
 
     try {
       if (editingProduct) {
-        await update(editingProduct.id, formValues);
+        // Patch inventory and profile to ensure required fields are present and not undefined
+        const patchedFormValues = {
+          ...formValues,
+          inventory: {
+            quantity: formValues.inventory?.quantity ?? 0,
+            lowStockThreshold: formValues.inventory?.lowStockThreshold ?? 10,
+            trackQuantity: !!formValues.inventory?.trackQuantity,
+          },
+          profile: {
+            featured: formValues.profile?.featured ?? false,
+            category: formValues.profile?.category ?? '',
+            weight: formValues.profile?.weight,
+            dimensions: {
+              length: formValues.profile?.dimensions?.length,
+              width: formValues.profile?.dimensions?.width,
+              height: formValues.profile?.dimensions?.height,
+            },
+          },
+        };
+        await update(editingProduct.id, patchedFormValues);
         setEditingProduct(null);
       } else {
-        await create(formValues);
+        const patchedFormValues = {
+          ...formValues,
+          inventory: {
+            quantity: formValues.inventory?.quantity ?? 0,
+            lowStockThreshold: formValues.inventory?.lowStockThreshold ?? 10,
+            trackQuantity: !!formValues.inventory?.trackQuantity,
+          },
+          profile: {
+            featured: formValues.profile?.featured ?? false,
+            category: formValues.profile?.category ?? '',
+            weight: formValues.profile?.weight,
+            dimensions: {
+              length: formValues.profile?.dimensions?.length,
+              width: formValues.profile?.dimensions?.width,
+              height: formValues.profile?.dimensions?.height,
+            },
+          },
+        };
+        await create(patchedFormValues);
       }
       
       resetForm();
@@ -101,7 +137,7 @@ export default function ProductManager() {
     }
   };
 
-  const resetForm = () => {
+  const handleResetForm = () => {
     resetForm();
     setEditingProduct(null);
     setShowForm(false);
@@ -207,9 +243,9 @@ export default function ProductManager() {
                   <label className="block text-sm font-medium mb-1">Quantity</label>
                   <input
                     type="number"
-                    value={formValues.inventory.quantity}
+                    value={(formValues.inventory?.quantity ?? 0)}
                     onChange={(e) => setValue('inventory', {
-                      ...formValues.inventory,
+                      ...(formValues.inventory ?? {}),
                       quantity: parseInt(e.target.value) || 0
                     })}
                     className="w-full border border-gray-300 rounded px-3 py-2"
@@ -220,9 +256,9 @@ export default function ProductManager() {
                   <label className="block text-sm font-medium mb-1">Low Stock Threshold</label>
                   <input
                     type="number"
-                    value={formValues.inventory.lowStockThreshold}
+                    value={(formValues.inventory?.lowStockThreshold ?? 10)}
                     onChange={(e) => setValue('inventory', {
-                      ...formValues.inventory,
+                      ...(formValues.inventory ?? {}),
                       lowStockThreshold: parseInt(e.target.value) || 10
                     })}
                     className="w-full border border-gray-300 rounded px-3 py-2"
@@ -232,9 +268,9 @@ export default function ProductManager() {
                 <div className="flex items-center">
                   <input
                     type="checkbox"
-                    checked={formValues.inventory.trackQuantity}
+                    checked={!!formValues.inventory?.trackQuantity}
                     onChange={(e) => setValue('inventory', {
-                      ...formValues.inventory,
+                      ...(formValues.inventory ?? {}),
                       trackQuantity: e.target.checked
                     })}
                     className="mr-2"
@@ -300,7 +336,7 @@ export default function ProductManager() {
               </button>
               <button
                 type="button"
-                onClick={resetForm}
+                onClick={handleResetForm}
                 className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600"
               >
                 Cancel

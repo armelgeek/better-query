@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { queryClient } from '../lib/crud-auth';
+import { queryClient } from '../lib/query-client';
 import type { Product, Category, Order, Review, UserProfile } from '../lib/schemas';
 
-// Generic hook for CRUD operations
 interface UseResourceOptions {
   autoFetch?: boolean;
   dependencies?: any[];
@@ -145,7 +144,9 @@ function useResource<T>(
     }
   }, [resourceName, handleError]);
 
-  const refresh = useCallback(() => list(), [list]);
+  const refresh = useCallback(async () => {
+    await list();
+  }, [list]);
 
   useEffect(() => {
     if (autoFetch) {
@@ -163,11 +164,10 @@ function useResource<T>(
     update,
     remove,
     list,
-    refresh,
+    refresh
   };
 }
 
-// Specific hooks for each resource type
 export const useProducts = (options?: UseResourceOptions) => 
   useResource<Product>('product', options);
 
@@ -337,7 +337,7 @@ export const useFormState = <T extends Record<string, any>>(
     }
   }, [errors]);
 
-  const setTouched = useCallback((field: keyof T) => {
+  const markTouched = useCallback((field: keyof T) => {
     setTouched(prev => ({ ...prev, [field]: true }));
   }, []);
 
@@ -353,7 +353,7 @@ export const useFormState = <T extends Record<string, any>>(
       err.errors?.forEach((error: any) => {
         const field = error.path?.[0];
         if (field) {
-          fieldErrors[field] = error.message;
+          fieldErrors[field as keyof T] = error.message;
         }
       });
       setErrors(fieldErrors);
@@ -372,7 +372,7 @@ export const useFormState = <T extends Record<string, any>>(
     errors,
     touched,
     setValue,
-    setTouched,
+    markTouched,
     validate,
     reset,
   };
