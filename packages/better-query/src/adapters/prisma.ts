@@ -10,7 +10,7 @@ import { IncludeOptions, FieldAttribute } from "../types";
  * 
  * const prisma = new PrismaClient();
  * 
- * const crud = betterCrud({
+ * const crud = betterQuery({
  *   resources: [...],
  *   database: {
  *     adapter: new PrismaCrudAdapter(prisma),

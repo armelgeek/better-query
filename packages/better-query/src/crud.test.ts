@@ -3,7 +3,6 @@ import { z } from "zod";
 import { adiemus } from "../src";
 import { createResource } from "../src";
 
-// Define a test schema since we no longer have predefined ones
 const testProductSchema = z.object({
 	id: z.string().optional(),
 	name: z.string().min(1, "Product name is required"),
@@ -13,7 +12,7 @@ const testProductSchema = z.object({
 	updatedAt: z.date().default(() => new Date()),
 });
 
-describe("BetterCrud", () => {
+describe("BetterQuery", () => {
 	it("should create a CRUD instance", () => {
 		const crud = adiemus({
 			resources: [

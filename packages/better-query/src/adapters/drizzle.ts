@@ -12,7 +12,7 @@ import { IncludeOptions, FieldAttribute } from "../types";
  * const sqlite = new Database('sqlite.db');
  * const db = drizzle(sqlite);
  * 
- * const crud = betterCrud({
+ * const crud = betterQuery({
  *   resources: [...],
  *   database: {
  *     adapter: new DrizzleCrudAdapter(db, schema),

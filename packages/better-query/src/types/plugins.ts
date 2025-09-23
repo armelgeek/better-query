@@ -73,7 +73,7 @@ export interface Plugin {
 	options?: Record<string, any>;
 	
 	/**
-	 * Plugin initialization function called when betterCrud is created
+	 * Plugin initialization function called when betterQuery is created
 	 */
 	init?: (context: PluginInitContext) => Promise<void> | void;
 	
