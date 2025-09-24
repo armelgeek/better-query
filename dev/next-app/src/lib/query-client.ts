@@ -1,11 +1,8 @@
 import { betterQuery } from "../../../../packages/better-query/src/query";
-import { createQueryClient, createResource } from "../../../../packages/better-query/src";
+import { createResource } from "../../../../packages/better-query/src";
+import { createQueryClient } from "../../../../packages/better-query/src/client";
 import { 
-	productSchema, 
-	categorySchema, 
-	orderSchema, 
-	reviewSchema, 
-	userProfileSchema 
+	productSchema,
 } from "./schemas";
 
 export const query = betterQuery({
@@ -20,28 +17,8 @@ export const query = betterQuery({
 		createResource({
 			name: "product",
 			schema: productSchema,
-			permissions: {
-				// Allow anyone to read products
-				read: async () => true,
-				list: async () => true,
-				// Require authentication for modifications
-				create: async (context) => {
-					// Check if user is authenticated
-					return !!context.user;
-				},
-				update: async (context) => {
-					// Allow updates by authenticated users
-					// In real app, you might check if user owns the product or is admin
-					return !!context.user;
-				},
-				delete: async (context) => {
-					// Only allow deletion by authenticated users
-					// In real app, you might require admin role
-					return !!context.user;
-				},
-			},
 			// Demonstrate hooks for business logic
-			hooks: {
+			/**hooks: {
 				beforeCreate: async (context) => {
 					// Generate slug from name if not provided
 					if (!context.data.seo?.slug && context.data.name) {
@@ -73,8 +50,7 @@ export const query = betterQuery({
 				afterCreate: async (context) => {
 					console.log(`Product created: ${context.result.name} (ID: ${context.result.id})`);
 				},
-			},
-			// Enable specific endpoints (all are enabled by default)
+			},**/
 			endpoints: {
 				create: true,
 				read: true,
@@ -83,168 +59,8 @@ export const query = betterQuery({
 				list: true,
 			},
 		}),
-
-		// Category resource - demonstrates hierarchical data
-		createResource({
-			name: "category",
-			schema: categorySchema,
-			permissions: {
-				read: async () => true,
-				list: async () => true,
-				create: async (context) => !!context.user,
-				update: async (context) => !!context.user,
-				delete: async (context) => !!context.user,
-			},
-			hooks: {
-				beforeCreate: async (context) => {
-					// Generate slug from name
-					if (!context.data.slug && context.data.name) {
-						context.data.slug = context.data.name
-							.toLowerCase()
-							.replace(/[^a-z0-9]+/g, '-')
-							.replace(/(^-|-$)/g, '');
-					}
-				},
-			},
-		}),
-
-		// Order resource - demonstrates complex business logic
-		createResource({
-			name: "order",
-			schema: orderSchema,
-			permissions: {
-				read: async (context) => {
-					// Users can only read their own orders
-					return !!context.user && (
-						context.user.role === "admin" || 
-						context.existingData?.userId === context.user.id
-					);
-				},
-				list: async (context) => {
-					// Users can only list their own orders, admins can see all
-					return !!context.user;
-				},
-				create: async (context) => !!context.user,
-				update: async (context) => {
-					// Only allow order updates by admin or order owner
-					return !!context.user && (
-						context.user.role === "admin" || 
-						context.existingData?.userId === context.user.id
-					);
-				},
-				delete: async (context) => {
-					// Only admins can delete orders
-					return !!context.user && context.user.role === "admin";
-				},
-			},
-			hooks: {
-				beforeCreate: async (context) => {
-					// Set userId from authenticated user
-					if (context.user) {
-						context.data.userId = context.user.id;
-					}
-					
-					const subtotal = context.data.items.reduce(
-						(sum: number, item: { price: number; quantity: number }) => 
-							sum + (item.price * item.quantity), 
-						0
-					);
-					context.data.subtotal = subtotal;
-					context.data.total = subtotal + context.data.tax + context.data.shipping - context.data.discount;
-				},
-				beforeUpdate: async (context) => {
-					if (context.data.userId && context.existingData?.userId !== context.data.userId) {
-						throw new Error("Cannot change order owner");
-					}
-					
-					if (context.data.items) {
-						const subtotal = context.data.items.reduce(
-							(sum: number, item: { price: number; quantity: number }) => 
-								sum + (item.price * item.quantity), 
-							0
-						);
-						context.data.subtotal = subtotal;
-						context.data.total = subtotal + (context.data.tax || 0) + 
-							(context.data.shipping || 0) - (context.data.discount || 0);
-					}
-				},
-			},
-		}),
-
-		// Review resource - demonstrates user-generated content
-		createResource({
-			name: "review",
-			schema: reviewSchema,
-			permissions: {
-				read: async () => true, // Anyone can read approved reviews
-				list: async () => true,
-				create: async (context) => !!context.user,
-				update: async (context) => {
-					// Users can update their own reviews, admins can update any
-					return !!context.user && (
-						context.user.role === "admin" || 
-						context.existingData?.userId === context.user.id
-					);
-				},
-				delete: async (context) => {
-					return !!context.user && (
-						context.user.role === "admin" || 
-						context.existingData?.userId === context.user.id
-					);
-				},
-			},
-			hooks: {
-				beforeCreate: async (context) => {
-					if (context.user) {
-						context.data.userId = context.user.id;
-					}
-					// Set default status
-					context.data.status = "pending";
-				},
-			},
-		}),
-
-		// User Profile resource - demonstrates profile management
-		createResource({
-			name: "userProfile",
-			schema: userProfileSchema,
-			permissions: {
-				read: async (context) => {
-					// Users can read their own profile, admins can read any
-					return !!context.user && (
-						context.user.role === "admin" || 
-						context.existingData?.userId === context.user.id
-					);
-				},
-				list: async (context) => {
-					// Only admins can list all profiles
-					return !!context.user && context.user.role === "admin";
-				},
-				create: async (context) => !!context.user,
-				update: async (context) => {
-					return !!context.user && (
-						context.user.role === "admin" || 
-						context.existingData?.userId === context.user.id
-					);
-				},
-				delete: async (context) => {
-					return !!context.user && (
-						context.user.role === "admin" || 
-						context.existingData?.userId === context.user.id
-					);
-				},
-			},
-			hooks: {
-				beforeCreate: async (context) => {
-					if (context.user) {
-						context.data.userId = context.user.id;
-					}
-				},
-			},
-		}),
 	],
 	
-	// Global hooks that apply to all resources
 	hooks: {
 		beforeCreate: async (context) => {
 			console.log(`Creating ${context.resource}:`, context.data);
@@ -265,15 +81,12 @@ export const query = betterQuery({
 			console.log(`Deleted ${context.resource} with ID:`, context.id);
 		},
 	},
-
-	// Enable CORS for development
 	cors: {
 		origin: ["http://localhost:3000"],
 		credentials: true,
 	},
 });
 
-// Type-safe query client
 export const queryClient = createQueryClient<typeof query>({
 	baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/query",
 });
@@ -281,7 +94,6 @@ export const queryClient = createQueryClient<typeof query>({
 export type Query = typeof query;
 export type QueryClient = typeof queryClient;
 
-// Legacy aliases for backward compatibility
 export const crud = query;
 export const crudClient = queryClient;
 export type Crud = typeof query;

@@ -5,7 +5,7 @@
 
 import { expect, test } from "@playwright/test";
 import { z } from "zod";
-import { betterQuery } from "../src/index";
+import { adiemus } from "../src/index";
 
 // Define a test schema
 const productSchema = z.object({
@@ -19,7 +19,7 @@ const productSchema = z.object({
 });
 
 // Create CRUD instance for testing
-const crud = betterQuery({
+const crud = adiemus({
 	resources: [
 		createResource({
 			name: "product",

@@ -6,7 +6,7 @@ export const productSchema = withId({
   name: z.string().min(1, "Product name is required"),
   description: z.string().optional(),
   price: z.number().positive("Price must be positive"),
-  originalPrice: z.number().positive().optional(),
+  /**originalPrice: z.number().positive().optional(),
   status: z.enum(["active", "inactive", "draft"]).default("draft"),
   categoryId: z.string().optional(),
   tags: z.array(z.string()).default([]),
@@ -44,7 +44,7 @@ export const productSchema = withId({
       metaDescription: z.string().optional(),
       slug: z.string().optional(),
     })
-    .optional(),
+    .optional(),**/
 });
 
 // Category Schema - demonstrates hierarchical categories

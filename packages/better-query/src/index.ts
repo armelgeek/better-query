@@ -2,15 +2,21 @@
 export { betterQuery } from "./query";
 export type { BetterQuery, BetterCrud } from "./query";
 
+// Legacy exports for backward compatibility  
+export { betterQuery as adiemus } from "./query";
 export { betterQuery as betterCrud } from "./query";
 
 // Client
 export { createQueryClient } from "./client";
 export type { QueryClient, QueryClientOptions } from "./client";
 
+// React Client
+export { createReactQueryClient, useQuery, useResource } from "./client";
+export type { ReactQueryClient, ReactQueryClientOptions } from "./client";
+
 // Legacy client exports
-export { createQueryClient as createCrudClient } from "./client";
-export type { QueryClient as CrudClient, QueryClientOptions as CrudClientOptions } from "./client";
+export { createQueryClient as createCrudClient, createReactQueryClient as createReactCrudClient } from "./client";
+export type { QueryClient as CrudClient, QueryClientOptions as CrudClientOptions, ReactQueryClient as ReactCrudClient, ReactQueryClientOptions as ReactCrudClientOptions } from "./client";
 
 // Types
 export * from "./types";

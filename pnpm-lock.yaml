@@ -145,12 +145,18 @@ importers:
       '@paralleldrive/cuid2':
         specifier: ^2.2.2
         version: 2.2.2
+      '@types/react':
+        specifier: '*'
+        version: 18.3.24
       better-call:
         specifier: ^0.1.20
         version: 0.1.38(typescript@5.9.2)
       kysely:
         specifier: ^0.27.4
         version: 0.27.6
+      react:
+        specifier: '>=16.8.0'
+        version: 18.3.1
       zod:
         specifier: ^3.22.5
         version: 3.25.76
