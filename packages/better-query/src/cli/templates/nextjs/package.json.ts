@@ -1,4 +1,8 @@
-{
+export function packageJsonTemplate(withAuth: boolean): string {
+	const authDependencies = withAuth ? `    "better-auth": "^1.0.0",
+` : "";
+	
+	return `{
   "name": "better-query-app",
   "version": "0.1.0",
   "private": true,
@@ -13,7 +17,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "next": "^14.2.0",
-    "better-query": "^0.0.1",
+${authDependencies}    "better-query": "^0.0.1",
     "better-sqlite3": "^11.1.2",
     "zod": "^3.22.5"
   },
@@ -29,4 +33,5 @@
     "postcss": "^8.4.0",
     "autoprefixer": "^10.4.0"
   }
+}`;
 }
