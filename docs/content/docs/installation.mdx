@@ -1,0 +1,429 @@
+---
+title: Installation
+description: Learn how to configure Better Query in your project.
+---
+
+<Steps>
+
+<Step>
+### Install the Package
+
+Let's start by adding Better Query to your project:
+
+```package-install
+better-query
+```
+
+<Callout type="info">
+If you're using a separate client and server setup, make sure to install Better Query in both parts of your project.
+</Callout>
+</Step>
+
+<Step>
+### Database Dependencies
+
+Install the appropriate database driver for your provider:
+
+```bash
+# For SQLite
+npm install better-sqlite3
+
+# For PostgreSQL  
+npm install pg @types/pg
+
+# For MySQL
+npm install mysql2
+```
+</Step>
+
+<Step>
+### Create A Better Query Instance
+
+Create a file named `query.ts` in one of these locations:
+
+- Project root
+- `lib/` folder
+- `utils/` folder
+
+You can also nest any of these folders under `src/`, `app/` or `server/` folder. (e.g. `src/lib/query.ts`, `app/lib/query.ts`).
+
+And in this file, import Better Query and create your query instance. Make sure to export the query instance with the variable name `query` or as a `default` export.
+
+```ts title="query.ts"
+import { betterQuery } from "better-query";
+
+export const query = betterQuery({
+  //...
+});
+```
+
+</Step>
+
+<Step>
+### Configure Database
+
+Better Query requires a database to store your data.
+You can easily configure Better Query to use SQLite, PostgreSQL, or MySQL, and more!
+
+<Tabs items={["sqlite", "postgres", "mysql"]}>
+    <Tab value="sqlite">
+    ```ts title="query.ts"
+    import { betterQuery } from "better-query";
+    import Database from "better-sqlite3";
+
+    export const query = betterQuery({
+        database: new Database("./sqlite.db"),
+    })
+    ```
+    </Tab>
+    <Tab value="postgres">
+    ```ts title="query.ts"
+    import { betterQuery } from "better-query";
+    import { Pool } from "pg";
+
+    export const query = betterQuery({
+        database: new Pool({
+            // connection options
+        }),
+    })
+    ```
+    </Tab>
+    <Tab value="mysql">
+    ```ts title="query.ts"
+    import { betterQuery } from "better-query";
+    import { createPool } from "mysql2/promise";
+
+    export const query = betterQuery({
+        database: createPool({
+            // connection options
+        }),
+    })
+    ```
+    </Tab>
+
+</Tabs>
+
+Alternatively, if you prefer to use an ORM, you can use one of the built-in adapters.
+
+<Tabs items={["drizzle", "prisma", "mongodb"]}>
+
+    <Tab value="drizzle">
+    ```ts title="query.ts"
+    import { betterQuery } from "better-query";
+    import { drizzleAdapter } from "better-query/adapters/drizzle";
+    import { db } from "@/db"; // your drizzle instance
+
+    export const query = betterQuery({
+        database: drizzleAdapter(db, {
+            provider: "pg", // or "mysql", "sqlite"
+        }),
+    });
+    ```
+    </Tab>
+    <Tab value="prisma">
+        ```ts title="query.ts"
+        import { betterQuery } from "better-query";
+        import { prismaAdapter } from "better-query/adapters/prisma";
+        // If your Prisma file is located elsewhere, you can change the path
+        import { PrismaClient } from "@/generated/prisma";
+
+        const prisma = new PrismaClient();
+        export const query = betterQuery({
+            database: prismaAdapter(prisma, {
+                provider: "sqlite", // or "mysql", "postgresql", ...etc
+            }),
+        });
+    ```
+    </Tab>
+
+    <Tab value="mongodb">
+    ```ts title="query.ts"
+    import { betterQuery } from "better-query";
+    import { mongodbAdapter } from "better-query/adapters/mongodb";
+    import { client } from "@/db"; // your mongodb client
+
+    export const query = betterQuery({
+        database: mongodbAdapter(client),
+    });
+    ```
+    </Tab>
+
+</Tabs>
+
+<Callout>
+  If your database is not listed above, check out our other supported
+  [databases](/docs/adapters/other-relational-databases) for more information,
+  or use one of the supported ORMs.
+</Callout>
+
+</Step>
+
+<Step>
+    ### Create Database Tables
+    Better Query includes a CLI tool to help manage the schema required by the library.
+
+    - **Generate**: This command generates an ORM schema or SQL migration file.
+
+    <Callout>
+    If you're using Kysely, you can apply the migration directly with `migrate` command below. Use `generate` only if you plan to apply the migration manually.
+    </Callout>
+
+    ```bash title="Terminal"
+    npx better-query generate
+    ```
+
+    - **Migrate**: This command creates the required tables directly in the database. (Available only for the built-in Kysely adapter)
+
+    ```bash title="Terminal"
+    npx better-query migrate
+    ```
+
+    see the [CLI documentation](/docs/concepts/cli) for more information.
+
+    <Callout>
+     If you instead want to create the schema manually, you can find the core schema required in the [database section](/docs/concepts/database#core-schema).
+    </Callout>
+
+</Step>
+
+<Step>
+
+### Define Resources
+
+Configure the resources (data models) you want to create CRUD endpoints for. Better Query uses Zod schemas for validation and type safety.
+
+```ts title="query.ts"
+import { betterQuery, createResource, withId } from "better-query";
+import { z } from "zod";
+
+// Define your resource schema
+const productSchema = withId({
+  name: z.string().min(1, "Product name is required"),
+  description: z.string().optional(),
+  price: z.number().min(0, "Price must be positive"),
+  status: z.enum(["active", "inactive", "draft"]).default("draft"),
+});
+
+export const query = betterQuery({
+  //...other options // [!code highlight]
+  resources: [ // [!code highlight]
+    createResource({ // [!code highlight]
+      name: "product", // [!code highlight]
+      schema: productSchema, // [!code highlight]
+      permissions: { // [!code highlight]
+        create: () => true,         // Allow all creates // [!code highlight]
+        read: () => true,           // Allow all reads // [!code highlight]
+        update: () => true,         // Allow all updates   // [!code highlight]
+        delete: () => false,        // Disallow all deletes // [!code highlight]
+        list: () => true,           // Allow all lists // [!code highlight]
+      }, // [!code highlight]
+    }), // [!code highlight]
+  ], // [!code highlight]
+});
+```
+
+<Callout type="info">
+You can create even more advanced resource configurations using [hooks](/docs/concepts/hooks), [plugins](/docs/plugins), and more advanced permission logic.
+</Callout>
+</Step>
+
+<Step>
+### Mount Handler
+To handle API requests, you need to set up a route handler on your server.
+
+Create a new file or route in your framework's designated catch-all route handler. This route should handle requests for the path `/api/*` (unless you've configured a different base path).
+
+<Callout>
+  Better Query supports any backend framework with standard Request and Response
+  objects and offers helper functions for popular frameworks.
+</Callout>
+
+<Tabs items={["next-js", "nuxt", "svelte-kit", "remix", "solid-start", "hono", "cloudflare-workers", "express", "elysia", "tanstack-start", "expo"]} defaultValue="next-js">
+    <Tab value="next-js">
+        ```ts title="/app/api/[...query]/route.ts"
+        import { query } from "@/lib/query"; // path to your query file
+        import { toNextJsHandler } from "better-query/next-js";
+
+        export const { POST, GET, PATCH, DELETE } = toNextJsHandler(query);
+        ```
+    </Tab>
+    <Tab value="nuxt">
+    ```ts title="/server/api/[...query].ts"
+    import { query } from "~/utils/query"; // path to your query file
+
+    export default defineEventHandler((event) => {
+        return query.handler(toWebRequest(event));
+    });
+    ```
+    </Tab>
+    <Tab value="svelte-kit">
+    ```ts title="hooks.server.ts"
+    import { query } from "$lib/query"; // path to your query file
+    import { svelteKitHandler } from "better-query/svelte-kit";
+    import { building } from '$app/environment'
+
+    export async function handle({ event, resolve }) {
+        return svelteKitHandler({ event, resolve, query, building });
+    }
+    ```
+    </Tab>
+    <Tab value="remix">
+    ```ts title="/app/routes/api.query.$.ts"
+    import { query } from '~/lib/query.server' // Adjust the path as necessary
+    import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node"
+
+    export async function loader({ request }: LoaderFunctionArgs) {
+        return query.handler(request)
+    }
+
+    export async function action({ request }: ActionFunctionArgs) {
+        return query.handler(request)
+    }
+    ```
+    </Tab>
+    <Tab value="solid-start">
+    ```ts title="/routes/api/query/*all.ts"
+    import { query } from "~/lib/query"; // path to your query file
+    import { toSolidStartHandler } from "better-query/solid-start";
+
+    export const { GET, POST, PATCH, DELETE } = toSolidStartHandler(query);
+    ```
+    </Tab>
+    <Tab value="hono">
+    ```ts title="src/index.ts"
+    import { Hono } from "hono";
+    import { query } from "./query"; // path to your query file
+    import { serve } from "@hono/node-server";
+    import { cors } from "hono/cors";
+
+    const app = new Hono();
+
+    app.on(["POST", "GET", "PATCH", "DELETE"], "/api/*", (c) => query.handler(c.req.raw));
+
+    serve(app);
+    ```
+    </Tab>
+    <Tab value="express">
+    ```ts title="server.ts"
+    import express from "express";
+    import { toNodeHandler } from "better-query/node";
+    import { query } from "./query";
+
+    const app = express();
+    const port = 8000;
+
+    app.all("/api/*", toNodeHandler(query));
+
+    // Mount express json middleware after Better Query handler
+    // or only apply it to routes that don't interact with Better Query
+    app.use(express.json());
+
+    app.listen(port, () => {
+        console.log(`Better Query app listening on port ${port}`);
+    });
+    ```
+    This will also work for any other node server framework like express, fastify, hapi, etc., but may require some modifications. See [fastify guide](/docs/integrations/fastify). Note that CommonJS (cjs) isn't supported.
+    </Tab>
+    <Tab value="astro">
+    ```ts title="/pages/api/[...query].ts"
+    import type { APIRoute } from "astro";
+    import { query } from "@/query"; // path to your query file
+
+    export const GET: APIRoute = async (ctx) => {
+        return query.handler(ctx.request);
+    };
+
+    export const POST: APIRoute = async (ctx) => {
+        return query.handler(ctx.request);
+    };
+
+    export const PATCH: APIRoute = async (ctx) => {
+        return query.handler(ctx.request);
+    };
+
+    export const DELETE: APIRoute = async (ctx) => {
+        return query.handler(ctx.request);
+    };
+    ```
+    </Tab>
+
+</Tabs>
+</Step>
+
+<Step>
+### Create Client Instance
+
+The client-side library helps you interact with the query server. Better Query comes with a client for all the popular web frameworks, including vanilla JavaScript.
+
+1. Import `createQueryClient` from the package for your framework (e.g., "better-query/react" for React).
+2. Call the function to create your client.
+3. Pass the base URL of your query server. (If the query server is running on the same domain as your client, you can skip this step.)
+
+<Callout type="info">
+  If you're using a different base path other than `/api` make sure to pass
+  the whole URL including the path. (e.g.
+  `http://localhost:3000/api/query`)
+</Callout>
+
+<Tabs items={["react", "vue", "svelte", "solid",
+  "vanilla"]} defaultValue="react">
+    <Tab value="vanilla">
+            ```ts  title="lib/query-client.ts"
+            import { createQueryClient } from "better-query/client"
+            export const queryClient = createQueryClient({
+                /** The base URL of the server (optional if you're using the same domain) */ // [!code highlight]
+                baseURL: "http://localhost:3000/api" // [!code highlight]
+            })
+            ```
+    </Tab>
+    <Tab value="react" title="lib/query-client.ts">
+            ```ts  title="lib/query-client.ts"
+            import { createQueryClient } from "better-query/react"
+            export const queryClient = createQueryClient({
+                /** The base URL of the server (optional if you're using the same domain) */ // [!code highlight]
+                baseURL: "http://localhost:3000/api" // [!code highlight]
+            })
+            ```
+    </Tab>
+    <Tab value="vue" title="lib/query-client.ts">
+            ```ts  title="lib/query-client.ts"
+            import { createQueryClient } from "better-query/vue"
+            export const queryClient = createQueryClient({
+                /** The base URL of the server (optional if you're using the same domain) */ // [!code highlight]
+                baseURL: "http://localhost:3000/api" // [!code highlight]
+            })
+            ```
+    </Tab>
+    <Tab value="svelte" title="lib/query-client.ts">
+            ```ts  title="lib/query-client.ts"
+            import { createQueryClient } from "better-query/svelte"
+            export const queryClient = createQueryClient({
+                /** The base URL of the server (optional if you're using the same domain) */ // [!code highlight]
+                baseURL: "http://localhost:3000/api" // [!code highlight]
+            })
+            ```
+    </Tab>
+    <Tab value="solid" title="lib/query-client.ts">
+            ```ts title="lib/query-client.ts"
+            import { createQueryClient } from "better-query/solid"
+            export const queryClient = createQueryClient({
+                /** The base URL of the server (optional if you're using the same domain) */ // [!code highlight]
+                baseURL: "http://localhost:3000/api" // [!code highlight]
+            })
+            ```
+    </Tab>
+</Tabs>
+
+<Callout type="info">
+Tip: You can also export specific methods if you prefer:
+</Callout>
+```ts
+export const { products, users, orders } = createQueryClient<typeof query>()
+```
+</Step>
+
+<Step>
+### 🎉 That's it!
+That's it! You're now ready to use Better Query in your application. Continue to [basic usage](/docs/basic-usage) to learn how to use the query instance to manage your resources.
+</Step>
+</Steps>
