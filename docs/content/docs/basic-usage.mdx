@@ -1,0 +1,428 @@
+---
+title: Basic Usage
+description: Getting started with Better Query
+---
+
+Better Query provides built-in CRUD endpoint generation for any resource you define with:
+
+- **Type-safe schemas** using Zod
+- **Permission controls** per operation (create, read, update, delete, list)
+- **Automatic client generation** with full TypeScript support
+
+But can also be easily extended using plugins, such as: [audit](/docs/plugins/audit), [cache](/docs/plugins/cache), [better-auth integration](/docs/plugins/better-auth), and more.
+
+## Resource Definition
+
+To create CRUD endpoints for a resource, you need to define it using `createResource`:
+
+```ts title="query.ts"
+import { betterQuery, createResource, withId } from "better-query"
+import { z } from "zod"
+
+// Define your schema
+const productSchema = withId({
+  name: z.string().min(1),
+  price: z.number().min(0),
+  status: z.enum(["active", "inactive", "draft"]).default("draft"),
+})
+
+export const query = betterQuery({
+    resources: [ // [!code highlight]
+        createResource({ // [!code highlight]
+            name: "product", // [!code highlight]
+            schema: productSchema, // [!code highlight]
+        }) // [!code highlight]
+    ] // [!code highlight]
+})
+```
+
+## Generated Endpoints
+
+For each resource, the following endpoints are automatically created:
+
+- `POST /api/product` - Create a product
+- `GET /api/product/:id` - Get a product by ID  
+- `PATCH /api/product/:id` - Update a product
+- `DELETE /api/product/:id` - Delete a product
+- `GET /api/products` - List products (with pagination)
+
+## Creating Resources
+
+To create a resource, you can use the client method `create` with the resource data.
+
+```ts title="create-product.ts"
+import { queryClient } from "@/lib/query-client"; //import the query client // [!code highlight]
+
+const { data, error } = await queryClient.product.create({
+    name: "Awesome T-Shirt",
+    price: 29.99,
+    status: "active"
+}, {
+    onRequest: (ctx) => {
+        //show loading
+    },
+    onSuccess: (ctx) => {
+        //redirect to the product page or show success message
+    },
+    onError: (ctx) => {
+        // display the error message
+        alert(ctx.error.message);
+    },
+});
+```
+
+By default, the resources are created with auto-generated IDs and timestamps. You can customize this behavior in your schema definition.
+
+```ts title="query.ts"
+import { betterQuery, createResource } from "better-query"
+import { z } from "zod"
+
+const productSchema = z.object({
+    id: z.string().optional(), // Will be auto-generated if not provided
+    name: z.string().min(1),
+    price: z.number().min(0),
+    createdAt: z.date().default(() => new Date()),
+    updatedAt: z.date().default(() => new Date()),
+})
+
+export const query = betterQuery({
+    resources: [
+        createResource({
+            name: "product",
+            schema: productSchema,
+        })
+    ]
+})
+```
+
+## Reading Resources
+
+To read a specific resource, you can use the `read` function provided by the client.
+
+```ts title="get-product"
+const { data, error } = await queryClient.product.read("product-id", {
+    headers: {
+        "X-API-Key": "your-api-key"
+    }
+});
+```
+
+<Callout type="warn">
+Always invoke client methods from the client side. Don't call them from the server.
+</Callout>
+
+## Server-Side Resource Management
+
+To manage resources on the server, you can use the `query.api` methods.
+
+```ts title="server.ts"
+import { query } from "./query"; // path to your Better Query server instance
+
+const response = await query.api.createProduct({
+    body: {
+        name: "New Product",
+        price: 49.99
+    },
+    asResponse: true // returns a response object instead of data
+});
+```
+
+<Callout>
+If the server cannot return a response object, you'll need to manually parse and set headers. But for frameworks like Next.js we provide [framework-specific helpers](/docs/integrations/next) to handle this automatically
+</Callout>
+
+## Updating Resources
+
+To update a resource, you can use the `update` method provided by the client.
+
+```ts title="update-product.ts"
+import { queryClient } from "@/lib/query-client"; //import the query client // [!code highlight]
+
+const { data, error } = await queryClient.product.update("product-id", {
+    price: 24.99, // Partial updates are supported
+    status: "active"
+}, {
+    headers: {
+        "X-API-Key": "your-api-key"
+    }
+});
+```
+
+## Deleting Resources
+
+To delete a resource, you can use the `delete` method provided by the client.
+
+```ts title="delete-product.ts"
+import { queryClient } from "@/lib/query-client"; //import the query client // [!code highlight]
+
+await queryClient.product.delete("product-id", {
+    headers: {
+        "X-API-Key": "your-api-key"
+    }
+});
+```
+
+You can pass `fetchOptions` to handle success/error callbacks:
+  
+```ts title="delete-product.ts" 
+await queryClient.product.delete("product-id", {
+    fetchOptions: {
+        onSuccess: () => {
+            // Redirect to products list or show success message
+            router.push("/products");
+        },
+        onError: (ctx) => {
+            alert("Failed to delete product");
+        }
+    },
+});
+```
+
+## Listing Resources
+
+To list resources with pagination and filtering, you can use the `list` method.
+
+```ts title="list-products.ts"
+const { data, error } = await queryClient.product.list({
+    page: 1,
+    limit: 10,
+    search: "shirt", // Search in searchable fields
+    sortBy: "name",
+    sortOrder: "asc",
+}, {
+    headers: {
+        "X-API-Key": "your-api-key"
+    }
+});
+
+console.log(data);
+// {
+//   items: [...products],
+//   pagination: {
+//     page: 1,
+//     limit: 10,
+//     total: 25,
+//     totalPages: 3,
+//     hasNext: true,
+//     hasPrev: false
+//   }
+// }
+```
+
+## Resource Management
+
+Once resources are defined, you'll want to control access and manage data. Better Query allows you to easily manage resources from both the server and client sides.
+
+### Client Side
+
+#### Using Client Methods
+
+Better Query provides type-safe client methods to interact with your resources, similar to Better Auth's approach.
+
+<Tabs items={["React", "Vanilla"]} defaultValue="react">
+    <Tab value="React">
+        ```tsx title="product-manager.tsx"
+        import { queryClient } from "@/lib/query-client" // import the query client // [!code highlight] 
+
+        export function ProductManager(){
+            const [products, setProducts] = useState([]);
+            const [loading, setLoading] = useState(false);
+
+            const fetchProducts = async () => {
+                setLoading(true);
+                const result = await queryClient.product.list({
+                    page: 1,
+                    limit: 10
+                });
+                if (result.data) {
+                    setProducts(result.data.items);
+                }
+                setLoading(false);
+            };
+
+            const createProduct = async (productData) => {
+                const result = await queryClient.product.create(productData);
+                if (result.data) {
+                    setProducts(prev => [...prev, result.data]);
+                }
+            };
+
+            return (
+                <div>
+                    {loading ? "Loading..." : (
+                        products.map(product => (
+                            <div key={product.id}>{product.name}</div>
+                        ))
+                    )}
+                </div>
+            )
+        }
+        ```
+    </Tab>
+
+         <Tab value="Vanilla">
+            ```ts title="product-manager.js"
+            import { queryClient } from "~/lib/query-client"; //import the query client
+
+            const products = [];
+            let loading = false;
+
+            const fetchProducts = async () => {
+                loading = true;
+                const result = await queryClient.product.list({
+                    page: 1,
+                    limit: 10
+                });
+                if (result.data) {
+                    products.push(...result.data.items);
+                }
+                loading = false;
+                renderProducts();
+            };
+
+            const renderProducts = () => {
+                const container = document.getElementById('products');
+                container.innerHTML = products.map(p => `<div>${p.name}</div>`).join('');
+            };
+            ```
+        </Tab>
+</Tabs>
+
+### Server Side
+
+The server provides resource management methods that you can use to handle resources directly. It requires request headers object to be passed when needed.
+
+**Example: Using some popular frameworks**
+
+<Tabs items={["Next.js", "Hono"]}>
+    <Tab value="Next.js">
+    ```ts title="server.ts"
+    import { query } from "./query"; // path to your Better Query server instance
+    import { headers } from "next/headers";
+
+    const product = await query.api.createProduct({
+        body: {
+            name: "Server Product",
+            price: 99.99
+        },
+        headers: await headers() // you need to pass the headers object.
+    })
+    ```
+    </Tab>
+    ```ts title="index.ts"
+    import { query } from "./query";
+
+    const app = new Hono();
+
+    app.post("/create-product", async (c) => {
+        const body = await c.req.json();
+        const product = await query.api.createProduct({
+            body,
+            headers: c.req.raw.headers
+        })
+        return c.json(product);
+    });
+    ```
+    </Tab>
+
+</Tabs>
+
+<Callout>
+For more details check [resource management](/docs/concepts/resources) documentation.
+</Callout>
+
+## Using Plugins
+
+One of the key features of Better Query is a plugins ecosystem. It allows you to add complex functionality with small lines of code, similar to Better Auth.
+
+Below is an example of how to add audit logging using the audit plugin.
+
+<Steps>
+
+<Step>
+### Server Configuration
+
+To add a plugin, you need to import the plugin and pass it to the `plugins` option of the query instance. For example, to add audit logging, you can use the following code:
+
+```ts title="query.ts"
+import { betterQuery, createResource } from "better-query"
+import { auditPlugin } from "better-query/plugins" // [!code highlight]
+
+export const query = betterQuery({
+    //...rest of the options
+    plugins: [ // [!code highlight]
+        auditPlugin() // [!code highlight]
+    ] // [!code highlight]
+})
+```
+now audit-related routes and methods will be available on the server.
+
+</Step>
+<Step>
+### Migrate Database
+
+After adding the plugin, you'll need to add the required tables to your database. You can do this by running the `migrate` command, or by using the `generate` command to create the schema and handle the migration manually.
+
+generating the schema:
+
+```bash title="terminal"
+npx better-query generate
+```
+
+using the `migrate` command:
+
+```bash title="terminal"
+npx better-query migrate
+```
+
+<Callout>
+If you prefer adding the schema manually, you can check the schema required on the [audit plugin](/docs/plugins/audit#schema) documentation.
+</Callout>
+
+</Step>
+<Step>
+### Client Configuration
+
+Once we're done with the server, we need to add the plugin to the client. To do this, you need to import the plugin and pass it to the `plugins` option of the query client. For example, to add audit functionality, you can use the following code:
+
+```ts title="query-client.ts"  
+import { createQueryClient } from "better-query/client";
+import { auditClient } from "better-query/client/plugins"; // [!code highlight]
+
+const queryClient = createQueryClient({
+    plugins: [ // [!code highlight]
+        auditClient({ // [!code highlight]
+            // Configuration options // [!code highlight]
+        }) // [!code highlight]
+    ] // [!code highlight]
+})
+```
+
+now audit-related methods will be available on the client.
+
+```ts title="audit-example.ts"
+import { queryClient } from "./query-client"
+
+const getAuditLogs = async() => {
+    const logs = await queryClient.audit.list({
+        resourceType: "product", // Filter by resource type
+        action: "create", // Filter by action
+        page: 1,
+        limit: 20
+    })
+    return logs;
+}
+
+const getResourceAuditHistory = async(resourceId: string) => {
+    const history = await queryClient.audit.getResourceHistory(resourceId, {
+        resourceType: "product"
+    })
+    return history;
+}
+```
+</Step>
+
+<Step>
+Next step: See the <Link href="/docs/plugins/audit">audit plugin documentation</Link>.
+</Step>
+</Steps>
