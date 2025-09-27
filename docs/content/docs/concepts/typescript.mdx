@@ -1,0 +1,176 @@
+---
+title: TypeScript
+description: Better Query TypeScript integration.
+---
+
+Better Query is designed to be type-safe. Both the client and server are built with TypeScript, allowing you to easily infer types.
+
+
+## TypeScript Config
+
+### Strict Mode
+
+Better Query is designed to work with TypeScript's strict mode. We recommend enabling strict mode in your TypeScript config file:
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "strict": true
+  }
+}
+```
+
+if you can't set `strict` to `true`, you can enable `strictNullChecks`:
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "strictNullChecks": true,
+  }
+}
+```
+
+<Callout type="warn">
+If you're running into issues with TypeScript inference exceeding maximum length the compiler will serialize,
+then please make sure you're following the instructions above, as well as ensuring that both `declaration` and `composite` are not enabled.
+</Callout>
+
+## Type Inference
+
+Better Query provides excellent TypeScript support through type inference from your server configuration. When you create a typed client, all resource methods and their types are automatically inferred.
+
+### Basic Type Inference
+
+```ts title="query-client.ts" 
+import { createQueryClient } from "better-query/client"
+import { query } from "./query" // Your server instance
+
+// Create a typed client - types are inferred from server config
+const queryClient = createQueryClient<typeof query>({
+    baseURL: "http://localhost:3000/api"
+})
+
+// Now all resource methods are fully typed
+// queryClient.product.create() - typed based on your product schema
+// queryClient.user.list() - typed based on your user schema
+```
+
+### Error Code Types
+
+The client exposes error codes for type-safe error handling:
+
+```ts title="error-handling.ts"
+import { createQueryClient } from "better-query/client"
+
+const queryClient = createQueryClient()
+
+// Access typed error codes
+const errorCodes = queryClient.$ERROR_CODES
+// Contains: VALIDATION_FAILED, FORBIDDEN, NOT_FOUND, etc.
+
+const { data, error } = await queryClient.product.create({ name: "" })
+if (error?.code === queryClient.$ERROR_CODES.VALIDATION_FAILED) {
+    // Handle validation error
+}
+```
+
+
+## Resource Schema Types
+
+Better Query allows you to define resource schemas using Zod that are automatically typed throughout your application.
+
+```ts title="query.ts"
+import { betterQuery, createResource, withId } from "better-query"
+import { z } from "zod"
+import Database from "better-sqlite3"
+
+// Define your schema with proper typing
+const userSchema = withId({
+    name: z.string().min(1),
+    email: z.string().email(),
+    age: z.number().min(0).optional(),
+    role: z.enum(["user", "admin"]).default("user"),
+    createdAt: z.date().default(() => new Date()),
+})
+
+export const query = betterQuery({
+    database: new Database("database.db"),
+    resources: [
+        createResource({
+            name: "user",
+            schema: userSchema,
+        })
+    ]
+})
+
+// The schema types are automatically available to your typed client
+// when you use: createQueryClient<typeof query>()
+```
+
+
+### Schema Validation
+
+Schema fields determine the structure and validation rules for your resources. This includes type checking and validation during runtime.
+
+To define custom validation for a field, you can use Zod's validation methods:
+
+```ts
+import { z } from "zod"
+
+const userSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    email: z.string().email("Invalid email format"),
+    age: z.number().min(18, "Must be at least 18 years old").optional()
+})
+```
+
+When defining resources, schema validation ensures that data conforms to the expected structure both on creation and updates.
+
+By default, all schema fields are included in resource operations, which provides type safety throughout your application. For fields that should be computed or set automatically, you can handle this in hooks or plugins.
+
+### Inferring Resource Types on Client
+
+## Client Type Inference
+
+To ensure proper type inference for resources on the client side, you need to pass your server's type when creating the client. There are two approaches depending on your project structure:
+
+### 1. Monorepo or Single-Project Setups
+
+If your server and client code reside in the same project, you can directly import and reference your server configuration:
+
+```ts title="query-client.ts"
+import { createQueryClient } from "better-query/client";
+import type { query } from "./query"; // Import the server instance type
+
+export const queryClient = createQueryClient<typeof query>({
+    baseURL: "http://localhost:3000/api"
+});
+
+// Now queryClient has full type inference for all your resources
+```
+
+### 2. Separate Client-Server Projects
+
+If your client and server are in separate projects, you'll need to export the server type and import it into your client project:
+
+**Server project:**
+```ts title="query.ts"
+import { betterQuery, createResource, withId } from "better-query";
+
+export const query = betterQuery({
+    // ... configuration
+});
+
+// Export the type for the client to use
+export type QueryInstance = typeof query;
+```
+
+**Client project:**
+```ts title="query-client.ts"
+import { createQueryClient } from "better-query/client";
+import type { QueryInstance } from "../server/query"; // Import from server
+
+export const queryClient = createQueryClient<QueryInstance>({
+    baseURL: "http://localhost:3000/api"
+});
+```
