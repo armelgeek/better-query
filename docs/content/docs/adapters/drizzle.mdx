@@ -1,0 +1,105 @@
+---
+title: Drizzle ORM Adapter
+description: Integrate Better Query with Drizzle ORM.
+---
+
+Drizzle ORM is a powerful and flexible ORM for Node.js and TypeScript. It provides a simple and intuitive API for working with databases, and supports a wide range of databases including MySQL, PostgreSQL, SQLite, and more.
+Read more here: [Drizzle ORM](https://orm.drizzle.team/).
+
+## Example Usage
+
+Make sure you have Drizzle installed and configured.
+Then, you can use the Drizzle adapter to connect to your database.
+
+```ts title="query.ts"
+import { betterQuery } from "better-query";
+import { drizzleAdapter } from "better-query/adapters/drizzle";
+import { db } from "./database.ts";
+
+export const query = betterQuery({
+  database: drizzleAdapter(db, {
+    // [!code highlight]
+    provider: "sqlite", // or "pg" or "mysql" // [!code highlight]
+  }), // [!code highlight]
+  //... the rest of your config
+});
+```
+
+## Schema generation & migration
+
+The [Better Query CLI](/docs/concepts/cli) allows you to generate or migrate
+your database schema based on your Better Query configuration and plugins.
+
+To generate the schema required by Better Query, run the following command:
+
+```bash title="Schema Generation"
+npx @better-query/cli@latest generate
+```
+
+To generate and apply the migration, run the following commands:
+
+```bash title="Schema Migration"
+npx drizzle-kit generate # generate the migration file
+npx drizzle-kit migrate # apply the migration
+```
+
+## Additional Information
+
+The Drizzle adapter expects the schema you define to match the table names. For example, if your Drizzle schema maps the `user` table to `users`, you need to manually pass the schema and map it to the user table.
+
+```ts
+import { betterQuery } from "better-query";
+import { db } from "./drizzle";
+import { drizzleAdapter } from "better-query/adapters/drizzle";
+import { schema } from "./schema";
+
+export const query = betterQuery({
+  database: drizzleAdapter(db, {
+    provider: "sqlite", // or "pg" or "mysql"
+    schema: {
+      ...schema,
+      user: schema.users,
+    },
+  }),
+});
+```
+
+If all your tables are using plural form, you can just pass the `usePlural` option:
+```ts
+export const query = betterQuery({
+  database: drizzleAdapter(db, {
+    ...
+    usePlural: true,
+  }),
+});
+```
+
+If you're looking for performance improvements or tips, take a look at our guide to <Link href="/docs/guides/optimizing-for-performance">performance optimizations</Link>.
+
+## Custom Operations
+
+The Drizzle adapter comes with powerful custom operations that allow you to leverage Drizzle-specific functionality beyond basic CRUD operations. These include batch operations, raw SQL queries, upserts, complex joins, and advanced aggregations.
+
+```typescript
+// Example: Batch insert for better performance
+const products = await query.customOperation('batchInsert', {
+  model: 'product',
+  data: [
+    { name: 'Laptop', price: 1000 },
+    { name: 'Mouse', price: 25 },
+    { name: 'Keyboard', price: 75 },
+  ]
+});
+
+// Example: Complex aggregations
+const stats = await query.customOperation('aggregate', {
+  model: 'product',
+  aggregations: [
+    { field: 'price', operation: 'avg' },
+    { field: 'id', operation: 'count' }
+  ],
+  groupBy: ['categoryId']
+});
+```
+
+Learn more about all available custom operations and how to create your own in the [Custom Operations Guide](/docs/guides/custom-operations).

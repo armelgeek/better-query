@@ -1,0 +1,66 @@
+---
+title: Database
+description: Learn how to use a database with Better Query.
+---
+
+## Adapters
+
+Better Query requires a database connection to store your resource data. The database will be used to store data such as your resources (products, users, orders, etc.), metadata, and any additional data defined by plugins.
+
+You can pass a database connection to Better Query by passing a supported database instance in the database options. You can learn more about supported database adapters in the [Other relational databases](/docs/adapters/other-relational-databases) documentation.
+
+## CLI
+
+Better Query comes with a CLI tool to manage database migrations and generate schema.
+
+### Running Migrations
+
+The CLI checks your database and prompts you to add missing tables or update existing ones with new columns. This is only supported for the built-in Kysely adapter. For other adapters, you can use the `generate` command to create the schema and handle the migration through your ORM.
+
+```bash
+npx better-query migrate
+```
+
+### Generating Schema
+
+Better Query also provides a `generate` command to generate the schema required by Better Query. The `generate` command creates the schema required by Better Query based on your resource definitions. If you're using a database adapter like Prisma or Drizzle, this command will generate the right schema for your ORM. If you're using the built-in Kysely adapter, it will generate an SQL file you can run directly on your database.
+
+```bash
+npx better-query generate
+```
+
+See the [CLI](/docs/concepts/cli) documentation for more information on the CLI.
+
+<Callout>
+  If you prefer adding tables manually, you can do that as well. The core schema
+  required by Better Query is dynamically generated based on your resource definitions, 
+  and you can find additional schema required by plugins in the plugin documentation.
+</Callout>
+
+## Custom Operations
+
+Beyond the standard CRUD operations, Better Query adapters support **custom operations** that allow you to leverage ORM-specific functionality. These operations provide access to advanced features like:
+
+- **Batch operations** for improved performance with large datasets
+- **Raw SQL queries** for complex database operations
+- **Transactions** for atomic multi-step operations
+- **Advanced aggregations** and reporting queries
+- **Upsert operations** with conflict resolution
+
+Each adapter comes with its own set of built-in custom operations tailored to that ORM's strengths. You can also create your own custom operations for domain-specific functionality.
+
+```typescript
+// Example: Check available operations
+const operations = query.getCustomOperations();
+console.log(Object.keys(operations)); // ['batchInsert', 'rawQuery', 'upsert', ...]
+
+// Example: Use a custom operation
+if (query.hasCustomOperation('batchInsert')) {
+  const result = await query.customOperation('batchInsert', {
+    model: 'product',
+    data: largeProductArray
+  });
+}
+```
+
+Learn more in the [Custom Operations Guide](/docs/guides/custom-operations).
