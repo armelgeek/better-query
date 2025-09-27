@@ -1,0 +1,157 @@
+---
+title: TypeScript
+description: Better Query TypeScript integration.
+---
+
+Better Query is designed to be type-safe. Both the client and server are built with TypeScript, allowing you to easily infer types.
+
+
+## TypeScript Config
+
+### Strict Mode
+
+Better Query is designed to work with TypeScript's strict mode. We recommend enabling strict mode in your TypeScript config file:
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "strict": true
+  }
+}
+```
+
+if you can't set `strict` to `true`, you can enable `strictNullChecks`:
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "strictNullChecks": true,
+  }
+}
+```
+
+<Callout type="warn">
+If you're running into issues with TypeScript inference exceeding maximum length the compiler will serialize,
+then please make sure you're following the instructions above, as well as ensuring that both `declaration` and `composite` are not enabled.
+</Callout>
+
+## Inferring Types
+
+Both the client SDK and the server offer types that can be inferred using the `$Infer` property. Plugins can extend base types like `User` and `Session`, and you can use `$Infer` to infer these types. Additionally, plugins can provide extra types that can also be inferred through `$Infer`.
+
+```ts title="query-client.ts" 
+import { createQueryClient } from "better-query/client"
+
+const queryClient = createQueryClient()
+
+export type QueryResponse = typeof queryClient.$Infer.QueryResponse
+```
+
+The `QueryResponse` type includes both the data and metadata properties. You can also infer specific resource types.
+
+You can also infer types on the server side.
+
+```ts title="query.ts" 
+import { betterQuery } from "better-query"
+import Database from "better-sqlite3"
+
+export const query = betterQuery({
+    database: new Database("database.db")
+})
+
+type QueryInstance = typeof query.$Infer.QueryInstance
+```
+
+
+## Resource Schema Types
+
+Better Query allows you to define resource schemas that are automatically typed. All fields are properly inferred and available on the server and client side.
+
+```ts 
+import { betterQuery } from "better-query"
+import Database from "better-sqlite3"
+import { z } from "zod"
+
+export const query = betterQuery({
+    database: new Database("database.db"),
+    resources: [
+        {
+            name: "user",
+            schema: z.object({
+                id: z.string(),
+                name: z.string(),
+                email: z.string().email(),
+                role: z.enum(["admin", "user"]).default("user")
+            })
+        }
+    ]
+})
+
+type UserResource = typeof query.$Infer.Resources.User
+```
+
+In the example above, we defined a `User` resource schema. This schema is now available as a type.
+
+
+### Schema Validation
+
+Schema fields determine the structure and validation rules for your resources. This includes type checking and validation during runtime.
+
+To define custom validation for a field, you can use Zod's validation methods:
+
+```ts
+import { z } from "zod"
+
+const userSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    email: z.string().email("Invalid email format"),
+    age: z.number().min(18, "Must be at least 18 years old").optional()
+})
+```
+
+When defining resources, schema validation ensures that data conforms to the expected structure both on creation and updates.
+
+By default, all schema fields are included in resource operations, which provides type safety throughout your application. For fields that should be computed or set automatically, you can handle this in hooks or plugins.
+
+### Inferring Resource Types on Client
+
+To make sure proper type inference for resources on the client side, you need to inform the client about these types. There are two approaches to achieve this, depending on your project structure:
+
+1. For Monorepo or Single-Project Setups
+
+If your server and client code reside in the same project, you can use the `inferResourceTypes` plugin to automatically infer the resource types from your server configuration.
+
+```ts
+import { inferResourceTypes } from "better-query/client/plugins";
+import { createQueryClient } from "better-query/react";
+import type { query } from "./query";
+
+export const queryClient = createQueryClient({
+  plugins: [inferResourceTypes<typeof query>()],
+});
+```
+
+2. For Separate Client-Server Projects
+
+If your client and server are in separate projects, you'll need to manually specify the resource types when creating the query client.
+
+```ts
+import { inferResourceTypes } from "better-query/client/plugins";
+import { z } from "zod";
+
+export const queryClient = createQueryClient({
+  plugins: [inferResourceTypes({
+      resources: [
+        {
+          name: "user",
+          schema: z.object({
+            id: z.string(),
+            name: z.string(),
+            email: z.string().email(),
+            role: z.enum(["admin", "user"])
+          })
+        }
+      ]
+  })],
+});
+```
