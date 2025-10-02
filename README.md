@@ -1,4 +1,4 @@
-# Better Kit 🚀
+# Better Query 🚀
 
 > **A powerful, type-safe toolkit for building modern web applications**
 
