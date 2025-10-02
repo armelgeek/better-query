@@ -2,7 +2,7 @@
 
 > **A powerful, type-safe toolkit for building modern web applications**
 
-Better Kit is a comprehensive TypeScript monorepo containing production-ready libraries for CRUD operations, admin interfaces, and more. Built with developer experience and type safety in mind.
+Better Query is a comprehensive TypeScript monorepo containing production-ready libraries for CRUD operations, admin interfaces, and more. Built with developer experience and type safety in mind.
 
 ## 📦 Packages
 
