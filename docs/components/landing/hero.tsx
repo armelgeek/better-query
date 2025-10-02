@@ -116,7 +116,7 @@ export default function Hero() {
 											</svg>
 										</Link>
 										<Link
-											href="https://github.com/armelgeek/better-kit"
+											href="https://github.com/armelgeek/better-query"
 											target="_blank"
 										>
 											<svg

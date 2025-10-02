@@ -6,7 +6,7 @@ import Link from "next/link";
 async function getGitHubStars() {
 	try {
 		const response = await fetch(
-			"https://api.github.com/repos/armelgeek/better-kit",
+			"https://api.github.com/repos/armelgeek/better-query",
 			{
 				next: {
 					revalidate: 60,

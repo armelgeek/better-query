@@ -352,6 +352,6 @@ This example demonstrates core authentication concepts. You can extend it with:
 
 ## Learn More
 
-- [Better Query Documentation](https://armelgeek.github.io/better-kit)
+- [Better Query Documentation](https://armelgeek.github.io/better-query)
 - [Better Auth Documentation](https://better-auth.com)
-- [Plugin System Guide](https://armelgeek.github.io/better-kit/docs/concepts/plugins)
+- [Plugin System Guide](https://armelgeek.github.io/better-query/docs/concepts/plugins)

@@ -47,8 +47,8 @@ const query = betterQuery({
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/armelgeek/better-kit.git
-cd better-kit
+git clone https://github.com/armelgeek/better-query.git
+cd better-query
 
 # Install dependencies
 pnpm install
@@ -76,7 +76,7 @@ pnpm dev
 
 ### Project Structure
 ```
-better-kit/
+better-query/
 ├── packages/
 │   ├── better-query/     # CRUD generator core
 │   └── shared/           # Shared utilities
@@ -105,7 +105,7 @@ pnpm release      # Release new version
 ### Contributing
 ```bash
 # Fork the repo and clone your fork
-git clone https://github.com/YOUR_USERNAME/better-kit.git
+git clone https://github.com/YOUR_USERNAME/better-query.git
 
 # Create a branch for your changes
 git checkout -b feature/your-feature-name
@@ -181,8 +181,8 @@ pnpm test
 
 ## 🤝 Community
 
-- **💬 Discussions** - [GitHub Discussions](https://github.com/armelgeek/better-kit/discussions)
-- **🐛 Issues** - [Bug Reports](https://github.com/armelgeek/better-kit/issues)
+- **💬 Discussions** - [GitHub Discussions](https://github.com/armelgeek/better-query/discussions)
+- **🐛 Issues** - [Bug Reports](https://github.com/armelgeek/better-query/issues)
 - **📝 Contributing** - [Contribution Guide](./CONTRIBUTING.md)
 - **📄 License** - [MIT License](./LICENSE)
 

@@ -50,7 +50,7 @@ export default async function Page({
 			full={page.data.full}
 			editOnGithub={{
 				owner: "armelgeek",
-				repo: "better-kit",
+				repo: "better-query",
 				sha: "main",
 				path: `/docs/content/docs/${page.path}`,
 			}}
@@ -64,7 +64,7 @@ export default async function Page({
 					<LLMCopyButton />
 					<ViewOptions
 						markdownUrl={`${page.url}.mdx`}
-						githubUrl={`https://github.com/armelgeek/better-kit/blob/main/docs/content/docs/${page.file.path}`}
+						githubUrl={`https://github.com/armelgeek/better-query/blob/main/docs/content/docs/${page.file.path}`}
 					/>
 				</div>
 			)}

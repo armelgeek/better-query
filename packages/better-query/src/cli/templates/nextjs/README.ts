@@ -28,7 +28,7 @@ BETTER_AUTH_SECRET=your-secret-key-here
 
 	return `# Better Query App
 
-This is a [Next.js](https://nextjs.org/) project with [Better Query](https://github.com/armelgeek/better-kit) for type-safe CRUD operations.
+This is a [Next.js](https://nextjs.org/) project with [Better Query](https://github.com/armelgeek/better-query) for type-safe CRUD operations.
 
 ## Getting Started
 
@@ -79,7 +79,7 @@ npm run generate:types
 
 ## Learn More
 
-To learn more about Better Query, check out the [Better Query Documentation](https://github.com/armelgeek/better-kit).
+To learn more about Better Query, check out the [Better Query Documentation](https://github.com/armelgeek/better-query).
 
 To learn more about Next.js, take a look at the following resources:
 
