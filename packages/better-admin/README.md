@@ -1,21 +1,42 @@
 # Better Admin
 
-A CLI tool for installing Better Admin components with automatic shadcn/ui dependency resolution and first-class Better Query and Better Auth integration.
+A comprehensive admin interface solution with **78 production-ready components**, built specifically for **better-auth** and **better-query** integration. No ra-core, no ra-data-simple-rest, just pure better-query goodness.
 
-**✨ 76 Production-Ready Components** organized into 10 categories, with integrated providers for authentication and data operations.
+**✨ Key Features:**
+- 🔐 **better-auth** for authentication (not ra-core)
+- 📊 **better-query** for data operations (not ra-data-simple-rest)
+- 🎯 Full TypeScript type safety
+- 📦 78 components across 10 categories
+- 🚀 Built on shadcn/ui
+- 🔧 CLI for easy installation
 
-## Features
+## Why Better Admin?
 
-- 🔐 **Better Auth Provider**: First-class integration with better-auth for authentication
-- 📊 **Better Query Provider**: Built-in data provider for better-query integration
-- 🎯 **Better Query Native**: Components designed specifically for Better Query patterns
-- 📦 **Automatic Dependencies**: Auto-installs shadcn/ui components and npm packages
-- 🗂️ **76 Components**: Complete admin component library across 10 categories
-- 🔧 **CLI Installation**: Simple commands to add components to your project
-- 📋 **Component Registry**: Curated collection of production-ready admin components
-- ⚙️ **Configurable**: Customize paths, aliases, and registry sources
-- 🎨 **TypeScript First**: Full type safety with Better Query integration
-- 🚀 **Based on shadcn-admin-kit**: Following proven patterns from marmelab/shadcn-admin-kit
+Unlike traditional admin frameworks like react-admin:
+- ✅ **Direct database access** via better-query (no REST API required)
+- ✅ **Full type safety** from database to UI
+- ✅ **Modern stack**: React Query, better-auth, better-query
+- ✅ **Smaller bundle**: No Material-UI, no Redux
+- ✅ **100% customizable**: Components copied to your project
+
+## Architecture
+
+```
+better-admin/
+├── Auth Provider → better-auth integration
+├── Data Provider → better-query integration  
+└── 78 Components
+    ├── Data Display (11)
+    ├── Forms (18)
+    ├── Layout (10)
+    ├── Buttons (13)
+    ├── Fields (9)
+    ├── Feedback (5)
+    ├── Views (3)
+    ├── Auth (2)
+    ├── UI (4)
+    └── Toolbars (2)
+```
 
 ## Installation
 
@@ -25,13 +46,13 @@ Initialize Better Admin in your project:
 npx better-admin init
 ```
 
-This creates a `better-admin.json` configuration file with sensible defaults.
+This creates a `better-admin.json` configuration file.
 
 ## Providers
 
-Better Admin includes providers for authentication and data operations that integrate with better-auth and better-query:
+Better Admin integrates with better-auth and better-query, **not** ra-core or react-admin:
 
-### Auth Provider
+### Auth Provider (better-auth)
 
 ```typescript
 import { createBetterAuthProvider } from "better-admin";
@@ -42,7 +63,7 @@ export const authProvider = createBetterAuthProvider({
 });
 ```
 
-### Data Provider
+### Data Provider (better-query)
 
 ```typescript
 import { createBetterQueryProvider } from "better-admin";
@@ -53,7 +74,7 @@ export const dataProvider = createBetterQueryProvider({
 });
 ```
 
-See the [documentation](./docs/content/docs/better-admin/) for detailed setup guides.
+All components use **better-query hooks** directly, not ra-core data providers.
 
 ## Quick Start
 
@@ -66,52 +87,84 @@ npx better-admin list
 **Filter by category:**
 ```bash
 npx better-admin list --category data-display
+npx better-admin list --category forms
 ```
 
-**Show only Better Query components:**
-```bash
-npx better-admin list --with-query
-```
-
-### 2. Add a Component
+### 2. Install Components
 
 ```bash
+# Install data table
 npx better-admin add data-table
+
+# Install CRUD form
+npx better-admin add crud-form
+
+# Install authentication
+npx better-admin add login-page
+
+# Install multiple components
+npx better-admin add data-table crud-form login-page
 ```
 
-This automatically:
-1. ✓ Detects required shadcn/ui dependencies
-2. ✓ Installs missing shadcn/ui components
-3. ✓ Installs npm packages
-4. ✓ Copies component to your project
+### 3. Use with better-query
 
-### 3. Use with Better Query
+All components use **better-query** for data operations:
 
-```tsx
-import { DataTable } from "@/components/ui/data-table";
-import { useQuery } from "better-query/react";
+```tsx title="app/admin/users/page.tsx"
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { DataTable } from "@/components/admin/data-table";
 
 export function UsersPage() {
-  const { list } = useQuery("user");
+  const { list } = useBetterQuery("user", query);
   const { data, isLoading } = list.useQuery();
   
   if (isLoading) return <div>Loading...</div>;
+  
+  const columns = [
+    { accessorKey: "name", header: "Name" },
+    { accessorKey: "email", header: "Email" },
+  ];
   
   return <DataTable columns={columns} data={data || []} />;
 }
 ```
 
+### 4. CRUD Operations
+
+```tsx title="app/admin/users/create/page.tsx"
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { CrudForm } from "@/components/admin/crud-form";
+
+export function UserCreate() {
+  const { create } = useBetterQuery("user", query);
+  
+  const fields = [
+    { name: "name", label: "Name", type: "text", required: true },
+    { name: "email", label: "Email", type: "email", required: true },
+  ];
+  
+  return (
+    <CrudForm
+      fields={fields}
+      onSubmit={create.mutateAsync}
+      submitLabel="Create User"
+    />
+  );
+}
+```
+
 ## Component Categories
 
-Better Admin includes **76 production-ready components** organized into 10 categories:
+Better Admin includes **78 production-ready components** organized into 10 categories:
 
 ### Data Display (`data-display`) - 11 components
 
-Components for displaying data from Better Query:
+Components for displaying data from better-query:
 
 - **data-table**: Powerful data table with sorting, filtering, pagination, and bulk actions
 - **list**: List view component with filtering, pagination, and export
-- **list-guesser**: Automatically generates list views based on data structure
 - **text-field**: Display text data in a formatted way
 - **number-field**: Display numeric data with formatting options
 - **date-field**: Display dates with formatting and localization
@@ -120,12 +173,14 @@ Components for displaying data from Better Query:
 - **badge-field**: Display status badges and tags
 - **file-field**: Display file information with download links
 - **record-field**: Display nested record data
+- **resource-list**: Display resource lists with navigation
 
-### Forms (`forms`) - 17 components
+### Forms (`forms`) - 18 components
 
-Form components with validation and Better Query mutations:
+Form components with validation and better-query mutations:
 
 - **form**: Base form component with validation and submission
+- **crud-form**: Flexible CRUD form builder with validation
 - **simple-form**: Simplified form layout for common use cases
 - **text-input**: Text input field with validation
 - **number-input**: Number input field with formatting
@@ -143,7 +198,7 @@ Form components with validation and Better Query mutations:
 - **search-input**: Search input with debouncing
 - **field-toggle**: Toggle field visibility
 
-### Layout (`layout`) - 9 components
+### Layout (`layout`) - 10 components
 
 Structural components for admin interfaces:
 
@@ -156,6 +211,7 @@ Structural components for admin interfaces:
 - **simple-show-layout**: Simplified show layout
 - **create**: Create/new record view
 - **edit**: Edit record view
+- **example-card**: Simple example card component
 
 ### Feedback (`feedback`) - 5 components
 
@@ -167,7 +223,7 @@ Loading states, errors, and notifications:
 - **spinner**: Loading spinner
 - **confirm**: Confirmation dialog
 
-### Buttons (`buttons`) - 14 components
+### Buttons (`buttons`) - 13 components
 
 Action buttons for common operations:
 
@@ -231,14 +287,17 @@ Toolbar and action bar components:
 - **bulk-actions-toolbar**: Toolbar for bulk actions
 - **ready**: Ready state indicator
 
-## Better Query Integration
+## better-query Integration
 
-All components are designed to work seamlessly with Better Query:
+All components are designed to work seamlessly with **better-query**, not ra-core:
 
 ### List View Pattern
 
 ```tsx
-const { list } = useQuery("resource");
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+
+const { list } = useBetterQuery("resource", query);
 const { data, isLoading, error } = list.useQuery();
 
 <DataTable data={data || []} columns={columns} />
@@ -247,7 +306,10 @@ const { data, isLoading, error } = list.useQuery();
 ### Create Pattern
 
 ```tsx
-const { create } = useQuery("resource");
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+
+const { create } = useBetterQuery("resource", query);
 
 <CrudForm 
   fields={fields} 
@@ -258,7 +320,10 @@ const { create } = useQuery("resource");
 ### Edit Pattern
 
 ```tsx
-const { get, update } = useQuery("resource");
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+
+const { get, update } = useBetterQuery("resource", query);
 const { data } = get.useQuery({ where: { id } });
 
 <CrudForm 
@@ -267,7 +332,7 @@ const { data } = get.useQuery({ where: { id } });
 />
 ```
 
-## Available Components
+## Featured Components
 
 ### data-table
 
@@ -277,11 +342,14 @@ A powerful data table with sorting, filtering, and pagination.
 - shadcn/ui: table, button, input, dropdown-menu, select
 - npm: @tanstack/react-table
 
-**Better Query:** `list` operation
+**better-query:** `list` operation
 
 **Example:**
 ```tsx
-const { list } = useQuery("user");
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+
+const { list } = useBetterQuery("user", query);
 const { data } = list.useQuery();
 
 <DataTable 
@@ -299,11 +367,14 @@ Flexible form builder with automatic validation.
 - shadcn/ui: form, input, button, label, select, textarea
 - npm: react-hook-form, @hookform/resolvers, zod
 
-**Better Query:** `create`, `update` operations
+**better-query:** `create`, `update` operations
 
 **Example:**
 ```tsx
-const { create } = useQuery("user");
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+
+const { create } = useBetterQuery("user", query);
 
 <CrudForm
   fields={[
@@ -321,11 +392,14 @@ Card-based grid layout for displaying resources.
 **Dependencies:**
 - shadcn/ui: card, button, badge
 
-**Better Query:** `list` operation
+**better-query:** `list` operation
 
 **Example:**
 ```tsx
-const { list } = useQuery("project");
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+
+const { list } = useBetterQuery("project", query);
 const { data } = list.useQuery();
 
 <ResourceList
@@ -502,9 +576,33 @@ npx better-admin add <component> --overwrite
 }
 ```
 
+## Why Not react-admin?
+
+Better Admin is specifically designed to use **better-query** and **better-auth** instead of react-admin's architecture:
+
+| Feature | react-admin | better-admin |
+|---------|-------------|--------------|
+| **Auth** | ra-core | better-auth |
+| **Data Layer** | ra-data-simple-rest | better-query |
+| **Type Safety** | Partial | Full (DB to UI) |
+| **Backend** | REST required | Direct DB access |
+| **State Management** | Redux | React Query |
+| **Bundle Size** | Large (~500KB) | Smaller |
+| **UI Components** | Material-UI | shadcn/ui |
+| **Customization** | Complex | Simple (copied files) |
+
+### Key Advantages
+
+1. **No REST API Required**: Direct database access via better-query
+2. **Full Type Safety**: TypeScript inference from database schema to UI
+3. **Modern Stack**: React Query, better-auth, shadcn/ui
+4. **Smaller Bundle**: Tree-shakeable components
+5. **Easy Customization**: All components copied to your project
+6. **Better DX**: Simpler API, less boilerplate
+
 ## Inspiration
 
-This project is inspired by [shadcn-admin-kit](https://marmelab.com/shadcn-admin-kit/) and follows similar patterns for admin component architecture while adding deep Better Query integration.
+This project is inspired by [shadcn-admin-kit](https://marmelab.com/shadcn-admin-kit/) and follows similar patterns for admin component architecture while adding deep better-query and better-auth integration instead of using ra-core.
 
 ## License
 

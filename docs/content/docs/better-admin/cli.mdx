@@ -1,0 +1,464 @@
+---
+title: CLI Reference
+description: Complete command-line interface reference for better-admin
+---
+
+# Better Admin CLI
+
+The Better Admin CLI provides commands for installing and managing components in your project.
+
+## Installation
+
+The CLI is included with the `better-admin` package:
+
+```bash title="Terminal"
+npm install better-admin
+```
+
+## Commands
+
+### `init`
+
+Initialize Better Admin in your project.
+
+```bash title="Terminal"
+npx better-admin init
+```
+
+This command:
+- Creates a `better-admin.json` configuration file
+- Sets up the components directory structure
+- Configures shadcn/ui integration
+
+**Options:**
+
+```bash
+npx better-admin init [options]
+
+Options:
+  --components-dir <path>  Components directory (default: "src/components")
+  --utils-dir <path>       Utils directory (default: "src/lib")
+  --force                  Overwrite existing configuration
+```
+
+**Example:**
+
+```bash title="Terminal"
+npx better-admin init --components-dir app/components
+```
+
+### `add`
+
+Install one or more components.
+
+```bash title="Terminal"
+npx better-admin add [component-names...]
+```
+
+This command:
+- Downloads the component from the registry
+- Installs required shadcn/ui dependencies
+- Installs npm dependencies
+- Copies files to your project
+
+**Examples:**
+
+```bash title="Terminal"
+# Install a single component
+npx better-admin add data-table
+
+# Install multiple components
+npx better-admin add data-table crud-form login-page
+
+# Install with options
+npx better-admin add data-table --force
+```
+
+**Options:**
+
+```bash
+Options:
+  -f, --force      Overwrite existing files
+  -y, --yes        Skip confirmation prompts
+  --dry-run        Show what would be installed without installing
+```
+
+### `list`
+
+List all available components.
+
+```bash title="Terminal"
+npx better-admin list
+```
+
+**Options:**
+
+```bash
+Options:
+  --category <name>    Filter by category
+  --json              Output as JSON
+```
+
+**Examples:**
+
+```bash title="Terminal"
+# List all components
+npx better-admin list
+
+# List components by category
+npx better-admin list --category forms
+npx better-admin list --category data-display
+
+# Get JSON output
+npx better-admin list --json
+```
+
+### `diff`
+
+Show differences between installed and registry versions.
+
+```bash title="Terminal"
+npx better-admin diff [component-name]
+```
+
+**Examples:**
+
+```bash title="Terminal"
+# Check all installed components
+npx better-admin diff
+
+# Check specific component
+npx better-admin diff data-table
+```
+
+### `update`
+
+Update installed components to latest versions.
+
+```bash title="Terminal"
+npx better-admin update [component-names...]
+```
+
+**Examples:**
+
+```bash title="Terminal"
+# Update all components
+npx better-admin update
+
+# Update specific components
+npx better-admin update data-table crud-form
+```
+
+### `remove`
+
+Remove installed components.
+
+```bash title="Terminal"
+npx better-admin remove [component-names...]
+```
+
+**Examples:**
+
+```bash title="Terminal"
+# Remove a component
+npx better-admin remove data-table
+
+# Remove multiple components
+npx better-admin remove data-table crud-form
+```
+
+## Component Categories
+
+List components by category:
+
+### Authentication
+
+```bash title="Terminal"
+npx better-admin list --category auth
+```
+
+Components: authentication, login-page
+
+### Data Display
+
+```bash title="Terminal"
+npx better-admin list --category data-display
+```
+
+Components: data-table, list, text-field, number-field, date-field, email-field, url-field, badge-field, file-field, record-field, resource-list
+
+### Forms
+
+```bash title="Terminal"
+npx better-admin list --category forms
+```
+
+Components: form, crud-form, simple-form, text-input, number-input, boolean-input, select-input, radio-button-group-input, file-input, array-input, autocomplete-input, autocomplete-array-input, reference-input, reference-array-input, filter-form, search-input, simple-form-iterator, field-toggle
+
+### Layout
+
+```bash title="Terminal"
+npx better-admin list --category layout
+```
+
+Components: admin, layout, app-sidebar, breadcrumb, list-pagination, show, simple-show-layout, create, edit, example-card
+
+### Fields
+
+```bash title="Terminal"
+npx better-admin list --category fields
+```
+
+Components: array-field, count, input-helper-text, reference-field, reference-array-field, reference-many-field, reference-many-count, select-field, single-field-list
+
+### Buttons
+
+```bash title="Terminal"
+npx better-admin list --category buttons
+```
+
+Components: create-button, edit-button, show-button, delete-button, bulk-delete-button, bulk-export-button, export-button, cancel-button, columns-button, icon-button-with-tooltip, sort-button, toggle-filter-button, refresh-button, locales-menu-button
+
+### Feedback
+
+```bash title="Terminal"
+npx better-admin list --category feedback
+```
+
+Components: loading, spinner, error, notification, confirm
+
+### Views
+
+```bash title="Terminal"
+npx better-admin list --category views
+```
+
+Components: list-guesser, edit-guesser, show-guesser
+
+### Toolbars
+
+```bash title="Terminal"
+npx better-admin list --category toolbars
+```
+
+Components: bulk-actions-toolbar, ready
+
+### UI
+
+```bash title="Terminal"
+npx better-admin list --category ui
+```
+
+Components: theme-provider, theme-mode-toggle, user-menu, saved-queries
+
+## Configuration
+
+The `better-admin.json` file stores your configuration:
+
+```json title="better-admin.json"
+{
+  "componentsDir": "src/components",
+  "utilsDir": "src/lib",
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "src/app/globals.css"
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils"
+  }
+}
+```
+
+## Workflow Examples
+
+### Setting Up a New Project
+
+```bash title="Terminal"
+# 1. Initialize better-admin
+npx better-admin init
+
+# 2. Install authentication
+npx better-admin add authentication login-page
+
+# 3. Install core layout
+npx better-admin add layout app-sidebar
+
+# 4. Install data components
+npx better-admin add data-table crud-form
+
+# 5. Install utility components
+npx better-admin add loading error notification
+```
+
+### Building a CRUD Interface
+
+```bash title="Terminal"
+# Install CRUD components
+npx better-admin add data-table crud-form create-button edit-button delete-button
+
+# Install view components
+npx better-admin add show simple-show-layout
+
+# Install feedback components
+npx better-admin add confirm notification
+```
+
+### Adding Forms
+
+```bash title="Terminal"
+# Basic form components
+npx better-admin add form simple-form
+
+# Input components
+npx better-admin add text-input number-input boolean-input select-input
+
+# Advanced inputs
+npx better-admin add autocomplete-input reference-input file-input array-input
+```
+
+### Setting Up Lists
+
+```bash title="Terminal"
+# List components
+npx better-admin add list data-table list-pagination
+
+# Filter and search
+npx better-admin add filter-form search-input toggle-filter-button
+
+# Bulk actions
+npx better-admin add bulk-actions-toolbar bulk-delete-button bulk-export-button
+```
+
+## Troubleshooting
+
+### Component Not Found
+
+```bash
+Error: Component 'xyz' not found in registry
+```
+
+**Solution:** Check available components:
+```bash
+npx better-admin list
+```
+
+### Dependency Conflicts
+
+```bash
+Warning: Dependency conflict with existing version
+```
+
+**Solution:** Use `--force` to overwrite:
+```bash
+npx better-admin add data-table --force
+```
+
+### Missing Configuration
+
+```bash
+Error: better-admin.json not found
+```
+
+**Solution:** Initialize first:
+```bash
+npx better-admin init
+```
+
+## Best Practices
+
+### 1. Install Components as Needed
+
+Don't install all components at once. Install only what you need:
+
+```bash title="Terminal"
+# Good: Install specific components
+npx better-admin add data-table crud-form
+
+# Avoid: Installing everything
+```
+
+### 2. Use Categories
+
+Filter by category to find related components:
+
+```bash title="Terminal"
+npx better-admin list --category forms
+```
+
+### 3. Check Updates Regularly
+
+Keep components up to date:
+
+```bash title="Terminal"
+npx better-admin diff
+npx better-admin update
+```
+
+### 4. Customize After Installation
+
+Components are copied to your project, so customize them:
+
+```tsx
+// Customize installed component
+import { DataTable } from "@/components/admin/data-table";
+
+export function CustomDataTable(props) {
+  return <DataTable {...props} className="custom-styles" />;
+}
+```
+
+## Integration with Package Managers
+
+### npm
+
+```bash title="Terminal"
+npx better-admin add data-table
+```
+
+### pnpm
+
+```bash title="Terminal"
+pnpm dlx better-admin add data-table
+```
+
+### yarn
+
+```bash title="Terminal"
+yarn dlx better-admin add data-table
+```
+
+### bun
+
+```bash title="Terminal"
+bunx better-admin add data-table
+```
+
+## CI/CD Integration
+
+### GitHub Actions
+
+```yaml title=".github/workflows/update-components.yml"
+name: Update Components
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Weekly
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm install
+      - run: npx better-admin update
+      - uses: peter-evans/create-pull-request@v5
+        with:
+          title: "Update better-admin components"
+```
+
+## Next Steps
+
+- [Components](/docs/better-admin/components) - Browse all components
+- [Quick Start](/docs/better-admin/quick-start) - Get started quickly
+- [Examples](/docs/better-admin/examples) - View example applications

@@ -5,18 +5,50 @@ description: Admin interface components with better-auth and better-query integr
 
 # Better Admin
 
-Better Admin is a comprehensive admin interface solution that integrates **better-auth** for authentication and **better-query** for data operations. Unlike traditional admin frameworks, it provides complete type safety and flexibility without the overhead of react-admin.
+Better Admin is a comprehensive admin interface solution that integrates **better-auth** for authentication and **better-query** for data operations. Unlike traditional admin frameworks like react-admin, it provides complete type safety and flexibility without the overhead of ra-core or REST API requirements.
 
 ## Why Better Admin?
 
 - 🔐 **Better Auth Integration**: Use better-auth instead of ra-core for authentication
-- 📊 **Better Query Integration**: Use better-query instead of REST data providers
+- 📊 **Better Query Integration**: Use better-query instead of ra-data-simple-rest
 - 🎯 **Type-Safe**: Full TypeScript inference from database to UI
-- 📦 **76+ Components**: Production-ready components organized in 10 categories
+- 📦 **78+ Components**: Production-ready components organized in 10 categories
 - 🚀 **Modern Stack**: Built on React Query, better-auth, and better-query
 - 📝 **CLI Tool**: Install components with automatic dependency resolution
 - 🎨 **Customizable**: Components copied to your project, fully customizable
 - 🔧 **No REST Required**: Direct database access or any backend
+- ⚡ **Performance**: Direct DB queries, no REST overhead
+
+## Architecture
+
+Better Admin follows a clean, modular architecture:
+
+```
+better-admin/
+├── Providers
+│   ├── Auth Provider (better-auth integration)
+│   └── Data Provider (better-query integration)
+├── Components (78 components)
+│   ├── Data Display
+│   ├── Forms
+│   ├── Layout
+│   └── ... 7 more categories
+└── CLI
+    └── Component installation & management
+```
+
+### Key Differences from react-admin
+
+| Feature | react-admin | better-admin |
+|---------|-------------|--------------|
+| **Auth** | ra-core | better-auth |
+| **Data** | ra-data-simple-rest | better-query |
+| **Type Safety** | Limited | Full inference |
+| **Backend** | REST required | Any backend |
+| **State** | Redux | React Query |
+| **Bundle Size** | Large | Smaller |
+| **UI Library** | Material-UI | shadcn/ui |
+| **Database** | Via REST | Direct access |
 
 ## Features
 
@@ -41,7 +73,7 @@ export const authProvider = createBetterAuthProvider({
 
 ### Data Operations with Better Query
 
-Better Admin uses better-query for all data operations:
+Better Admin uses better-query for all data operations, **not** ra-core or ra-data-simple-rest:
 
 - Type-safe CRUD operations
 - Built-in permissions
@@ -60,13 +92,13 @@ export const dataProvider = createBetterQueryProvider({
 
 ### Component Library
 
-76 production-ready components across 10 categories:
+78 production-ready components across 10 categories:
 
 - **Data Display** (11 components) - Tables, lists, fields
-- **Forms** (17 components) - Inputs, validation, submission
-- **Layout** (9 components) - Admin structure, navigation
+- **Forms** (18 components) - Inputs, validation, submission
+- **Layout** (10 components) - Admin structure, navigation
 - **Feedback** (5 components) - Loading, errors, notifications
-- **Buttons** (14 components) - Action buttons
+- **Buttons** (13 components) - Action buttons
 - **Fields** (9 components) - Field displays
 - **Views** (3 components) - Auto-generated views
 - **Authentication** (2 components) - Login, auth flows
