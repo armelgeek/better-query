@@ -1,0 +1,358 @@
+---
+title: Better Admin
+description: Admin interface components with better-auth and better-query integration
+---
+
+# Better Admin
+
+Better Admin is a comprehensive admin interface solution that integrates **better-auth** for authentication and **better-query** for data operations. Unlike traditional admin frameworks, it provides complete type safety and flexibility without the overhead of react-admin.
+
+## Why Better Admin?
+
+- 🔐 **Better Auth Integration**: Use better-auth instead of ra-core for authentication
+- 📊 **Better Query Integration**: Use better-query instead of REST data providers
+- 🎯 **Type-Safe**: Full TypeScript inference from database to UI
+- 📦 **76+ Components**: Production-ready components organized in 10 categories
+- 🚀 **Modern Stack**: Built on React Query, better-auth, and better-query
+- 📝 **CLI Tool**: Install components with automatic dependency resolution
+- 🎨 **Customizable**: Components copied to your project, fully customizable
+- 🔧 **No REST Required**: Direct database access or any backend
+
+## Features
+
+### Authentication with Better Auth
+
+Better Admin uses better-auth for authentication, providing:
+
+- Email/password authentication
+- OAuth providers (Google, GitHub, etc.)
+- Session management
+- Permission system
+- Type-safe auth hooks
+
+```typescript title="lib/admin-auth.ts"
+import { createBetterAuthProvider } from "better-admin";
+import { authClient } from "./auth-client";
+
+export const authProvider = createBetterAuthProvider({
+  authClient,
+});
+```
+
+### Data Operations with Better Query
+
+Better Admin uses better-query for all data operations:
+
+- Type-safe CRUD operations
+- Built-in permissions
+- Query caching with React Query
+- Relationships support
+- Direct database access
+
+```typescript title="lib/admin-data.ts"
+import { createBetterQueryProvider } from "better-admin";
+import { query } from "./query";
+
+export const dataProvider = createBetterQueryProvider({
+  queryClient: query,
+});
+```
+
+### Component Library
+
+76 production-ready components across 10 categories:
+
+- **Data Display** (11 components) - Tables, lists, fields
+- **Forms** (17 components) - Inputs, validation, submission
+- **Layout** (9 components) - Admin structure, navigation
+- **Feedback** (5 components) - Loading, errors, notifications
+- **Buttons** (14 components) - Action buttons
+- **Fields** (9 components) - Field displays
+- **Views** (3 components) - Auto-generated views
+- **Authentication** (2 components) - Login, auth flows
+- **UI Components** (4 components) - Theme, menus
+- **Toolbars** (2 components) - Action bars
+
+## Quick Start
+
+### Installation
+
+Initialize Better Admin in your project:
+
+```bash title="Terminal"
+npx better-admin init
+```
+
+This creates a `better-admin.json` configuration file.
+
+### Setup Authentication
+
+1. Install and configure better-auth:
+
+```bash title="Terminal"
+npm install better-auth
+```
+
+2. Create auth provider:
+
+```typescript title="lib/admin-auth.ts"
+import { createBetterAuthProvider } from "better-admin";
+import { authClient } from "./auth-client";
+
+export const authProvider = createBetterAuthProvider({
+  authClient,
+});
+```
+
+### Setup Data Provider
+
+1. Install and configure better-query:
+
+```bash title="Terminal"
+npm install better-query
+```
+
+2. Create data provider:
+
+```typescript title="lib/admin-data.ts"
+import { createBetterQueryProvider } from "better-admin";
+import { query } from "./query";
+
+export const dataProvider = createBetterQueryProvider({
+  queryClient: query,
+});
+```
+
+### Add Components
+
+Install your first component:
+
+```bash title="Terminal"
+npx better-admin add data-table
+```
+
+The CLI automatically:
+1. ✓ Detects required shadcn/ui dependencies
+2. ✓ Installs missing shadcn/ui components
+3. ✓ Installs npm dependencies
+4. ✓ Copies the component to your project
+
+### Use in Your App
+
+```tsx title="app/admin/users/page.tsx"
+"use client";
+
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { DataTable } from "@/components/ui/data-table";
+
+export default function UsersPage() {
+  const { list } = useBetterQuery("user", query);
+  const { data, isLoading } = list.useQuery();
+
+  if (isLoading) return <div>Loading...</div>;
+
+  const columns = [
+    { accessorKey: "name", header: "Name" },
+    { accessorKey: "email", header: "Email" },
+    { accessorKey: "role", header: "Role" },
+  ];
+
+  return <DataTable columns={columns} data={data || []} />;
+}
+```
+
+## Available Components
+
+### data-table
+
+A powerful data table with sorting, filtering, and pagination built on @tanstack/react-table.
+
+**Dependencies:**
+- shadcn/ui: table, button, input, dropdown-menu, select
+- npm: @tanstack/react-table
+
+**Better Query Integration:** `list` operation
+
+**Usage:**
+```tsx
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { DataTable } from "@/components/ui/data-table";
+
+export function UsersTable() {
+  const { list } = useBetterQuery("user", query);
+  const { data } = list.useQuery();
+
+  return (
+    <DataTable 
+      columns={columns} 
+      data={data || []}
+      searchKey="name"
+    />
+  );
+}
+```
+
+### crud-form
+
+A flexible CRUD form builder with validation using react-hook-form and zod.
+
+**Dependencies:**
+- shadcn/ui: form, input, button, label, select, textarea
+- npm: react-hook-form, @hookform/resolvers, zod
+
+**Better Query Integration:** `create`, `update` operations
+
+**Usage:**
+```tsx
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { CrudForm } from "@/components/ui/crud-form";
+
+export function UserForm() {
+  const { create } = useBetterQuery("user", query);
+
+  const fields = [
+    { name: "name", label: "Name", type: "text", required: true },
+    { name: "email", label: "Email", type: "email", required: true },
+  ];
+
+  return (
+    <CrudForm 
+      fields={fields}
+      onSubmit={create.mutateAsync}
+      submitLabel="Create User"
+    />
+  );
+}
+```
+
+### resource-list
+
+A reusable list component for displaying resources with actions.
+
+**Dependencies:**
+- shadcn/ui: card, button, badge
+
+**Better Query Integration:** `list` operation
+
+**Usage:**
+```tsx
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { ResourceList } from "@/components/ui/resource-list";
+
+export function ProjectsList() {
+  const { list } = useBetterQuery("project", query);
+  const { data } = list.useQuery();
+
+  return (
+    <ResourceList
+      items={data || []}
+      renderTitle={(item) => item.name}
+      renderDescription={(item) => item.description}
+      actions={[
+        { label: "View", onClick: (item) => viewItem(item) },
+        { label: "Edit", onClick: (item) => editItem(item) },
+      ]}
+    />
+  );
+}
+```
+
+## Configuration
+
+The `better-admin.json` file configures paths and aliases:
+
+```json title="better-admin.json"
+{
+  "$schema": "https://better-admin.dev/schema.json",
+  "style": "default",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "src/app/globals.css",
+    "baseColor": "slate",
+    "cssVariables": true
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui"
+  }
+}
+```
+
+## CLI Commands
+
+### init
+
+Initialize Better Admin in your project.
+
+```bash title="Terminal"
+npx better-admin init
+
+# Skip prompts and use defaults
+npx better-admin init --yes
+```
+
+### add
+
+Add a component to your project.
+
+```bash title="Terminal"
+npx better-admin add <component>
+
+# Overwrite existing files
+npx better-admin add data-table --overwrite
+
+# Install to custom path
+npx better-admin add data-table --path ./custom/path
+
+# Skip confirmation prompts
+npx better-admin add data-table --yes
+```
+
+### list
+
+List all available components.
+
+```bash title="Terminal"
+npx better-admin list
+
+# Filter by category
+npx better-admin list --category data-display
+
+# Show only better-query components
+npx better-admin list --with-query
+```
+
+## Architecture
+
+Better Admin follows a modular architecture:
+
+- **Providers**: Auth and data provider adapters for better-auth and better-query
+- **Components**: 76 pre-built components with better-query integration
+- **Registry**: Component metadata and dependency tracking
+- **CLI**: Command-line tool for component installation
+
+## Comparison with react-admin
+
+| Feature | react-admin | better-admin |
+|---------|-------------|--------------|
+| **Auth** | ra-core | better-auth |
+| **Data** | REST providers | better-query |
+| **Type Safety** | Limited | Full inference |
+| **Backend** | REST required | Any backend |
+| **State** | Redux | React Query |
+| **Bundle** | Large | Smaller |
+| **UI** | Material-UI | shadcn/ui |
+
+## Next Steps
+
+- [Auth Provider](/docs/better-admin/auth-provider) - Set up authentication with better-auth
+- [Data Provider](/docs/better-admin/data-provider) - Set up data operations with better-query
+- [Components](/docs/better-admin/components) - Browse available components
+- [Migration Guide](/docs/better-admin/migration) - Migrate from react-admin
