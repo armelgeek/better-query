@@ -1,0 +1,447 @@
+---
+title: Show
+description: Page component for displaying single records
+---
+
+# Show
+
+The `<Show>` component is the page component for the show view. It fetches a single record from the data provider and renders a default layout (title, actions) then delegates the actual rendering to its children (usually a `<SimpleShowLayout>`).
+
+## Usage
+
+```tsx
+import { Show, SimpleShowLayout, TextField, DateField } from '@/components/admin';
+
+export const PostShow = () => (
+  <Show>
+    <SimpleShowLayout>
+      <TextField source="id" />
+      <TextField source="title" />
+      <TextField source="content" />
+      <DateField source="created_at" />
+    </SimpleShowLayout>
+  </Show>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add show
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `children` | Required | `ReactNode` | - | Layout component (e.g. `<SimpleShowLayout>`) |
+| `title` | Optional | `string \| ReactNode` | resource name | Page title |
+| `actions` | Optional | `ReactNode` | default actions | Custom action buttons |
+| `resource` | Optional | `string` | inferred | Resource name |
+| `id` | Optional | `string \| number` | from URL | Record ID to display |
+
+## With better-query
+
+Show automatically fetches data using better-query:
+
+```tsx
+import { Show, SimpleShowLayout, TextField, EmailField } from '@/components/admin';
+
+export const UserShow = () => (
+  <Show>
+    <SimpleShowLayout>
+      <TextField source="name" />
+      <EmailField source="email" />
+      <TextField source="role" />
+      <DateField source="created_at" />
+    </SimpleShowLayout>
+  </Show>
+);
+```
+
+## Custom Title
+
+Display the record in the title:
+
+```tsx
+import { Show, SimpleShowLayout, TextField, useRecordContext } from '@/components/admin';
+
+const PostTitle = () => {
+  const record = useRecordContext();
+  return <span>Post "{record?.title}"</span>;
+};
+
+export const PostShow = () => (
+  <Show title={<PostTitle />}>
+    <SimpleShowLayout>
+      <TextField source="title" />
+      <TextField source="content" />
+    </SimpleShowLayout>
+  </Show>
+);
+```
+
+## Custom Actions
+
+Override the default action buttons:
+
+```tsx
+import { Show, SimpleShowLayout, EditButton, DeleteButton } from '@/components/admin';
+
+<Show
+  actions={
+    <div className="flex gap-2">
+      <EditButton />
+      <DeleteButton />
+      <Button>Custom Action</Button>
+    </div>
+  }
+>
+  <SimpleShowLayout>
+    {/* fields */}
+  </SimpleShowLayout>
+</Show>
+```
+
+## Field Components
+
+Better Admin provides various field components for displaying data:
+
+```tsx
+import {
+  Show,
+  SimpleShowLayout,
+  TextField,
+  NumberField,
+  DateField,
+  BooleanField,
+  EmailField,
+  UrlField,
+  ImageField,
+  FileField,
+  RichTextField,
+} from '@/components/admin';
+
+export const PostShow = () => (
+  <Show>
+    <SimpleShowLayout>
+      <TextField source="title" />
+      <RichTextField source="content" />
+      <NumberField source="views" />
+      <BooleanField source="published" />
+      <DateField source="created_at" showTime />
+      <EmailField source="author_email" />
+      <UrlField source="website" />
+      <ImageField source="cover_image" />
+    </SimpleShowLayout>
+  </Show>
+);
+```
+
+## Reference Fields
+
+Display related data from other resources:
+
+```tsx
+import { 
+  Show, 
+  SimpleShowLayout, 
+  TextField,
+  ReferenceField,
+  ReferenceArrayField,
+  SingleFieldList,
+  BadgeField
+} from '@/components/admin';
+
+export const PostShow = () => (
+  <Show>
+    <SimpleShowLayout>
+      <TextField source="title" />
+      <ReferenceField source="author_id" reference="users" label="Author">
+        <TextField source="name" />
+      </ReferenceField>
+      <ReferenceArrayField source="category_ids" reference="categories" label="Categories">
+        <SingleFieldList>
+          <BadgeField source="name" />
+        </SingleFieldList>
+      </ReferenceArrayField>
+    </SimpleShowLayout>
+  </Show>
+);
+```
+
+## Reference Many Field
+
+Display related records:
+
+```tsx
+import {
+  Show,
+  SimpleShowLayout,
+  TextField,
+  ReferenceManyField,
+  DataTable,
+  DateField,
+} from '@/components/admin';
+
+export const UserShow = () => (
+  <Show>
+    <SimpleShowLayout>
+      <TextField source="name" />
+      <EmailField source="email" />
+      
+      <ReferenceManyField
+        reference="posts"
+        target="author_id"
+        label="Posts by this author"
+      >
+        <DataTable>
+          <DataTable.Col source="title" />
+          <DataTable.Col source="status" />
+          <DataTable.Col source="created_at">
+            <DateField />
+          </DataTable.Col>
+          <DataTable.Col>
+            <EditButton />
+          </DataTable.Col>
+        </DataTable>
+      </ReferenceManyField>
+    </SimpleShowLayout>
+  </Show>
+);
+```
+
+## Custom Layout
+
+Create a custom layout instead of using SimpleShowLayout:
+
+```tsx
+import { Show, TextField, DateField, useRecordContext } from '@/components/admin';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+
+const PostShowContent = () => {
+  const record = useRecordContext();
+  
+  if (!record) return null;
+  
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <h2 className="text-2xl font-bold">{record.title}</h2>
+        </CardHeader>
+        <CardContent>
+          <div className="prose max-w-none">
+            {record.content}
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <h3>Metadata</h3>
+        </CardHeader>
+        <CardContent>
+          <dl className="space-y-2">
+            <div>
+              <dt className="font-semibold">Status</dt>
+              <dd>{record.status}</dd>
+            </div>
+            <div>
+              <dt className="font-semibold">Created</dt>
+              <dd>
+                <DateField source="created_at" showTime />
+              </dd>
+            </div>
+          </dl>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export const PostShow = () => (
+  <Show>
+    <PostShowContent />
+  </Show>
+);
+```
+
+## Tabs Layout
+
+Organize fields into tabs:
+
+```tsx
+import { Show, TabbedShowLayout, Tab, TextField, DateField } from '@/components/admin';
+
+export const PostShow = () => (
+  <Show>
+    <TabbedShowLayout>
+      <Tab label="Content">
+        <TextField source="title" />
+        <TextField source="content" />
+      </Tab>
+      <Tab label="Metadata">
+        <TextField source="status" />
+        <DateField source="created_at" />
+        <DateField source="updated_at" />
+      </Tab>
+      <Tab label="SEO">
+        <TextField source="meta_title" />
+        <TextField source="meta_description" />
+      </Tab>
+    </TabbedShowLayout>
+  </Show>
+);
+```
+
+## Conditional Fields
+
+Show fields conditionally:
+
+```tsx
+import { Show, SimpleShowLayout, TextField, useRecordContext } from '@/components/admin';
+
+const ConditionalFields = () => {
+  const record = useRecordContext();
+  
+  return (
+    <>
+      <TextField source="title" />
+      {record?.type === 'published' && (
+        <>
+          <DateField source="published_at" />
+          <TextField source="published_by" />
+        </>
+      )}
+    </>
+  );
+};
+
+export const PostShow = () => (
+  <Show>
+    <SimpleShowLayout>
+      <ConditionalFields />
+    </SimpleShowLayout>
+  </Show>
+);
+```
+
+## Complete Example
+
+```tsx
+import {
+  Show,
+  SimpleShowLayout,
+  TextField,
+  RichTextField,
+  DateField,
+  BooleanField,
+  ReferenceField,
+  ReferenceArrayField,
+  ReferenceManyField,
+  DataTable,
+  SingleFieldList,
+  BadgeField,
+  ImageField,
+  EditButton,
+  DeleteButton,
+  useRecordContext,
+} from '@/components/admin';
+
+const PostTitle = () => {
+  const record = useRecordContext();
+  return <span>Post "{record?.title}"</span>;
+};
+
+export const PostShow = () => (
+  <Show
+    title={<PostTitle />}
+    actions={
+      <div className="flex gap-2">
+        <EditButton />
+        <DeleteButton />
+      </div>
+    }
+  >
+    <SimpleShowLayout>
+      <TextField source="id" />
+      <ImageField source="cover_image" />
+      <TextField source="title" />
+      <RichTextField source="content" />
+      
+      <ReferenceField source="author_id" reference="users" label="Author">
+        <TextField source="name" />
+      </ReferenceField>
+      
+      <ReferenceArrayField source="category_ids" reference="categories">
+        <SingleFieldList>
+          <BadgeField source="name" />
+        </SingleFieldList>
+      </ReferenceArrayField>
+      
+      <BooleanField source="published" />
+      <TextField source="status" />
+      <DateField source="created_at" showTime />
+      <DateField source="updated_at" showTime />
+      
+      <ReferenceManyField
+        reference="comments"
+        target="post_id"
+        label="Comments"
+      >
+        <DataTable>
+          <DataTable.Col source="author" />
+          <DataTable.Col source="content" />
+          <DataTable.Col source="created_at">
+            <DateField />
+          </DataTable.Col>
+        </DataTable>
+      </ReferenceManyField>
+    </SimpleShowLayout>
+  </Show>
+);
+```
+
+## Loading State
+
+The Show component handles loading automatically:
+
+```tsx
+export const PostShow = () => (
+  <Show>
+    <SimpleShowLayout>
+      {/* Loading spinner is shown while fetching */}
+      <TextField source="title" />
+    </SimpleShowLayout>
+  </Show>
+);
+```
+
+## Error Handling
+
+Errors are displayed automatically:
+
+```tsx
+export const PostShow = () => (
+  <Show>
+    <SimpleShowLayout>
+      {/* Error message is shown if fetch fails */}
+      <TextField source="title" />
+    </SimpleShowLayout>
+  </Show>
+);
+```
+
+## Related Components
+
+- [Edit](/docs/better-admin/components/edit) - Edit records
+- [List](/docs/better-admin/components/list) - List records
+- [SimpleShowLayout](/docs/better-admin/components/simple-show-layout) - Layout for Show
+- [Field Components](/docs/better-admin/components/fields) - Display fields
+
+## Next Steps
+
+- [Learn about Field Components](/docs/better-admin/components/fields)
+- [Display Related Data](/docs/better-admin/components/reference-field)
+- [Customize Layouts](/docs/better-admin/components/layouts)

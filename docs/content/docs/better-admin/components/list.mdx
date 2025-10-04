@@ -1,0 +1,362 @@
+---
+title: List
+description: Root component for list pages with filtering, sorting, and pagination
+---
+
+# List
+
+The `<List>` component is the root component for list pages. It fetches a list of records from the data provider (via better-query), renders a default layout (breadcrumb, title, action buttons, filters, pagination), then renders its children (usually a `<DataTable>`).
+
+## Usage
+
+Here is a minimal example to display a list of users with a DataTable:
+
+```tsx
+import { DataTable, List } from "@/components/admin";
+
+export const UserList = () => (
+  <List>
+    <DataTable>
+      <DataTable.Col source="id" />
+      <DataTable.Col source="name" />
+      <DataTable.Col source="email" />
+      <DataTable.Col source="role" />
+    </DataTable>
+  </List>
+);
+```
+
+That's enough to display a basic list with sorting and pagination.
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add list
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `children` | Optional* | `ReactNode` | - | Component(s) that display the records (e.g. `<DataTable>`) |
+| `actions` | Optional | `ReactNode` | default actions | Custom actions area (right side of header) |
+| `filters` | Optional | `ReactElement[]` | - | Array of filter input elements |
+| `filter` | Optional | `object` | - | Permanent filters always applied |
+| `filterDefaultValues` | Optional | `object` | - | Initial filter form values |
+| `pagination` | Optional | `ReactNode` | `<ListPagination />` | Custom pagination component |
+| `perPage` | Optional | `number` | `10` | Records per page |
+| `sort` | Optional | `{ field: string; order: 'ASC'\|'DESC' }` | - | Initial sort |
+| `title` | Optional | `string \| ReactNode` | resource name | Page title |
+| `resource` | Optional | `string` | inferred | Resource name |
+| `empty` | Optional | `ReactNode` | default message | Content when no records |
+
+## With better-query
+
+List integrates seamlessly with better-query:
+
+```tsx
+import { List, DataTable } from "@/components/admin";
+import { query } from "@/lib/query";
+
+export const PostList = () => (
+  <List 
+    resource="posts"
+    sort={{ field: 'created_at', order: 'DESC' }}
+    perPage={20}
+  >
+    <DataTable>
+      <DataTable.Col source="title" />
+      <DataTable.Col source="author" />
+      <DataTable.Col source="created_at" />
+    </DataTable>
+  </List>
+);
+```
+
+## Actions Toolbar
+
+By default, the page header shows a toolbar with action buttons:
+
+```tsx
+<List
+  actions={
+    <>
+      <CreateButton />
+      <ExportButton />
+    </>
+  }
+>
+  <DataTable>
+    {/* columns */}
+  </DataTable>
+</List>
+```
+
+Custom actions:
+
+```tsx
+import { CreateButton, ExportButton, RefreshButton } from '@/components/admin';
+
+<List
+  actions={
+    <div className="flex gap-2">
+      <RefreshButton />
+      <CreateButton label="New Post" />
+      <ExportButton />
+      <Button>Custom Action</Button>
+    </div>
+  }
+>
+  <DataTable>
+    {/* columns */}
+  </DataTable>
+</List>
+```
+
+## Filters
+
+Add filters to allow users to narrow down the list:
+
+```tsx
+import { 
+  List, 
+  DataTable, 
+  TextInput, 
+  SelectInput,
+  SearchInput 
+} from '@/components/admin';
+
+const postFilters = [
+  <SearchInput source="q" alwaysOn />,
+  <SelectInput 
+    source="status" 
+    choices={[
+      { id: 'published', name: 'Published' },
+      { id: 'draft', name: 'Draft' },
+    ]} 
+  />,
+  <TextInput source="author" />,
+];
+
+export const PostList = () => (
+  <List filters={postFilters}>
+    <DataTable>
+      {/* columns */}
+    </DataTable>
+  </List>
+);
+```
+
+### Permanent Filters
+
+Apply filters that are always active and hidden from users:
+
+```tsx
+<List filter={{ status: 'published' }}>
+  <DataTable>
+    {/* only shows published posts */}
+  </DataTable>
+</List>
+```
+
+### Default Filter Values
+
+Set initial values for filters:
+
+```tsx
+<List filterDefaultValues={{ status: 'published', author: 'John' }}>
+  <DataTable>
+    {/* columns */}
+  </DataTable>
+</List>
+```
+
+## Pagination
+
+List includes pagination by default. Customize it:
+
+```tsx
+import { List, ListPagination } from '@/components/admin';
+
+<List
+  pagination={<ListPagination rowsPerPageOptions={[10, 25, 50, 100]} />}
+  perPage={25}
+>
+  <DataTable>
+    {/* columns */}
+  </DataTable>
+</List>
+```
+
+Disable pagination:
+
+```tsx
+<List pagination={false}>
+  <DataTable>
+    {/* columns */}
+  </DataTable>
+</List>
+```
+
+## Sorting
+
+Set default sorting:
+
+```tsx
+<List sort={{ field: 'created_at', order: 'DESC' }}>
+  <DataTable>
+    <DataTable.Col source="title" />
+    <DataTable.Col source="created_at" sortable />
+  </DataTable>
+</List>
+```
+
+## Empty State
+
+Customize what shows when there are no records:
+
+```tsx
+<List
+  empty={
+    <div className="text-center py-12">
+      <h3 className="text-lg font-semibold">No posts yet</h3>
+      <p className="text-muted-foreground">Get started by creating your first post</p>
+      <CreateButton className="mt-4" />
+    </div>
+  }
+>
+  <DataTable>
+    {/* columns */}
+  </DataTable>
+</List>
+```
+
+## Title
+
+Customize the page title:
+
+```tsx
+<List title="All Blog Posts">
+  <DataTable>
+    {/* columns */}
+  </DataTable>
+</List>
+
+// Or with a component
+<List 
+  title={
+    <div className="flex items-center gap-2">
+      <h1>Posts</h1>
+      <Badge>New</Badge>
+    </div>
+  }
+>
+  <DataTable>
+    {/* columns */}
+  </DataTable>
+</List>
+```
+
+## Complete Example
+
+Here's a complete example with all features:
+
+```tsx
+import {
+  List,
+  DataTable,
+  SearchInput,
+  SelectInput,
+  CreateButton,
+  ExportButton,
+  EditButton,
+  DeleteButton,
+  ReferenceField,
+  DateField,
+  TextField,
+  BooleanField,
+} from '@/components/admin';
+
+const postFilters = [
+  <SearchInput source="q" alwaysOn />,
+  <SelectInput
+    source="status"
+    choices={[
+      { id: 'published', name: 'Published' },
+      { id: 'draft', name: 'Draft' },
+    ]}
+  />,
+];
+
+export const PostList = () => (
+  <List
+    title="Blog Posts"
+    filters={postFilters}
+    sort={{ field: 'created_at', order: 'DESC' }}
+    perPage={20}
+    actions={
+      <>
+        <CreateButton />
+        <ExportButton />
+      </>
+    }
+  >
+    <DataTable>
+      <DataTable.Col source="id" />
+      <DataTable.Col source="title">
+        <TextField />
+      </DataTable.Col>
+      <DataTable.Col label="Author">
+        <ReferenceField source="author_id" reference="users">
+          <TextField source="name" />
+        </ReferenceField>
+      </DataTable.Col>
+      <DataTable.Col source="status" />
+      <DataTable.Col source="published">
+        <BooleanField />
+      </DataTable.Col>
+      <DataTable.Col source="created_at">
+        <DateField />
+      </DataTable.Col>
+      <DataTable.Col label="Actions">
+        <div className="flex gap-2">
+          <EditButton />
+          <DeleteButton />
+        </div>
+      </DataTable.Col>
+    </DataTable>
+  </List>
+);
+```
+
+## Integration with better-query
+
+List automatically uses better-query for data fetching:
+
+```tsx
+// In your resource configuration
+import { query } from "@/lib/query";
+
+// List will use this automatically
+export const PostList = () => (
+  <List resource="posts">
+    <DataTable>
+      {/* The data comes from query.post.list() */}
+    </DataTable>
+  </List>
+);
+```
+
+## Related Components
+
+- [DataTable](/docs/better-admin/components/data-table) - Display records in a table
+- [ListPagination](/docs/better-admin/components/list-pagination) - Pagination controls
+- [SearchInput](/docs/better-admin/components/search-input) - Search filter
+- [CreateButton](/docs/better-admin/components/create-button) - Navigation to create page
+
+## Next Steps
+
+- [Learn about DataTable](/docs/better-admin/components/data-table)
+- [Add Filters](/docs/better-admin/components/filters)
+- [Configure Pagination](/docs/better-admin/components/list-pagination)
+- [Add Actions](/docs/better-admin/components/buttons)

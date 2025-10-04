@@ -1,0 +1,179 @@
+---
+title: Layout
+description: Application shell with sidebar, header, and navigation
+---
+
+# Layout
+
+The Layout component provides the application shell including sidebar, header (breadcrumb, theme toggles, user menu) and notification area. It's used by default in the `<Admin>` component.
+
+## Usage
+
+The Layout is provided via the `layout` prop of `Admin`. You normally don't render it directly:
+
+```tsx
+import { Admin } from "@/components/admin";
+import { Layout } from "@/components/admin/layout";
+
+const App = () => (
+  <Admin 
+    dataProvider={dataProvider}
+    authProvider={authProvider}
+    layout={Layout} // Optional: Layout is used by default
+  >
+    {/* Resources */}
+  </Admin>
+);
+```
+
+## Composition
+
+The Layout includes:
+
+- **AppSidebar**: Collapsible navigation sidebar
+- **Header**: With breadcrumb portal, theme toggle, user menu
+- **Breadcrumb**: Navigation trail showing current location
+- **UserMenu**: User profile and logout options
+- **ThemeModeToggle**: Dark/light mode switcher
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add layout
+```
+
+## Customization
+
+### Custom Layout
+
+You can create your own layout component:
+
+```tsx
+import { AppSidebar } from "@/components/admin/app-sidebar";
+import { Breadcrumb } from "@/components/admin/breadcrumb";
+import { UserMenu } from "@/components/admin/user-menu";
+import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
+
+export const CustomLayout = ({ children }) => {
+  return (
+    <div className="flex h-screen">
+      <AppSidebar />
+      <div className="flex-1 flex flex-col">
+        <header className="border-b p-4 flex items-center justify-between">
+          <Breadcrumb />
+          <div className="flex items-center gap-2">
+            <ThemeModeToggle />
+            <UserMenu />
+          </div>
+        </header>
+        <main className="flex-1 overflow-auto p-6">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+// Use in Admin
+<Admin layout={CustomLayout}>
+  {/* Resources */}
+</Admin>
+```
+
+### Custom Sidebar
+
+Override the default sidebar:
+
+```tsx
+import { Layout } from "@/components/admin/layout";
+
+const CustomLayout = (props) => (
+  <Layout 
+    {...props}
+    sidebar={<CustomAppSidebar />}
+  />
+);
+```
+
+### Custom Header
+
+Add custom header actions:
+
+```tsx
+import { Layout } from "@/components/admin/layout";
+import { Button } from "@/components/ui/button";
+
+const CustomLayout = (props) => (
+  <Layout 
+    {...props}
+    header={
+      <div className="flex items-center gap-2">
+        <Button>Custom Action</Button>
+        <ThemeModeToggle />
+        <UserMenu />
+      </div>
+    }
+  />
+);
+```
+
+## Integration with better-auth
+
+The Layout automatically integrates with better-auth for user information:
+
+```tsx
+import { useBetterAuth } from "better-admin";
+import { authClient } from "@/lib/auth-client";
+
+export function UserMenu() {
+  const { user, signOut } = useBetterAuth(authClient);
+  
+  return (
+    <div className="flex items-center gap-2">
+      <span>{user?.name}</span>
+      <Button onClick={signOut}>Logout</Button>
+    </div>
+  );
+}
+```
+
+## Component Structure
+
+```
+Layout
+├── SidebarProvider
+│   └── AppSidebar
+│       ├── Navigation Menu
+│       └── Resource Links
+├── Header
+│   ├── SidebarTrigger
+│   ├── Breadcrumb Portal
+│   └── Actions
+│       ├── ThemeModeToggle
+│       ├── RefreshButton
+│       └── UserMenu
+└── Main Content Area
+    └── {children}
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | - | The page content to render |
+| `sidebar` | `ReactNode` | `<AppSidebar />` | Custom sidebar component |
+| `header` | `ReactNode` | default header | Custom header component |
+| `className` | `string` | - | Additional CSS classes |
+
+## Related Components
+
+- [AppSidebar](/docs/better-admin/components/app-sidebar) - Sidebar navigation
+- [Breadcrumb](/docs/better-admin/components/breadcrumb) - Breadcrumb navigation
+- [UserMenu](/docs/better-admin/components/user-menu) - User profile menu
+- [ThemeModeToggle](/docs/better-admin/components/theme-mode-toggle) - Theme switcher
+
+## Next Steps
+
+- [Customize the Sidebar](/docs/better-admin/components/app-sidebar)
+- [Add Custom Navigation](/docs/better-admin/components/breadcrumb)
+- [Configure User Menu](/docs/better-admin/components/user-menu)
