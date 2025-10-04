@@ -1,0 +1,470 @@
+---
+title: Permissions
+description: Secure your resources with granular permissions
+---
+
+# Permissions
+
+Better Query provides a powerful permission system to control access to your resources. Configure permissions per operation with access to the current user context.
+
+## Basic Permissions
+
+Each resource can define permissions for five operations:
+
+```typescript
+import { createResource } from "better-query";
+
+createResource({
+  name: "post",
+  schema: postSchema,
+  permissions: {
+    create: () => true,      // Allow all creates
+    read: () => true,        // Allow all reads
+    update: () => true,      // Allow all updates
+    delete: () => false,     // Deny all deletes
+    list: () => true,        // Allow all lists
+  },
+});
+```
+
+## User Context
+
+Access the authenticated user in permission functions:
+
+```typescript
+createResource({
+  name: "post",
+  schema: postSchema,
+  permissions: {
+    // Only authenticated users can create
+    create: (ctx) => !!ctx.user,
+    
+    // Anyone can read
+    read: () => true,
+    
+    // Only owner can update
+    update: (ctx, data) => {
+      return ctx.user?.id === data.authorId;
+    },
+    
+    // Only admins can delete
+    delete: (ctx) => {
+      return ctx.user?.role === "admin";
+    },
+    
+    // Authenticated users can list
+    list: (ctx) => !!ctx.user,
+  },
+});
+```
+
+## Permission Context
+
+The permission function receives a context object:
+
+```typescript
+interface PermissionContext {
+  user?: {
+    id: string;
+    email: string;
+    role: string;
+    // ... other user fields
+  };
+  request: Request;
+  headers: Headers;
+  db: DatabaseClient;
+}
+```
+
+## Role-Based Access Control
+
+Implement role-based permissions:
+
+```typescript
+const ROLES = {
+  USER: "user",
+  MODERATOR: "moderator",
+  ADMIN: "admin",
+} as const;
+
+function hasRole(ctx: PermissionContext, role: string): boolean {
+  return ctx.user?.role === role;
+}
+
+function hasAnyRole(ctx: PermissionContext, roles: string[]): boolean {
+  return ctx.user ? roles.includes(ctx.user.role) : false;
+}
+
+createResource({
+  name: "post",
+  schema: postSchema,
+  permissions: {
+    create: (ctx) => hasAnyRole(ctx, [ROLES.USER, ROLES.MODERATOR, ROLES.ADMIN]),
+    read: () => true,
+    update: (ctx, data) => {
+      // Owner or moderator can update
+      return ctx.user?.id === data.authorId || 
+             hasAnyRole(ctx, [ROLES.MODERATOR, ROLES.ADMIN]);
+    },
+    delete: (ctx) => hasRole(ctx, ROLES.ADMIN),
+    list: () => true,
+  },
+});
+```
+
+## Async Permissions
+
+Permissions can be async to query the database:
+
+```typescript
+createResource({
+  name: "comment",
+  schema: commentSchema,
+  permissions: {
+    create: async (ctx) => {
+      if (!ctx.user) return false;
+      
+      // Check if user is not banned
+      const user = await ctx.db.query("user")
+        .where("id", "=", ctx.user.id)
+        .first();
+      
+      return user && !user.banned;
+    },
+    
+    update: async (ctx, data) => {
+      // Only author can update
+      const comment = await ctx.db.query("comment")
+        .where("id", "=", data.id)
+        .first();
+      
+      return comment?.authorId === ctx.user?.id;
+    },
+  },
+});
+```
+
+## Organization-Based Permissions
+
+Control access based on organization membership:
+
+```typescript
+interface User {
+  id: string;
+  organizationId: string;
+  role: string;
+}
+
+createResource({
+  name: "project",
+  schema: projectSchema,
+  permissions: {
+    create: async (ctx) => {
+      if (!ctx.user) return false;
+      
+      // User must belong to an organization
+      return !!ctx.user.organizationId;
+    },
+    
+    read: async (ctx, data) => {
+      if (!ctx.user) return false;
+      
+      // Can only read projects in same organization
+      return data.organizationId === ctx.user.organizationId;
+    },
+    
+    update: async (ctx, data) => {
+      if (!ctx.user) return false;
+      
+      // Must be in same organization and have admin role
+      return data.organizationId === ctx.user.organizationId &&
+             ctx.user.role === "admin";
+    },
+    
+    delete: async (ctx, data) => {
+      if (!ctx.user) return false;
+      
+      // Only organization owners can delete
+      const org = await ctx.db.query("organization")
+        .where("id", "=", ctx.user.organizationId)
+        .first();
+      
+      return org?.ownerId === ctx.user.id;
+    },
+    
+    list: async (ctx) => {
+      // Filter by organization in list query
+      return true; // Handle filtering in query
+    },
+  },
+});
+```
+
+## Field-Level Permissions
+
+Control access to specific fields:
+
+```typescript
+createResource({
+  name: "user",
+  schema: userSchema,
+  permissions: {
+    read: (ctx, data) => {
+      // Users can read their own full profile
+      if (ctx.user?.id === data.id) {
+        return true;
+      }
+      
+      // Others can only see public fields
+      return {
+        id: true,
+        name: true,
+        avatar: true,
+        email: false,        // Hide email
+        phone: false,        // Hide phone
+        address: false,      // Hide address
+      };
+    },
+    
+    update: (ctx, data) => {
+      // Can only update own profile
+      if (ctx.user?.id !== data.id) {
+        return false;
+      }
+      
+      // Cannot update certain fields
+      return {
+        name: true,
+        avatar: true,
+        bio: true,
+        role: false,         // Cannot change role
+        verified: false,     // Cannot verify self
+      };
+    },
+  },
+});
+```
+
+## Computed Permissions
+
+Reuse permission logic:
+
+```typescript
+// Permission helpers
+const isAuthenticated = (ctx: PermissionContext) => !!ctx.user;
+
+const isOwner = (ctx: PermissionContext, data: { authorId: string }) => {
+  return ctx.user?.id === data.authorId;
+};
+
+const isAdmin = (ctx: PermissionContext) => {
+  return ctx.user?.role === "admin";
+};
+
+const isOwnerOrAdmin = (ctx: PermissionContext, data: { authorId: string }) => {
+  return isOwner(ctx, data) || isAdmin(ctx);
+};
+
+// Use in resource
+createResource({
+  name: "post",
+  schema: postSchema,
+  permissions: {
+    create: isAuthenticated,
+    read: () => true,
+    update: isOwnerOrAdmin,
+    delete: isOwnerOrAdmin,
+    list: () => true,
+  },
+});
+```
+
+## List Filtering
+
+Filter list queries based on permissions:
+
+```typescript
+createResource({
+  name: "post",
+  schema: postSchema,
+  permissions: {
+    list: async (ctx) => {
+      if (!ctx.user) {
+        // Anonymous users see only published posts
+        return {
+          where: {
+            status: "published",
+          },
+        };
+      }
+      
+      if (ctx.user.role === "admin") {
+        // Admins see all posts
+        return true;
+      }
+      
+      // Users see their own posts and published posts
+      return {
+        where: {
+          or: [
+            { authorId: ctx.user.id },
+            { status: "published" },
+          ],
+        },
+      };
+    },
+  },
+});
+```
+
+## Rate Limiting
+
+Implement rate limiting in permissions:
+
+```typescript
+const rateLimiter = new Map<string, number[]>();
+
+function checkRateLimit(
+  userId: string, 
+  maxRequests: number, 
+  windowMs: number
+): boolean {
+  const now = Date.now();
+  const timestamps = rateLimiter.get(userId) || [];
+  
+  // Remove old timestamps
+  const recent = timestamps.filter(ts => now - ts < windowMs);
+  
+  if (recent.length >= maxRequests) {
+    return false;
+  }
+  
+  recent.push(now);
+  rateLimiter.set(userId, recent);
+  return true;
+}
+
+createResource({
+  name: "post",
+  schema: postSchema,
+  permissions: {
+    create: async (ctx) => {
+      if (!ctx.user) return false;
+      
+      // Max 10 posts per hour
+      if (!checkRateLimit(ctx.user.id, 10, 60 * 60 * 1000)) {
+        throw new Error("Rate limit exceeded");
+      }
+      
+      return true;
+    },
+  },
+});
+```
+
+## Permission Errors
+
+Return custom error messages:
+
+```typescript
+createResource({
+  name: "post",
+  schema: postSchema,
+  permissions: {
+    update: async (ctx, data) => {
+      if (!ctx.user) {
+        throw new Error("You must be logged in to update posts");
+      }
+      
+      if (ctx.user.id !== data.authorId) {
+        throw new Error("You can only update your own posts");
+      }
+      
+      if (ctx.user.banned) {
+        throw new Error("Your account is banned");
+      }
+      
+      return true;
+    },
+  },
+});
+```
+
+## Best Practices
+
+### 1. Default Deny
+
+Start with deny-all and explicitly allow:
+
+```typescript
+createResource({
+  name: "sensitiveData",
+  schema: sensitiveSchema,
+  permissions: {
+    create: (ctx) => isAdmin(ctx),
+    read: (ctx) => isAdmin(ctx),
+    update: (ctx) => isAdmin(ctx),
+    delete: (ctx) => isAdmin(ctx),
+    list: (ctx) => isAdmin(ctx),
+  },
+});
+```
+
+### 2. Separate Permission Logic
+
+Keep permission logic separate and testable:
+
+```typescript
+// permissions/post.ts
+export const postPermissions = {
+  create: (ctx: PermissionContext) => !!ctx.user,
+  read: () => true,
+  update: (ctx: PermissionContext, data: Post) => {
+    return ctx.user?.id === data.authorId;
+  },
+  delete: (ctx: PermissionContext) => {
+    return ctx.user?.role === "admin";
+  },
+  list: () => true,
+};
+
+// resource.ts
+createResource({
+  name: "post",
+  schema: postSchema,
+  permissions: postPermissions,
+});
+```
+
+### 3. Cache Permission Checks
+
+Cache expensive permission checks:
+
+```typescript
+const permissionCache = new Map<string, boolean>();
+
+async function canUserAccessResource(
+  userId: string,
+  resourceId: string
+): Promise<boolean> {
+  const key = `${userId}:${resourceId}`;
+  
+  if (permissionCache.has(key)) {
+    return permissionCache.get(key)!;
+  }
+  
+  // Expensive database query
+  const result = await checkDatabase(userId, resourceId);
+  
+  permissionCache.set(key, result);
+  setTimeout(() => permissionCache.delete(key), 5000); // Clear after 5s
+  
+  return result;
+}
+```
+
+## Next Steps
+
+- [Better Auth Integration](/docs/better-query/auth-integration) - Authentication setup
+- [Resources](/docs/better-query/resources) - Define your data models
+- [Client SDK](/docs/better-query/client) - Use the type-safe client

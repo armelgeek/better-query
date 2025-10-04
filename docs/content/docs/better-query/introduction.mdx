@@ -1,0 +1,136 @@
+---
+title: Introduction to Better Query
+description: A type-safe CRUD generator with auto-generated REST APIs
+---
+
+# Better Query
+
+**Better Query** is a standalone, type-safe CRUD generator built on top of `better-call` that follows the architecture patterns of better-auth. It automatically generates REST API endpoints for your resources with minimal configuration, providing a complete backend solution for data management.
+
+## Key Features
+
+### 🚀 Quick Setup
+Get started instantly with the CLI generator. One command sets up your entire project structure with authentication integration.
+
+```bash title="Terminal"
+npx better-query init --with-auth
+```
+
+### 🔧 Automatic CRUD Endpoints
+Define your resources once, and Better Query automatically generates all CRUD endpoints:
+
+- `GET /api/query/[resource]` - List all items with pagination
+- `POST /api/query/[resource]` - Create new item
+- `GET /api/query/[resource]/[id]` - Get single item by ID
+- `PUT /api/query/[resource]/[id]` - Update existing item
+- `DELETE /api/query/[resource]/[id]` - Delete item
+
+### ✅ Type-Safe Development
+Full TypeScript support with Zod schema validation ensures your data integrity from database to client.
+
+```typescript
+import { z } from "zod";
+import { createResource, withId } from "better-query";
+
+const userSchema = withId({
+  name: z.string().min(1),
+  email: z.string().email(),
+  role: z.enum(["user", "admin"]).default("user"),
+});
+```
+
+### 🔐 Better Auth Integration
+Native integration with Better Auth provides authentication and authorization out of the box.
+
+```typescript
+const query = betterQuery({
+  auth: authClient,
+  resources: [
+    createResource({
+      name: "user",
+      schema: userSchema,
+      permissions: {
+        create: () => true,
+        read: (ctx) => !!ctx.user,
+        update: (ctx, data) => ctx.user?.id === data.id,
+        delete: (ctx) => ctx.user?.role === "admin",
+      },
+    }),
+  ],
+});
+```
+
+### 🔒 Granular Permissions
+Configure permissions per operation (create, read, update, delete, list) with access to the current user context.
+
+### 🏗️ Database Agnostic
+Works with multiple database providers via Kysely:
+
+- SQLite
+- PostgreSQL  
+- MySQL
+- MS SQL
+
+### 🎯 Type-Safe Client
+Client SDK with full TypeScript support, similar to better-auth. The client automatically infers types from your server configuration.
+
+```typescript
+import { createQueryClient } from "better-query/client";
+
+const client = createQueryClient({
+  baseUrl: "http://localhost:3000",
+});
+
+// Fully typed based on server schema
+const users = await client.user.list();
+const user = await client.user.get("user-id");
+```
+
+## Architecture
+
+Better Query follows a modular architecture:
+
+```
+better-query/
+├── Core System
+│   ├── betterQuery() - Main factory function
+│   ├── Resources - Data models and schemas
+│   └── Endpoints - Auto-generated REST APIs
+├── Client
+│   ├── Type-safe SDK
+│   ├── React hooks
+│   └── Realtime subscriptions
+├── Plugins
+│   ├── Audit - Track changes
+│   ├── Cache - Performance optimization
+│   ├── Upload - File handling
+│   ├── Realtime - Live updates
+│   ├── Validation - Advanced validation
+│   └── OpenAPI - API documentation
+└── Adapters
+    ├── Database adapters (Kysely)
+    └── Schema migrations
+```
+
+## When to Use Better Query
+
+Better Query is ideal for:
+
+- Building REST APIs quickly without boilerplate
+- Projects requiring type-safe backend-to-frontend communication
+- Applications with standard CRUD operations
+- Systems needing role-based access control
+- Rapid prototyping and MVPs
+- Admin panels and internal tools
+
+## Getting Started
+
+Ready to build? Check out the [Quick Start](/docs/better-query/quick-start) guide to create your first Better Query project.
+
+## Learn More
+
+- [Quick Start](/docs/better-query/quick-start) - Get up and running
+- [Resources](/docs/better-query/resources) - Define your data models
+- [Client](/docs/better-query/client) - Use the type-safe client
+- [Plugins](/docs/better-query/plugins) - Extend functionality
+- [Permissions](/docs/better-query/permissions) - Secure your endpoints
