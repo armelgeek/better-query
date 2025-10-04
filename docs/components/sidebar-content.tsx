@@ -506,7 +506,6 @@ export const contents: Content[] = [
 						/>
 					</svg>
 				),
-				group: true,
 			},
 			{
 				title: "Examples",
