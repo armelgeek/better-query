@@ -1,0 +1,365 @@
+---
+title: Create
+description: Page component for creating new records
+---
+
+# Create
+
+The `<Create>` component is the page component for the create view. It renders a default layout (title, actions) and delegates the actual form rendering to its children (usually a `<SimpleForm>`).
+
+## Usage
+
+```tsx
+import { Create, SimpleForm, TextInput } from '@/components/admin';
+
+export const PostCreate = () => (
+  <Create>
+    <SimpleForm>
+      <TextInput source="title" required />
+      <TextInput source="content" multiline />
+      <SelectInput
+        source="status"
+        choices={[
+          { id: 'draft', name: 'Draft' },
+          { id: 'published', name: 'Published' },
+        ]}
+      />
+    </SimpleForm>
+  </Create>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add create
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `children` | Required | `ReactNode` | - | Form component (e.g. `<SimpleForm>`) |
+| `title` | Optional | `string \| ReactNode` | 'Create [Resource]' | Page title |
+| `actions` | Optional | `ReactNode` | default actions | Custom action buttons |
+| `redirect` | Optional | `string \| false` | 'list' | Where to redirect after save: 'list', 'edit', 'show', or false |
+| `resource` | Optional | `string` | inferred | Resource name |
+| `transform` | Optional | `(data) => data` | - | Transform data before submission |
+| `mutationOptions` | Optional | `object` | - | Options for the mutation |
+
+## With better-query
+
+Create automatically saves data using better-query:
+
+```tsx
+import { Create, SimpleForm, TextInput } from '@/components/admin';
+
+export const UserCreate = () => (
+  <Create redirect="show">
+    <SimpleForm>
+      <TextInput source="name" required />
+      <TextInput source="email" type="email" required />
+      <SelectInput
+        source="role"
+        choices={[
+          { id: 'user', name: 'User' },
+          { id: 'admin', name: 'Admin' },
+        ]}
+        defaultValue="user"
+      />
+    </SimpleForm>
+  </Create>
+);
+```
+
+## Custom Title
+
+```tsx
+<Create title="Create New Post">
+  <SimpleForm>
+    {/* inputs */}
+  </SimpleForm>
+</Create>
+
+// Or with a component
+<Create
+  title={
+    <div className="flex items-center gap-2">
+      <h1>New Post</h1>
+      <Badge>Draft</Badge>
+    </div>
+  }
+>
+  <SimpleForm>
+    {/* inputs */}
+  </SimpleForm>
+</Create>
+```
+
+## Custom Actions
+
+Override the default action buttons:
+
+```tsx
+import { Create, SaveButton, DeleteButton } from '@/components/admin';
+
+<Create
+  actions={
+    <div className="flex gap-2">
+      <SaveButton />
+      <Button variant="outline">Cancel</Button>
+    </div>
+  }
+>
+  <SimpleForm>
+    {/* inputs */}
+  </SimpleForm>
+</Create>
+```
+
+## Redirect After Save
+
+Control where users go after creating a record:
+
+```tsx
+// Redirect to the edit page
+<Create redirect="edit">
+  <SimpleForm>{/* inputs */}</SimpleForm>
+</Create>
+
+// Redirect to the show page
+<Create redirect="show">
+  <SimpleForm>{/* inputs */}</SimpleForm>
+</Create>
+
+// Stay on the create page
+<Create redirect={false}>
+  <SimpleForm>{/* inputs */}</SimpleForm>
+</Create>
+
+// Custom redirect
+<Create redirect={(resource, id) => `/custom/${resource}/${id}`}>
+  <SimpleForm>{/* inputs */}</SimpleForm>
+</Create>
+```
+
+## Transform Data Before Save
+
+Modify the data before sending it to the server:
+
+```tsx
+<Create
+  transform={(data) => ({
+    ...data,
+    created_at: new Date().toISOString(),
+    author_id: getCurrentUserId(),
+  })}
+>
+  <SimpleForm>
+    <TextInput source="title" />
+    <TextInput source="content" />
+  </SimpleForm>
+</Create>
+```
+
+## Validation
+
+Add validation to inputs:
+
+```tsx
+import { Create, SimpleForm, TextInput, required, email } from '@/components/admin';
+
+export const UserCreate = () => (
+  <Create>
+    <SimpleForm>
+      <TextInput source="name" validate={required()} />
+      <TextInput 
+        source="email" 
+        validate={[required(), email()]} 
+      />
+      <TextInput
+        source="age"
+        validate={(value) => {
+          if (value < 18) {
+            return 'Must be 18 or older';
+          }
+        }}
+      />
+    </SimpleForm>
+  </Create>
+);
+```
+
+## Default Values
+
+Set default values for the form:
+
+```tsx
+<Create>
+  <SimpleForm defaultValues={{ status: 'draft', published: false }}>
+    <TextInput source="title" />
+    <SelectInput
+      source="status"
+      choices={[
+        { id: 'draft', name: 'Draft' },
+        { id: 'published', name: 'Published' },
+      ]}
+    />
+    <BooleanInput source="published" />
+  </SimpleForm>
+</Create>
+```
+
+## File Uploads
+
+Handle file uploads in create forms:
+
+```tsx
+import { Create, SimpleForm, TextInput, FileInput } from '@/components/admin';
+
+export const PostCreate = () => (
+  <Create>
+    <SimpleForm>
+      <TextInput source="title" required />
+      <FileInput source="image" accept="image/*">
+        <ImageField source="src" title="title" />
+      </FileInput>
+      <FileInput source="attachments" multiple>
+        <FileField source="src" title="title" />
+      </FileInput>
+    </SimpleForm>
+  </Create>
+);
+```
+
+## Related Fields
+
+Create records with relationships:
+
+```tsx
+import { 
+  Create, 
+  SimpleForm, 
+  TextInput, 
+  ReferenceInput,
+  AutocompleteInput 
+} from '@/components/admin';
+
+export const PostCreate = () => (
+  <Create>
+    <SimpleForm>
+      <TextInput source="title" required />
+      <ReferenceInput source="author_id" reference="users">
+        <AutocompleteInput optionText="name" />
+      </ReferenceInput>
+      <ReferenceArrayInput source="category_ids" reference="categories">
+        <AutocompleteArrayInput optionText="name" />
+      </ReferenceArrayInput>
+    </SimpleForm>
+  </Create>
+);
+```
+
+## Complete Example
+
+```tsx
+import {
+  Create,
+  SimpleForm,
+  TextInput,
+  ReferenceInput,
+  AutocompleteInput,
+  SelectInput,
+  BooleanInput,
+  DateInput,
+  FileInput,
+  ImageField,
+  required,
+  minLength,
+} from '@/components/admin';
+
+export const PostCreate = () => (
+  <Create
+    title="Create New Blog Post"
+    redirect="show"
+    transform={(data) => ({
+      ...data,
+      created_at: new Date().toISOString(),
+    })}
+  >
+    <SimpleForm>
+      <TextInput 
+        source="title" 
+        validate={[required(), minLength(5)]}
+        fullWidth
+      />
+      <TextInput 
+        source="content" 
+        multiline
+        rows={10}
+        fullWidth
+      />
+      <ReferenceInput source="author_id" reference="users">
+        <AutocompleteInput 
+          optionText="name"
+          validate={required()}
+        />
+      </ReferenceInput>
+      <SelectInput
+        source="status"
+        choices={[
+          { id: 'draft', name: 'Draft' },
+          { id: 'published', name: 'Published' },
+        ]}
+        defaultValue="draft"
+      />
+      <BooleanInput source="featured" />
+      <DateInput source="publish_date" />
+      <FileInput source="cover_image" accept="image/*">
+        <ImageField source="src" title="title" />
+      </FileInput>
+    </SimpleForm>
+  </Create>
+);
+```
+
+## Integration with better-auth
+
+Track who created records:
+
+```tsx
+import { Create, SimpleForm, TextInput } from '@/components/admin';
+import { useBetterAuth } from 'better-admin';
+import { authClient } from '@/lib/auth-client';
+
+export const PostCreate = () => {
+  const { user } = useBetterAuth(authClient);
+
+  return (
+    <Create
+      transform={(data) => ({
+        ...data,
+        created_by: user?.id,
+      })}
+    >
+      <SimpleForm>
+        <TextInput source="title" />
+        <TextInput source="content" />
+      </SimpleForm>
+    </Create>
+  );
+};
+```
+
+## Related Components
+
+- [Edit](/docs/better-admin/components/edit) - Edit existing records
+- [SimpleForm](/docs/better-admin/components/simple-form) - Form container
+- [TextInput](/docs/better-admin/components/text-input) - Text input field
+- [SaveButton](/docs/better-admin/components/save-button) - Save action button
+
+## Next Steps
+
+- [Learn about Form Inputs](/docs/better-admin/components/inputs)
+- [Add Validation](/docs/better-admin/components/validation)
+- [Handle File Uploads](/docs/better-admin/components/file-input)

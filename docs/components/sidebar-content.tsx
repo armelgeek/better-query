@@ -431,6 +431,153 @@ export const contents: Content[] = [
 		],
 	},
 	{
+		title: "Better Admin",
+		Icon: () => (
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="1.4em"
+				height="1.4em"
+				viewBox="0 0 24 24"
+			>
+				<path
+					fill="currentColor"
+					d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91c4.59-1.15 8-5.86 8-10.91V5zm-1 14H9v-2h2zm0-4H9V7h2z"
+				/>
+			</svg>
+		),
+		list: [
+			{
+				title: "Introduction",
+				href: "/docs/better-admin/introduction",
+				icon: () => (
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="1.2em"
+						height="1.2em"
+						viewBox="0 0 24 24"
+					>
+						<path
+							fill="currentColor"
+							d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m-2 15l-5-5l1.41-1.41L10 14.17l7.59-7.59L19 8z"
+						/>
+					</svg>
+				),
+			},
+			{
+				title: "Quick Start",
+				href: "/docs/better-admin/quick-start",
+				icon: () => (
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="1.2em"
+						height="1.2em"
+						viewBox="0 0 24 24"
+					>
+						<path
+							fill="currentColor"
+							d="M13 3v6h8V3zm-2 14H1v-6h10zm2-14h10v6H13zm0 8h10v10H13zM1 21h10v-4H1z"
+						/>
+					</svg>
+				),
+			},
+			{
+				title: "Auth Provider",
+				href: "/docs/better-admin/auth-provider",
+				icon: Key,
+			},
+			{
+				title: "Data Provider",
+				href: "/docs/better-admin/data-provider",
+				icon: Database,
+			},
+			{
+				title: "Components",
+				href: "/docs/better-admin/components",
+				icon: () => (
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="1.2em"
+						height="1.2em"
+						viewBox="0 0 24 24"
+					>
+						<path
+							fill="currentColor"
+							d="M16 17v2H2v-2s0-4 7-4s7 4 7 4m-3.5-9.5A3.5 3.5 0 1 0 9 11a3.5 3.5 0 0 0 3.5-3.5m3.44 5.5A5.32 5.32 0 0 1 18 17v2h4v-2s0-3.63-6.06-4M15 4a3.4 3.4 0 0 0-1.93.59a5 5 0 0 1 0 5.82A3.4 3.4 0 0 0 15 11a3.5 3.5 0 0 0 0-7"
+						/>
+					</svg>
+				),
+			},
+			{
+				title: "Examples",
+				href: "/docs/better-admin/examples",
+				icon: () => (
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="1.2em"
+						height="1.2em"
+						viewBox="0 0 24 24"
+					>
+						<path
+							fill="currentColor"
+							d="M3 13h2v-2H3zm0 4h2v-2H3zm0-8h2V7H3zm4 4h14v-2H7zm0 4h14v-2H7zM7 7v2h14V7z"
+						/>
+					</svg>
+				),
+			},
+			{
+				title: "CLI",
+				href: "/docs/better-admin/cli",
+				icon: () => (
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="1.2em"
+						height="1.2em"
+						viewBox="0 0 256 256"
+					>
+						<path
+							fill="currentColor"
+							d="M216 40H40a16 16 0 0 0-16 16v144a16 16 0 0 0 16 16h176a16 16 0 0 0 16-16V56a16 16 0 0 0-16-16m-91 94.25l-40 32a8 8 0 1 1-10-12.5L107.19 128L75 102.25a8 8 0 1 1 10-12.5l40 32a8 8 0 0 1 0 12.5M176 168h-40a8 8 0 0 1 0-16h40a8 8 0 0 1 0 16"
+						/>
+					</svg>
+				),
+			},
+			{
+				title: "API Reference",
+				href: "/docs/better-admin/api-reference",
+				icon: () => (
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="1.2em"
+						height="1.2em"
+						viewBox="0 0 24 24"
+					>
+						<path
+							fill="currentColor"
+							d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm4 18H6V4h7v5h5z"
+						/>
+					</svg>
+				),
+			},
+			{
+				title: "Migration",
+				href: "/docs/better-admin/migration",
+				icon: () => (
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="1.2em"
+						height="1.2em"
+						viewBox="0 0 24 24"
+					>
+						<path
+							fill="currentColor"
+							d="M10 17v-7l-3 3l-1.41-1.42L11 6.17l5.41 5.41L15 13l-3-3v7z"
+						/>
+					</svg>
+				),
+			},
+		],
+	},
+	{
 		title: "Plugins",
 		href: "/docs/plugins",
 		Icon: (props?: SVGProps<any>) => (
