@@ -1,0 +1,476 @@
+---
+title: Plugins
+description: Extend Better Query with powerful plugins
+---
+
+# Plugins
+
+Better Query provides a plugin system to extend functionality. Plugins add features like audit logging, caching, file uploads, realtime updates, and more.
+
+## Available Plugins
+
+### Audit Plugin
+
+Track all changes to your resources with automatic audit logging.
+
+```typescript
+import { betterQuery } from "better-query";
+import { auditPlugin } from "better-query/plugins";
+
+export const query = betterQuery({
+  database: {
+    provider: "sqlite",
+    url: "./database.db",
+  },
+  resources: [/* your resources */],
+  plugins: [
+    auditPlugin({
+      // Store audit logs in database
+      storage: "database",
+      // Track these operations
+      operations: ["create", "update", "delete"],
+      // Include user information
+      includeUser: true,
+      // Custom audit log format
+      formatter: (event) => ({
+        ...event,
+        timestamp: new Date().toISOString(),
+      }),
+    }),
+  ],
+});
+```
+
+**Features:**
+- Track create, update, and delete operations
+- Store who made changes and when
+- Query audit history
+- Custom formatters
+
+**Usage:**
+```typescript
+// Query audit logs
+const logs = await query.audit.list({
+  resource: "post",
+  recordId: "post-123",
+  limit: 10,
+});
+
+// Get specific audit log
+const log = await query.audit.get("log-id");
+```
+
+### Cache Plugin
+
+Improve performance with automatic caching.
+
+```typescript
+import { cachePlugin } from "better-query/plugins";
+
+export const query = betterQuery({
+  resources: [/* your resources */],
+  plugins: [
+    cachePlugin({
+      // Cache provider
+      provider: "redis", // or "memory"
+      // Redis connection
+      redis: {
+        url: process.env.REDIS_URL,
+      },
+      // TTL in seconds
+      ttl: 3600,
+      // Cache strategies
+      strategies: {
+        post: {
+          list: { ttl: 300 }, // 5 minutes
+          get: { ttl: 600 },  // 10 minutes
+        },
+      },
+      // Invalidation rules
+      invalidate: {
+        onMutation: true,
+        onRelated: ["comment"], // Invalidate when related resources change
+      },
+    }),
+  ],
+});
+```
+
+**Features:**
+- Memory or Redis caching
+- Per-resource cache strategies
+- Automatic invalidation
+- Cache warming
+
+### Upload Plugin
+
+Handle file uploads with ease.
+
+```typescript
+import { uploadPlugin } from "better-query/plugins";
+
+export const query = betterQuery({
+  resources: [/* your resources */],
+  plugins: [
+    uploadPlugin({
+      // Storage provider
+      provider: "s3", // or "local", "cloudflare-r2"
+      // S3 configuration
+      s3: {
+        bucket: process.env.S3_BUCKET,
+        region: process.env.AWS_REGION,
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+        },
+      },
+      // File size limits
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+      // Allowed file types
+      allowedTypes: ["image/jpeg", "image/png", "image/webp"],
+      // File naming
+      filename: (file) => `uploads/${Date.now()}-${file.name}`,
+    }),
+  ],
+});
+```
+
+**Usage:**
+```typescript
+// Upload file
+const file = await query.upload.create({
+  file: formData.get("file"),
+  metadata: {
+    userId: "user-1",
+    resourceType: "avatar",
+  },
+});
+
+// Get file URL
+const url = await query.upload.getUrl(file.id);
+
+// Delete file
+await query.upload.delete(file.id);
+```
+
+### Realtime Plugin
+
+Subscribe to live data updates using WebSockets.
+
+```typescript
+import { realtimePlugin } from "better-query/plugins";
+
+export const query = betterQuery({
+  resources: [/* your resources */],
+  plugins: [
+    realtimePlugin({
+      // WebSocket server
+      port: 3001,
+      // Authentication
+      auth: async (token) => {
+        // Verify token and return user
+        return verifyToken(token);
+      },
+      // Publish events
+      events: {
+        onCreate: true,
+        onUpdate: true,
+        onDelete: true,
+      },
+    }),
+  ],
+});
+```
+
+**Client Usage:**
+```typescript
+import { createQueryClient } from "better-query/client";
+
+const client = createQueryClient({
+  baseUrl: "http://localhost:3000",
+  realtime: {
+    url: "ws://localhost:3001",
+  },
+});
+
+// Subscribe to updates
+client.post.subscribe({
+  onCreate: (post) => console.log("New post:", post),
+  onUpdate: (post) => console.log("Updated post:", post),
+  onDelete: (id) => console.log("Deleted post:", id),
+});
+```
+
+### Validation Plugin
+
+Advanced validation beyond schema validation.
+
+```typescript
+import { validationPlugin } from "better-query/plugins";
+
+export const query = betterQuery({
+  resources: [/* your resources */],
+  plugins: [
+    validationPlugin({
+      rules: {
+        post: {
+          // Custom validation rules
+          create: async (data, ctx) => {
+            // Check for duplicate titles
+            const existing = await ctx.db.query("post")
+              .where("title", "=", data.title)
+              .first();
+            
+            if (existing) {
+              throw new ValidationError("Title already exists");
+            }
+          },
+          update: async (id, data, ctx) => {
+            // Validate ownership
+            const post = await ctx.db.get("post", id);
+            if (post.authorId !== ctx.user?.id) {
+              throw new ValidationError("You don't own this post");
+            }
+          },
+        },
+      },
+    }),
+  ],
+});
+```
+
+### OpenAPI Plugin
+
+Generate OpenAPI documentation automatically.
+
+```typescript
+import { openAPIPlugin } from "better-query/plugins";
+
+export const query = betterQuery({
+  resources: [/* your resources */],
+  plugins: [
+    openAPIPlugin({
+      // API information
+      info: {
+        title: "My API",
+        version: "1.0.0",
+        description: "Auto-generated API documentation",
+      },
+      // Servers
+      servers: [
+        {
+          url: "http://localhost:3000",
+          description: "Development",
+        },
+      ],
+      // Security schemes
+      security: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+      // Output path
+      outputPath: "./openapi.json",
+    }),
+  ],
+});
+```
+
+Access documentation at `/api/query/openapi.json`.
+
+### Jobs Plugin
+
+Schedule background jobs and cron tasks.
+
+```typescript
+import { jobsPlugin } from "better-query/plugins";
+
+export const query = betterQuery({
+  resources: [/* your resources */],
+  plugins: [
+    jobsPlugin({
+      // Job queue provider
+      provider: "bull", // or "pg-boss"
+      // Redis connection for Bull
+      redis: {
+        url: process.env.REDIS_URL,
+      },
+      // Define jobs
+      jobs: {
+        sendEmail: {
+          handler: async (data) => {
+            await sendEmail(data.to, data.subject, data.body);
+          },
+        },
+        cleanupOldPosts: {
+          // Cron schedule
+          schedule: "0 2 * * *", // Daily at 2 AM
+          handler: async () => {
+            const oldPosts = await query.post.list({
+              filter: {
+                createdAt: {
+                  lt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+                },
+              },
+            });
+            
+            for (const post of oldPosts) {
+              await query.post.delete(post.id);
+            }
+          },
+        },
+      },
+    }),
+  ],
+});
+```
+
+**Usage:**
+```typescript
+// Queue a job
+await query.jobs.enqueue("sendEmail", {
+  to: "user@example.com",
+  subject: "Welcome",
+  body: "Welcome to our platform!",
+});
+
+// Schedule a job
+await query.jobs.schedule("sendEmail", {
+  to: "user@example.com",
+  subject: "Reminder",
+  body: "Don't forget!",
+}, {
+  delay: 3600000, // 1 hour
+});
+```
+
+## Creating Custom Plugins
+
+Build your own plugins to extend Better Query:
+
+```typescript
+import { Plugin } from "better-query";
+
+export function myCustomPlugin(options: MyPluginOptions): Plugin {
+  return {
+    name: "my-custom-plugin",
+    version: "1.0.0",
+    
+    // Initialize plugin
+    init: async (query) => {
+      console.log("Plugin initialized");
+    },
+    
+    // Add custom endpoints
+    endpoints: {
+      "/custom-endpoint": {
+        method: "GET",
+        handler: async (ctx) => {
+          return { message: "Hello from custom plugin!" };
+        },
+      },
+    },
+    
+    // Add hooks
+    hooks: {
+      beforeCreate: async (resource, data, ctx) => {
+        // Add custom logic before create
+        console.log(`Creating ${resource}:`, data);
+        return data;
+      },
+      afterCreate: async (resource, record, ctx) => {
+        // Add custom logic after create
+        console.log(`Created ${resource}:`, record);
+      },
+    },
+    
+    // Extend schema
+    extendSchema: (schema, resource) => {
+      // Add fields to all resources
+      return schema.extend({
+        pluginField: z.string().optional(),
+      });
+    },
+    
+    // Add client methods
+    client: {
+      myCustomMethod: async (client) => {
+        return async (param: string) => {
+          const res = await client.fetch("/custom-endpoint");
+          return res.json();
+        };
+      },
+    },
+  };
+}
+```
+
+**Usage:**
+```typescript
+import { myCustomPlugin } from "./plugins/my-custom-plugin";
+
+export const query = betterQuery({
+  resources: [/* your resources */],
+  plugins: [
+    myCustomPlugin({
+      // Plugin options
+    }),
+  ],
+});
+```
+
+## Plugin Configuration
+
+### Multiple Plugins
+
+```typescript
+export const query = betterQuery({
+  resources: [/* your resources */],
+  plugins: [
+    auditPlugin({ /* options */ }),
+    cachePlugin({ /* options */ }),
+    uploadPlugin({ /* options */ }),
+    realtimePlugin({ /* options */ }),
+  ],
+});
+```
+
+### Conditional Plugins
+
+```typescript
+const plugins = [
+  auditPlugin({ /* options */ }),
+];
+
+// Only enable cache in production
+if (process.env.NODE_ENV === "production") {
+  plugins.push(cachePlugin({ /* options */ }));
+}
+
+export const query = betterQuery({
+  resources: [/* your resources */],
+  plugins,
+});
+```
+
+## Plugin Hooks
+
+Plugins can hook into the resource lifecycle:
+
+- `beforeCreate` - Before creating a record
+- `afterCreate` - After creating a record
+- `beforeUpdate` - Before updating a record
+- `afterUpdate` - After updating a record
+- `beforeDelete` - Before deleting a record
+- `afterDelete` - After deleting a record
+- `beforeList` - Before listing records
+- `afterList` - After listing records
+
+## Next Steps
+
+- [Audit Plugin Details](/docs/better-query/plugins/audit) - Learn more about audit logging
+- [Cache Plugin Details](/docs/better-query/plugins/cache) - Optimize performance
+- [Upload Plugin Details](/docs/better-query/plugins/upload) - Handle file uploads
+- [Realtime Plugin Details](/docs/better-query/plugins/realtime) - Live data updates

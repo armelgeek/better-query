@@ -1,0 +1,400 @@
+---
+title: Resources
+description: Define your data models and schemas
+---
+
+# Resources
+
+Resources are the core building blocks of Better Query. Each resource represents a data model with a schema, permissions, and auto-generated CRUD endpoints.
+
+## Creating a Resource
+
+Use `createResource()` to define a new resource:
+
+```typescript
+import { createResource, withId } from "better-query";
+import { z } from "zod";
+
+const productResource = createResource({
+  name: "product",
+  schema: withId({
+    name: z.string().min(1),
+    description: z.string().optional(),
+    price: z.number().min(0),
+    status: z.enum(["draft", "active", "archived"]),
+    categoryId: z.string().optional(),
+  }),
+  permissions: {
+    create: () => true,
+    read: () => true,
+    update: () => true,
+    delete: () => true,
+    list: () => true,
+  },
+});
+```
+
+## Schema Definition
+
+### Using withId Helper
+
+The `withId()` helper automatically adds an `id` field and timestamps to your schema:
+
+```typescript
+const schema = withId({
+  title: z.string(),
+  content: z.string(),
+});
+
+// Expands to:
+// {
+//   id: z.string(),
+//   title: z.string(),
+//   content: z.string(),
+//   createdAt: z.date(),
+//   updatedAt: z.date(),
+// }
+```
+
+### Custom Schema
+
+You can also define a custom schema without the helper:
+
+```typescript
+const customSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  email: z.string().email(),
+  verified: z.boolean().default(false),
+  metadata: z.record(z.unknown()).optional(),
+});
+```
+
+## Schema Validations
+
+Leverage Zod's powerful validation features:
+
+```typescript
+const userSchema = withId({
+  // String validations
+  username: z.string()
+    .min(3, "Username must be at least 3 characters")
+    .max(20, "Username must be at most 20 characters")
+    .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+
+  // Email validation
+  email: z.string().email("Invalid email address"),
+
+  // Number validations
+  age: z.number()
+    .int("Age must be an integer")
+    .min(18, "Must be at least 18 years old")
+    .max(120, "Invalid age"),
+
+  // Enum validation
+  role: z.enum(["user", "moderator", "admin"]).default("user"),
+
+  // Optional fields
+  bio: z.string().max(500).optional(),
+
+  // Nested objects
+  profile: z.object({
+    avatar: z.string().url().optional(),
+    website: z.string().url().optional(),
+    social: z.object({
+      twitter: z.string().optional(),
+      github: z.string().optional(),
+    }).optional(),
+  }).optional(),
+
+  // Arrays
+  tags: z.array(z.string()).default([]),
+
+  // Dates
+  birthDate: z.date().optional(),
+
+  // Transform values
+  normalizedEmail: z.string().email().transform(val => val.toLowerCase()),
+});
+```
+
+## Resource Configuration
+
+### Enable/Disable Endpoints
+
+Control which endpoints are generated:
+
+```typescript
+createResource({
+  name: "product",
+  schema: productSchema,
+  endpoints: {
+    create: true,
+    read: true,
+    update: true,
+    delete: false,  // Disable delete endpoint
+    list: true,
+  },
+});
+```
+
+### Custom Endpoint Paths
+
+Customize the base path for a resource:
+
+```typescript
+createResource({
+  name: "product",
+  path: "/products",  // Custom path instead of /product
+  schema: productSchema,
+});
+```
+
+## Relationships
+
+Define relationships between resources:
+
+### One-to-Many
+
+```typescript
+// Author resource
+const authorSchema = withId({
+  name: z.string(),
+  email: z.string().email(),
+});
+
+// Post resource with author relationship
+const postSchema = withId({
+  title: z.string(),
+  content: z.string(),
+  authorId: z.string(),  // Foreign key
+});
+
+export const query = betterQuery({
+  resources: [
+    createResource({
+      name: "author",
+      schema: authorSchema,
+    }),
+    createResource({
+      name: "post",
+      schema: postSchema,
+      // You can include author data in queries
+      relations: {
+        author: {
+          resource: "author",
+          field: "authorId",
+        },
+      },
+    }),
+  ],
+});
+```
+
+### Many-to-Many
+
+For many-to-many relationships, create a junction table:
+
+```typescript
+// Student resource
+const studentSchema = withId({
+  name: z.string(),
+  email: z.string().email(),
+});
+
+// Course resource  
+const courseSchema = withId({
+  name: z.string(),
+  credits: z.number(),
+});
+
+// Enrollment junction table
+const enrollmentSchema = withId({
+  studentId: z.string(),
+  courseId: z.string(),
+  enrolledAt: z.date().default(() => new Date()),
+  grade: z.number().min(0).max(100).optional(),
+});
+
+export const query = betterQuery({
+  resources: [
+    createResource({ name: "student", schema: studentSchema }),
+    createResource({ name: "course", schema: courseSchema }),
+    createResource({ name: "enrollment", schema: enrollmentSchema }),
+  ],
+});
+```
+
+## Computed Fields
+
+Add computed fields that are calculated on the fly:
+
+```typescript
+const orderSchema = withId({
+  items: z.array(z.object({
+    productId: z.string(),
+    quantity: z.number(),
+    price: z.number(),
+  })),
+  taxRate: z.number().default(0.1),
+});
+
+createResource({
+  name: "order",
+  schema: orderSchema,
+  computed: {
+    subtotal: (order) => {
+      return order.items.reduce((sum, item) => 
+        sum + (item.quantity * item.price), 0
+      );
+    },
+    tax: (order, computed) => {
+      return computed.subtotal * order.taxRate;
+    },
+    total: (order, computed) => {
+      return computed.subtotal + computed.tax;
+    },
+  },
+});
+```
+
+## Default Values
+
+Set default values for fields:
+
+```typescript
+const taskSchema = withId({
+  title: z.string(),
+  status: z.enum(["todo", "in-progress", "done"]).default("todo"),
+  priority: z.number().default(0),
+  dueDate: z.date().default(() => {
+    // Default to 7 days from now
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
+    return date;
+  }),
+  assignedTo: z.string().optional(),
+});
+```
+
+## Resource Hooks
+
+Add hooks to run logic before/after operations:
+
+```typescript
+createResource({
+  name: "post",
+  schema: postSchema,
+  hooks: {
+    beforeCreate: async (data, ctx) => {
+      // Set author from authenticated user
+      data.authorId = ctx.user.id;
+      return data;
+    },
+    afterCreate: async (record, ctx) => {
+      // Send notification
+      await sendNotification({
+        userId: record.authorId,
+        message: `Your post "${record.title}" was created`,
+      });
+    },
+    beforeUpdate: async (id, data, ctx) => {
+      // Validate ownership
+      const existing = await ctx.db.get(id);
+      if (existing.authorId !== ctx.user.id) {
+        throw new Error("Unauthorized");
+      }
+      return data;
+    },
+    beforeDelete: async (id, ctx) => {
+      // Soft delete instead
+      await ctx.db.update(id, { deletedAt: new Date() });
+      return false; // Prevent actual deletion
+    },
+  },
+});
+```
+
+## Schema Migrations
+
+Better Query automatically detects schema changes and can handle migrations:
+
+```typescript
+export const query = betterQuery({
+  database: {
+    provider: "sqlite",
+    url: "./database.db",
+    // Enable automatic migrations
+    autoMigrate: true,
+  },
+  resources: [
+    createResource({
+      name: "user",
+      schema: userSchema,
+      // Migration strategy for breaking changes
+      migration: {
+        version: 2,
+        up: async (db) => {
+          // Handle migration from v1 to v2
+          await db.query("ALTER TABLE user ADD COLUMN status TEXT DEFAULT 'active'");
+        },
+      },
+    }),
+  ],
+});
+```
+
+## Best Practices
+
+### 1. Keep Schemas DRY
+
+Reuse common schema patterns:
+
+```typescript
+// Common fields
+const timestamps = {
+  createdAt: z.date(),
+  updatedAt: z.date(),
+};
+
+const softDelete = {
+  deletedAt: z.date().optional(),
+};
+
+// Reuse in multiple schemas
+const userSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  ...timestamps,
+  ...softDelete,
+});
+```
+
+### 2. Use Enums for Fixed Values
+
+```typescript
+const ORDER_STATUS = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
+
+const orderSchema = withId({
+  status: z.enum(ORDER_STATUS).default("pending"),
+});
+```
+
+### 3. Validate Complex Data
+
+```typescript
+const productSchema = withId({
+  price: z.number()
+    .min(0, "Price cannot be negative")
+    .refine(val => {
+      // Must have at most 2 decimal places
+      return Number.isInteger(val * 100);
+    }, "Price must have at most 2 decimal places"),
+});
+```
+
+## Next Steps
+
+- [Configure Permissions](/docs/better-query/permissions) - Secure your resources
+- [Use the Client](/docs/better-query/client) - Interact with your resources
+- [Add Plugins](/docs/better-query/plugins) - Extend resource functionality

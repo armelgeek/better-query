@@ -1,0 +1,462 @@
+---
+title: Client SDK
+description: Type-safe client for Better Query
+---
+
+# Client SDK
+
+The Better Query client provides a type-safe way to interact with your API from the frontend. It automatically infers types from your server configuration, ensuring end-to-end type safety.
+
+## Installation
+
+The client is included in the main better-query package:
+
+```bash
+npm install better-query
+```
+
+## Basic Usage
+
+### Create Client
+
+```typescript title="lib/client.ts"
+import { createQueryClient } from "better-query/client";
+
+export const client = createQueryClient({
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
+});
+```
+
+### Type-Safe Queries
+
+The client automatically knows about all your resources:
+
+```typescript
+// List all posts
+const posts = await client.post.list();
+
+// Get single post
+const post = await client.post.get("post-id");
+
+// Create post
+const newPost = await client.post.create({
+  title: "My Post",
+  content: "Hello World",
+  authorId: "user-1",
+});
+
+// Update post
+const updated = await client.post.update("post-id", {
+  title: "Updated Title",
+});
+
+// Delete post
+await client.post.delete("post-id");
+```
+
+## React Hooks
+
+Better Query provides React Query hooks for easy data management:
+
+### Setup Provider
+
+```typescript title="app/providers.tsx"
+"use client";
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createQueryClient } from "better-query/client";
+
+const queryClient = new QueryClient();
+export const client = createQueryClient({
+  baseUrl: process.env.NEXT_PUBLIC_API_URL!,
+});
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+}
+```
+
+### useQuery Hook
+
+```typescript title="components/PostList.tsx"
+"use client";
+
+import { useQuery } from "better-query/client/react";
+
+export function PostList() {
+  const { data: posts, isLoading, error } = useQuery("post").list({
+    limit: 10,
+    offset: 0,
+  });
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      {posts?.map((post) => (
+        <article key={post.id}>
+          <h2>{post.title}</h2>
+          <p>{post.content}</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+```
+
+### useMutation Hook
+
+```typescript title="components/CreatePost.tsx"
+"use client";
+
+import { useMutation, useQueryClient } from "better-query/client/react";
+import { useState } from "react";
+
+export function CreatePost() {
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const queryClient = useQueryClient();
+
+  const createPost = useMutation("post").create({
+    onSuccess: () => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries(["post", "list"]);
+      setTitle("");
+      setContent("");
+    },
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await createPost.mutateAsync({
+      title,
+      content,
+      authorId: "user-1",
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Title"
+      />
+      <textarea
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder="Content"
+      />
+      <button type="submit" disabled={createPost.isPending}>
+        {createPost.isPending ? "Creating..." : "Create Post"}
+      </button>
+      {createPost.error && <div>Error: {createPost.error.message}</div>}
+    </form>
+  );
+}
+```
+
+## List Queries
+
+### Pagination
+
+```typescript
+// Server-side
+const posts = await client.post.list({
+  limit: 20,
+  offset: 0,
+});
+
+// Client-side with React
+function PostList() {
+  const [page, setPage] = useState(0);
+  const limit = 10;
+
+  const { data: posts } = useQuery("post").list({
+    limit,
+    offset: page * limit,
+  });
+
+  return (
+    <div>
+      {posts?.map((post) => <PostCard key={post.id} post={post} />)}
+      <button onClick={() => setPage(p => p - 1)} disabled={page === 0}>
+        Previous
+      </button>
+      <button onClick={() => setPage(p => p + 1)}>
+        Next
+      </button>
+    </div>
+  );
+}
+```
+
+### Search
+
+```typescript
+const { data: results } = useQuery("post").list({
+  search: "typescript",
+  limit: 10,
+});
+```
+
+### Filtering
+
+```typescript
+// Custom filter parameters (if configured on server)
+const { data: posts } = useQuery("post").list({
+  filter: {
+    status: "published",
+    authorId: "user-1",
+  },
+});
+```
+
+## Authentication
+
+Pass authentication tokens with requests:
+
+```typescript
+import { createQueryClient } from "better-query/client";
+
+export const client = createQueryClient({
+  baseUrl: "http://localhost:3000",
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
+```
+
+### With Auth Context
+
+```typescript
+"use client";
+
+import { useAuth } from "@/lib/auth-client";
+import { createQueryClient } from "better-query/client";
+
+export function useQueryClient() {
+  const { token } = useAuth();
+
+  return createQueryClient({
+    baseUrl: process.env.NEXT_PUBLIC_API_URL!,
+    headers: token ? {
+      Authorization: `Bearer ${token}`,
+    } : undefined,
+  });
+}
+```
+
+## Error Handling
+
+```typescript
+import { QueryError } from "better-query/client";
+
+try {
+  const post = await client.post.get("invalid-id");
+} catch (error) {
+  if (error instanceof QueryError) {
+    console.error("Status:", error.status);
+    console.error("Message:", error.message);
+    console.error("Details:", error.details);
+  }
+}
+```
+
+### React Error Boundaries
+
+```typescript
+"use client";
+
+import { useQuery } from "better-query/client/react";
+import { ErrorBoundary } from "react-error-boundary";
+
+function PostDetails({ id }: { id: string }) {
+  const { data: post } = useQuery("post").get(id);
+
+  return (
+    <div>
+      <h1>{post.title}</h1>
+      <p>{post.content}</p>
+    </div>
+  );
+}
+
+export function PostPage({ id }: { id: string }) {
+  return (
+    <ErrorBoundary
+      fallback={<div>Something went wrong loading the post</div>}
+    >
+      <PostDetails id={id} />
+    </ErrorBoundary>
+  );
+}
+```
+
+## Optimistic Updates
+
+```typescript
+"use client";
+
+import { useMutation, useQueryClient } from "better-query/client/react";
+
+function UpdatePost({ postId }: { postId: string }) {
+  const queryClient = useQueryClient();
+
+  const updatePost = useMutation("post").update({
+    onMutate: async (newData) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries(["post", "get", postId]);
+
+      // Snapshot previous value
+      const previousPost = queryClient.getQueryData(["post", "get", postId]);
+
+      // Optimistically update
+      queryClient.setQueryData(["post", "get", postId], (old: any) => ({
+        ...old,
+        ...newData,
+      }));
+
+      return { previousPost };
+    },
+    onError: (err, newData, context) => {
+      // Rollback on error
+      queryClient.setQueryData(
+        ["post", "get", postId],
+        context?.previousPost
+      );
+    },
+    onSettled: () => {
+      // Refetch after mutation
+      queryClient.invalidateQueries(["post", "get", postId]);
+    },
+  });
+
+  return (
+    <button onClick={() => updatePost.mutate({ title: "New Title" })}>
+      Update
+    </button>
+  );
+}
+```
+
+## Realtime Subscriptions
+
+Subscribe to realtime updates:
+
+```typescript
+"use client";
+
+import { useQuerySubscription } from "better-query/client/react";
+
+function PostList() {
+  const { data: posts } = useQuerySubscription("post").list();
+
+  // Posts automatically update when data changes
+  return (
+    <div>
+      {posts?.map((post) => (
+        <div key={post.id}>{post.title}</div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Batch Operations
+
+Perform multiple operations efficiently:
+
+```typescript
+// Batch create
+const posts = await Promise.all([
+  client.post.create({ title: "Post 1", content: "..." }),
+  client.post.create({ title: "Post 2", content: "..." }),
+  client.post.create({ title: "Post 3", content: "..." }),
+]);
+
+// Batch update
+await Promise.all(
+  postIds.map(id => client.post.update(id, { status: "published" }))
+);
+```
+
+## Request Configuration
+
+### Timeout
+
+```typescript
+const client = createQueryClient({
+  baseUrl: "http://localhost:3000",
+  timeout: 10000, // 10 seconds
+});
+```
+
+### Retry Logic
+
+```typescript
+import { createQueryClient } from "better-query/client";
+
+const client = createQueryClient({
+  baseUrl: "http://localhost:3000",
+  retry: {
+    retries: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  },
+});
+```
+
+### Custom Headers
+
+```typescript
+const client = createQueryClient({
+  baseUrl: "http://localhost:3000",
+  headers: {
+    "X-API-Key": process.env.API_KEY,
+    "X-Client-Version": "1.0.0",
+  },
+});
+```
+
+## TypeScript Type Inference
+
+The client automatically infers types from your server:
+
+```typescript
+// Server side
+const query = betterQuery({
+  resources: [
+    createResource({
+      name: "post",
+      schema: withId({
+        title: z.string(),
+        content: z.string(),
+      }),
+    }),
+  ],
+});
+
+// Client side - fully typed!
+type Client = typeof client;
+
+const post = await client.post.get("id");
+// post is typed as: { id: string, title: string, content: string }
+
+const newPost = await client.post.create({
+  title: "Hello",
+  content: "World",
+  // TypeScript error: Object literal may only specify known properties
+  // invalidField: "value",
+});
+```
+
+## Next Steps
+
+- [Realtime Updates](/docs/better-query/realtime) - Subscribe to live data
+- [Authentication](/docs/better-query/auth-integration) - Secure your client
+- [Advanced Patterns](/docs/better-query/advanced) - Complex use cases

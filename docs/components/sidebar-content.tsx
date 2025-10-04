@@ -335,6 +335,102 @@ export const contents: Content[] = [
 		),
 	},
 	{
+		title: "Better Query",
+		Icon: () => (
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="1.4em"
+				height="1.4em"
+				viewBox="0 0 24 24"
+			>
+				<path
+					fill="currentColor"
+					d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5s1.5.67 1.5 1.5s-.67 1.5-1.5 1.5m13.5-9l1.96 2.5H17V9.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5s1.5.67 1.5 1.5s-.67 1.5-1.5 1.5"
+				/>
+			</svg>
+		),
+		list: [
+			{
+				title: "Introduction",
+				href: "/docs/better-query/introduction",
+				icon: () => (
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="1.2em"
+						height="1.2em"
+						viewBox="0 0 24 24"
+					>
+						<path
+							fill="currentColor"
+							d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2m-2 15l-5-5l1.41-1.41L10 14.17l7.59-7.59L19 8z"
+						/>
+					</svg>
+				),
+			},
+			{
+				title: "Quick Start",
+				href: "/docs/better-query/quick-start",
+				icon: () => (
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="1.2em"
+						height="1.2em"
+						viewBox="0 0 24 24"
+					>
+						<path
+							fill="currentColor"
+							d="M13 3v6h8V3zm-2 14H1v-6h10zm2-14h10v6H13zm0 8h10v10H13zM1 21h10v-4H1z"
+						/>
+					</svg>
+				),
+			},
+			{
+				title: "Resources",
+				href: "/docs/better-query/resources",
+				icon: Database,
+			},
+			{
+				title: "Client SDK",
+				href: "/docs/better-query/client",
+				icon: () => (
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="1.2em"
+						height="1.2em"
+						viewBox="0 0 24 24"
+					>
+						<path
+							fill="currentColor"
+							d="M4 8h4V4H4zm6 12h4v-4h-4zm-6 0h4v-4H4zm0-6h4v-4H4zm6 0h4v-4h-4zm6-10v4h4V4zm-6 4h4V4h-4zm6 6h4v-4h-4zm0 6h4v-4h-4z"
+						/>
+					</svg>
+				),
+			},
+			{
+				title: "Permissions",
+				href: "/docs/better-query/permissions",
+				icon: ShieldCheck,
+			},
+			{
+				title: "Plugins",
+				href: "/docs/better-query/plugins",
+				icon: () => (
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="1.2em"
+						height="1.2em"
+						viewBox="0 0 24 24"
+					>
+						<path
+							fill="currentColor"
+							d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5a2.5 2.5 0 0 0-5 0V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7c1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11"
+						/>
+					</svg>
+				),
+			},
+		],
+	},
+	{
 		title: "Plugins",
 		href: "/docs/plugins",
 		Icon: (props?: SVGProps<any>) => (

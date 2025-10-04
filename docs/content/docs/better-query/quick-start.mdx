@@ -1,0 +1,276 @@
+---
+title: Quick Start
+description: Get started with Better Query in minutes
+---
+
+# Quick Start
+
+This guide will help you set up Better Query in your project and create your first resource with auto-generated CRUD endpoints.
+
+## Prerequisites
+
+- Node.js 18 or higher
+- A Next.js, Express, or other Node.js project
+
+## Installation
+
+<Tabs items={["npm", "pnpm", "yarn"]}>
+<Tab value="npm">
+```bash
+npm install better-query kysely zod
+```
+</Tab>
+<Tab value="pnpm">
+```bash
+pnpm add better-query kysely zod
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add better-query kysely zod
+```
+</Tab>
+</Tabs>
+
+### Database Driver
+
+Install the appropriate database driver:
+
+<Tabs items={["SQLite", "PostgreSQL", "MySQL"]}>
+<Tab value="SQLite">
+```bash
+npm install better-sqlite3
+```
+</Tab>
+<Tab value="PostgreSQL">
+```bash
+npm install pg
+```
+</Tab>
+<Tab value="MySQL">
+```bash
+npm install mysql2
+```
+</Tab>
+</Tabs>
+
+## CLI Quick Start
+
+The fastest way to get started is with the CLI:
+
+```bash title="Terminal"
+# Create a new project with Better Auth integration
+npx better-query init --with-auth
+
+# Or create a basic project
+npx better-query init
+
+# Navigate and start
+cd my-project
+npm install
+npm run dev
+```
+
+## Manual Setup
+
+### 1. Create Your First Resource
+
+Create a file `lib/query.ts`:
+
+```typescript title="lib/query.ts"
+import { betterQuery, createResource, withId } from "better-query";
+import { z } from "zod";
+
+// Define your schema with Zod
+const postSchema = withId({
+  title: z.string().min(1, "Title is required"),
+  content: z.string().min(10, "Content must be at least 10 characters"),
+  published: z.boolean().default(false),
+  authorId: z.string(),
+});
+
+export const query = betterQuery({
+  database: {
+    provider: "sqlite",
+    url: "./database.db",
+  },
+  resources: [
+    createResource({
+      name: "post",
+      schema: postSchema,
+      permissions: {
+        create: () => true,
+        read: () => true,
+        update: () => true,
+        delete: () => true,
+        list: () => true,
+      },
+    }),
+  ],
+});
+```
+
+### 2. Mount the API Handler
+
+#### Next.js App Router
+
+Create `app/api/query/[...all]/route.ts`:
+
+```typescript title="app/api/query/[...all]/route.ts"
+import { query } from "@/lib/query";
+
+export const { GET, POST, PUT, DELETE } = query.handler;
+```
+
+#### Next.js Pages Router
+
+Create `pages/api/query/[...all].ts`:
+
+```typescript title="pages/api/query/[...all].ts"
+import { query } from "@/lib/query";
+
+export default query.handler;
+```
+
+#### Express
+
+```typescript title="server.ts"
+import express from "express";
+import { query } from "./lib/query";
+
+const app = express();
+
+app.use("/api/query", query.toExpressHandler());
+
+app.listen(3000, () => {
+  console.log("Server running on http://localhost:3000");
+});
+```
+
+### 3. Use the Client
+
+```typescript title="app/posts/page.tsx"
+import { createQueryClient } from "better-query/client";
+
+const client = createQueryClient({
+  baseUrl: "http://localhost:3000",
+});
+
+export default async function PostsPage() {
+  // List all posts
+  const posts = await client.post.list();
+
+  return (
+    <div>
+      <h1>Posts</h1>
+      {posts.map((post) => (
+        <article key={post.id}>
+          <h2>{post.title}</h2>
+          <p>{post.content}</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+```
+
+## React Hooks
+
+Better Query provides React hooks for easy data fetching:
+
+```typescript title="app/posts/ClientPosts.tsx"
+"use client";
+
+import { useQuery, useMutation } from "better-query/client/react";
+
+export function ClientPosts() {
+  // Fetch posts
+  const { data: posts, isLoading } = useQuery("post").list();
+
+  // Create mutation
+  const createPost = useMutation("post").create();
+
+  const handleCreate = async () => {
+    await createPost.mutateAsync({
+      title: "New Post",
+      content: "Hello World",
+      authorId: "user-1",
+    });
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      <button onClick={handleCreate}>Create Post</button>
+      {posts?.map((post) => (
+        <div key={post.id}>{post.title}</div>
+      ))}
+    </div>
+  );
+}
+```
+
+## Generated Endpoints
+
+With the setup above, you automatically get these endpoints:
+
+### List Posts
+```http
+GET /api/query/post
+```
+
+Query parameters:
+- `limit` - Number of items per page (default: 10)
+- `offset` - Skip items (default: 0)
+- `search` - Search query (optional)
+
+### Get Single Post
+```http
+GET /api/query/post/[id]
+```
+
+### Create Post
+```http
+POST /api/query/post
+Content-Type: application/json
+
+{
+  "title": "My First Post",
+  "content": "This is the content...",
+  "authorId": "user-1"
+}
+```
+
+### Update Post
+```http
+PUT /api/query/post/[id]
+Content-Type: application/json
+
+{
+  "title": "Updated Title"
+}
+```
+
+### Delete Post
+```http
+DELETE /api/query/post/[id]
+```
+
+## Next Steps
+
+Now that you have Better Query set up:
+
+- [Learn about Resources](/docs/better-query/resources) - Define complex data models
+- [Configure Permissions](/docs/better-query/permissions) - Secure your endpoints
+- [Add Plugins](/docs/better-query/plugins) - Extend functionality
+- [Use with Better Auth](/docs/better-query/auth-integration) - Add authentication
+- [Client SDK Guide](/docs/better-query/client) - Master the client
+
+## Example Projects
+
+Check out complete examples in the repository:
+
+- [Next.js with Better Auth](https://github.com/armelgeek/better-kit/tree/main/examples/nextjs)
+- [Express API](https://github.com/armelgeek/better-kit/tree/main/examples/express)
+- [Full-stack App](https://github.com/armelgeek/better-kit/tree/main/examples/fullstack)
