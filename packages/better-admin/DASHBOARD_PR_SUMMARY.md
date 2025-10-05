@@ -215,11 +215,11 @@ npx better-admin list --category dashboard
 ### Usage Example
 ```tsx
 import { StatCard, DashboardGrid } from "@/components/admin";
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 
 export default function Dashboard() {
-  const { count } = useBetterQuery("user", query);
+  const { count } = useQuery("user", query);
   const { data: totalUsers, isLoading } = count.useQuery();
 
   return (

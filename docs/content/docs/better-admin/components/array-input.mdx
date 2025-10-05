@@ -82,11 +82,11 @@ The `<SimpleFormIterator>` component is the most common child of `<ArrayInput>`.
 Use ArrayInput with better-query's nested data structures:
 
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { Edit, SimpleForm, ArrayInput, SimpleFormIterator, TextInput, NumberInput } from '@/components/admin';
 
 export function ProductEdit({ id }: { id: string }) {
-  const { data, update } = useBetterQuery("product", query);
+  const { data, update } = useQuery("product", query);
 
   return (
     <Edit
@@ -214,11 +214,11 @@ import {
   SimpleFormIterator,
   SelectInput,
 } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 
 export function OrderEdit({ id }: { id: string }) {
-  const { data, update } = useBetterQuery("order", query);
+  const { data, update } = useQuery("order", query);
 
   return (
     <Edit

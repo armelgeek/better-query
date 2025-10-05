@@ -133,12 +133,12 @@ export const PostShow = () => (
 DateField automatically works with better-query dates:
 
 ```tsx
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { DataTable, DateField, TextField } from '@/components/admin';
 import { query } from '@/lib/query';
 
 export function PostList() {
-  const { data } = useBetterQuery("post", query);
+  const { data } = useQuery("post", query);
 
   return (
     <DataTable data={data}>

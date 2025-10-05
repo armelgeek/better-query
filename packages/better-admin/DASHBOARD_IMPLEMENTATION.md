@@ -124,11 +124,11 @@ All components include proper loading states:
 
 ```tsx
 import { StatCard, DashboardGrid, MetricTrend, QuickActions, RecentActivity } from "@/components/admin";
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 
 export default function DashboardPage() {
-  const { count, list } = useBetterQuery("user", query);
+  const { count, list } = useQuery("user", query);
   const { data: totalUsers, isLoading } = count.useQuery();
   const { data: recentUsers } = list.useQuery({ 
     orderBy: { createdAt: "desc" }, 

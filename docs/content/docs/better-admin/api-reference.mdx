@@ -9,12 +9,12 @@ Complete reference for all better-admin APIs, including providers, hooks, and ut
 
 ## Authentication Provider
 
-### createBetterAuthProvider
+### createAuthProvider
 
 Creates an authentication provider that integrates better-auth with better-admin.
 
 ```typescript
-function createBetterAuthProvider(
+function createAuthProvider(
   options: AuthProviderOptions
 ): AuthProvider
 ```
@@ -29,10 +29,10 @@ function createBetterAuthProvider(
 **Example:**
 
 ```typescript
-import { createBetterAuthProvider } from "better-admin";
+import { createAuthProvider } from "better-admin";
 import { authClient } from "./auth-client";
 
-const authProvider = createBetterAuthProvider({
+const authProvider = createAuthProvider({
   authClient,
   onError: (error) => {
     console.error("Auth error:", error);
@@ -112,12 +112,12 @@ function MyComponent() {
 
 ## Data Provider
 
-### createBetterQueryProvider
+### createQueryProvider
 
 Creates a data provider that integrates better-query with better-admin.
 
 ```typescript
-function createBetterQueryProvider(
+function createQueryProvider(
   options: DataProviderOptions
 ): DataProvider
 ```
@@ -132,10 +132,10 @@ function createBetterQueryProvider(
 **Example:**
 
 ```typescript
-import { createBetterQueryProvider } from "better-admin";
+import { createQueryProvider } from "better-admin";
 import { query } from "./query";
 
-const dataProvider = createBetterQueryProvider({
+const dataProvider = createQueryProvider({
   queryClient: query,
   onError: (error) => {
     console.error("Data error:", error);
@@ -183,12 +183,12 @@ interface ListParams {
 }
 ```
 
-### useBetterQuery
+### useQuery
 
 React hook to use better-query operations.
 
 ```typescript
-function useBetterQuery(resource: string, queryClient: any): {
+function useQuery(resource: string, queryClient: any): {
   list: (params?: any) => UseQueryResult;
   get: (params: any) => UseQueryResult;
   create: () => UseMutationResult;
@@ -215,11 +215,11 @@ function useBetterQuery(resource: string, queryClient: any): {
 **Example:**
 
 ```typescript
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "./query";
 
 function UsersList() {
-  const { list, remove } = useBetterQuery("user", query);
+  const { list, remove } = useQuery("user", query);
   const { data, isLoading } = list.useQuery();
   
   const handleDelete = async (id: string) => {
@@ -294,7 +294,7 @@ interface DeleteParams {
 All providers support error handling through the `onError` callback:
 
 ```typescript
-const provider = createBetterAuthProvider({
+const provider = createAuthProvider({
   authClient,
   onError: (error) => {
     // Custom error handling
@@ -324,7 +324,7 @@ interface UserSchema {
   role: "admin" | "user";
 }
 
-const { list } = useBetterQuery("user", query);
+const { list } = useQuery("user", query);
 const { data } = list.useQuery();
 // data is inferred as UserSchema[]
 ```
@@ -347,7 +347,7 @@ import { AuthProvider } from "ra-core";
 import simpleRestProvider from "ra-data-simple-rest";
 
 // better-admin
-import { createBetterAuthProvider, createBetterQueryProvider } from "better-admin";
+import { createAuthProvider, createQueryProvider } from "better-admin";
 ```
 
 See the [Migration Guide](/docs/better-admin/migration) for complete migration instructions.

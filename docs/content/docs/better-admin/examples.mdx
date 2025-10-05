@@ -133,15 +133,15 @@ export const query = betterQuery({
 ### 3. Create Providers
 
 ```typescript title="lib/admin-providers.ts"
-import { createBetterAuthProvider, createBetterQueryProvider } from "better-admin";
+import { createAuthProvider, createQueryProvider } from "better-admin";
 import { authClient } from "./auth-client";
 import { query } from "./query";
 
-export const authProvider = createBetterAuthProvider({
+export const authProvider = createAuthProvider({
   authClient,
 });
 
-export const dataProvider = createBetterQueryProvider({
+export const dataProvider = createQueryProvider({
   queryClient: query,
 });
 ```
@@ -254,14 +254,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 ```tsx title="app/admin/users/page.tsx"
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { DataTable } from "@/components/admin/data-table";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function UsersListPage() {
-  const { list } = useBetterQuery("user", query);
+  const { list } = useQuery("user", query);
   const { data, isLoading } = list.useQuery();
 
   if (isLoading) return <div>Loading...</div>;
@@ -295,7 +295,7 @@ A full-featured user management interface with all CRUD operations.
 ```tsx title="app/admin/users/page.tsx"
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { DataTable } from "@/components/admin/data-table";
 import { Button } from "@/components/ui/button";
@@ -315,7 +315,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function UsersPage() {
-  const { list, remove } = useBetterQuery("user", query);
+  const { list, remove } = useQuery("user", query);
   const { data, isLoading, refetch } = list.useQuery();
 
   const handleDelete = async (id: string) => {
@@ -403,14 +403,14 @@ export default function UsersPage() {
 ```tsx title="app/admin/users/create/page.tsx"
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { CrudForm } from "@/components/admin/crud-form";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
 export default function UserCreatePage() {
-  const { create } = useBetterQuery("user", query);
+  const { create } = useQuery("user", query);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -472,7 +472,7 @@ export default function UserCreatePage() {
 ```tsx title="app/admin/users/[id]/page.tsx"
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -481,7 +481,7 @@ import Link from "next/link";
 import { Edit } from "lucide-react";
 
 export default function UserDetailPage({ params }: { params: { id: string } }) {
-  const { get } = useBetterQuery("user", query);
+  const { get } = useQuery("user", query);
   const { data, isLoading } = get.useQuery({ where: { id: params.id } });
 
   if (isLoading) return <div>Loading...</div>;
@@ -540,14 +540,14 @@ export default function UserDetailPage({ params }: { params: { id: string } }) {
 ```tsx title="app/admin/users/[id]/edit/page.tsx"
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { CrudForm } from "@/components/admin/crud-form";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
 export default function UserEditPage({ params }: { params: { id: string } }) {
-  const { get, update } = useBetterQuery("user", query);
+  const { get, update } = useQuery("user", query);
   const { data, isLoading } = get.useQuery({ where: { id: params.id } });
   const router = useRouter();
   const { toast } = useToast();
@@ -620,7 +620,7 @@ export default function UserEditPage({ params }: { params: { id: string } }) {
 "use client";
 
 import { useState } from "react";
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { DataTable } from "@/components/admin/data-table";
 import { Input } from "@/components/ui/input";
@@ -637,7 +637,7 @@ import { X } from "lucide-react";
 export default function UsersWithFilters() {
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<string>("");
-  const { list } = useBetterQuery("user", query);
+  const { list } = useQuery("user", query);
 
   const where: any = {};
   if (search) {
@@ -716,15 +716,15 @@ export default function UsersWithFilters() {
 ```tsx title="app/admin/users/[id]/posts/page.tsx"
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/admin/data-table";
 import { Badge } from "@/components/ui/badge";
 
 export default function UserPostsPage({ params }: { params: { id: string } }) {
-  const { get: getUser } = useBetterQuery("user", query);
-  const { list: listPosts } = useBetterQuery("post", query);
+  const { get: getUser } = useQuery("user", query);
+  const { list: listPosts } = useQuery("post", query);
 
   const { data: user } = getUser.useQuery({ where: { id: params.id } });
   const { data: posts, isLoading } = listPosts.useQuery({
@@ -786,11 +786,11 @@ export default function UserPostsPage({ params }: { params: { id: string } }) {
 ### With React Query
 
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function UserList() {
-  const { list, update } = useBetterQuery("user", query);
+  const { list, update } = useQuery("user", query);
   const queryClient = useQueryClient();
 
   const toggleActive = async (id: string, active: boolean) => {

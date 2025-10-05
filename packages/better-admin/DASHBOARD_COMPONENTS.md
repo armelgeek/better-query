@@ -51,7 +51,7 @@ import { Users } from "lucide-react";
 
 **Better Query Integration:**
 ```tsx
-const { count } = useBetterQuery("user", query);
+const { count } = useQuery("user", query);
 const { data: totalUsers, isLoading } = count.useQuery();
 
 <StatCard
@@ -131,7 +131,7 @@ import { MetricTrend } from "@/components/admin/metric-trend";
 
 **Better Query Integration:**
 ```tsx
-const { count } = useBetterQuery("order", query);
+const { count } = useQuery("order", query);
 
 // Current month
 const { data: currentOrders } = count.useQuery({
@@ -222,7 +222,7 @@ npx better-admin add recent-activity
 ```tsx
 import { RecentActivity } from "@/components/admin/recent-activity";
 
-const { list } = useBetterQuery("activity", query);
+const { list } = useQuery("activity", query);
 const { data: activities } = list.useQuery({
   orderBy: { createdAt: "desc" },
   take: 5
@@ -262,7 +262,7 @@ const formattedActivities = (activities || []).map(activity => ({
 
 **Better Query Integration:**
 ```tsx
-const { list } = useBetterQuery("user", query);
+const { list } = useQuery("user", query);
 const { data: recentUsers, isLoading } = list.useQuery({
   orderBy: { createdAt: "desc" },
   take: 5
@@ -289,7 +289,7 @@ Here's a complete example using all dashboard components together:
 ```tsx
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { StatCard } from "@/components/admin/stat-card";
 import { DashboardGrid } from "@/components/admin/dashboard-grid";
@@ -299,8 +299,8 @@ import { RecentActivity } from "@/components/admin/recent-activity";
 import { Users, ShoppingCart, DollarSign, TrendingUp } from "lucide-react";
 
 export default function DashboardPage() {
-  const { count: userCount, list: userList } = useBetterQuery("user", query);
-  const { count: orderCount } = useBetterQuery("order", query);
+  const { count: userCount, list: userList } = useQuery("user", query);
+  const { count: orderCount } = useQuery("order", query);
 
   // Fetch data
   const { data: totalUsers, isLoading: loadingUsers } = userCount.useQuery();

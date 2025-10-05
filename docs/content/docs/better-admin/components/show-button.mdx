@@ -85,11 +85,11 @@ ShowButton works with better-query data:
 
 ```tsx
 import { List, DataTable, ShowButton } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 
 export function UserList() {
-  const { data } = useBetterQuery("user", query);
+  const { data } = useQuery("user", query);
 
   return (
     <List>

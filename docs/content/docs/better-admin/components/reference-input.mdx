@@ -102,11 +102,11 @@ ReferenceInput integrates with better-query:
 
 ```tsx
 import { Edit, SimpleForm, TextInput, ReferenceInput, SelectInput } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 
 export function PostEdit({ id }: { id: string }) {
-  const { data, update } = useBetterQuery("post", query);
+  const { data, update } = useQuery("post", query);
 
   return (
     <Edit
@@ -225,12 +225,12 @@ import {
   AutocompleteInput,
   BooleanInput,
 } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 import { required, min } from '@/lib/validators';
 
 export function OrderCreate() {
-  const { create } = useBetterQuery("order", query);
+  const { create } = useQuery("order", query);
 
   return (
     <Create

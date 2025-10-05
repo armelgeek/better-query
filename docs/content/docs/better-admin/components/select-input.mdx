@@ -147,12 +147,12 @@ Use with better-query for dynamic choices:
 
 ```tsx
 import { Edit, SimpleForm, TextInput, SelectInput } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 
 export function PostEdit({ id }: { id: string }) {
-  const { data: post, update } = useBetterQuery("post", query);
-  const { data: categories } = useBetterQuery("category", query);
+  const { data: post, update } = useQuery("post", query);
+  const { data: categories } = useQuery("category", query);
 
   return (
     <Edit
@@ -229,14 +229,14 @@ import {
   NumberInput,
   SelectInput,
 } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 import { required, min } from '@/lib/validators';
 
 export function ProductCreate() {
-  const { create } = useBetterQuery("product", query);
-  const { data: categories } = useBetterQuery("category", query);
-  const { data: suppliers } = useBetterQuery("supplier", query);
+  const { create } = useQuery("product", query);
+  const { data: categories } = useQuery("category", query);
+  const { data: suppliers } = useQuery("supplier", query);
 
   return (
     <Create

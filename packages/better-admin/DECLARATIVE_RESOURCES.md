@@ -8,11 +8,11 @@ Better Admin now supports declarative resource management, similar to React Admi
 
 ```tsx
 import { Admin, Resource } from 'better-admin';
-import { createBetterAuthProvider, createBetterQueryProvider } from 'better-admin';
+import { createAuthProvider, createQueryProvider } from 'better-admin';
 
 // Setup your providers
-const authProvider = createBetterAuthProvider({ authClient });
-const dataProvider = createBetterQueryProvider({ queryClient: query });
+const authProvider = createAuthProvider({ authClient });
+const dataProvider = createQueryProvider({ queryClient: query });
 
 export default function App() {
   return (
@@ -101,8 +101,8 @@ function MyComponent() {
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `authProvider` | `any` | No | Authentication provider from `createBetterAuthProvider` |
-| `dataProvider` | `any` | No | Data provider from `createBetterQueryProvider` |
+| `authProvider` | `any` | No | Authentication provider from `createAuthProvider` |
+| `dataProvider` | `any` | No | Data provider from `createQueryProvider` |
 | `children` | `ReactNode` | No | Resource components and other content |
 | `dashboard` | `ComponentType` | No | Custom dashboard component |
 | `layout` | `ComponentType` | No | Custom layout component |

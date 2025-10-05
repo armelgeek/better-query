@@ -109,10 +109,10 @@ export const { signIn, signUp, signOut, useSession } = authClient;
 ```
 
 ```typescript title="lib/admin-auth.ts"
-import { createBetterAuthProvider } from "better-admin";
+import { createAuthProvider } from "better-admin";
 import { authClient } from "./auth-client";
 
-export const authProvider = createBetterAuthProvider({
+export const authProvider = createAuthProvider({
   authClient,
 });
 ```
@@ -163,10 +163,10 @@ export const query = betterQuery({
 ```
 
 ```typescript title="lib/admin-data.ts"
-import { createBetterQueryProvider } from "better-admin";
+import { createQueryProvider } from "better-admin";
 import { query } from "./query";
 
-export const dataProvider = createBetterQueryProvider({
+export const dataProvider = createQueryProvider({
   queryClient: query,
 });
 ```
@@ -257,14 +257,14 @@ export const UserList = () => (
 ```tsx title="app/admin/users/page.tsx"
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function UsersPage() {
-  const { list, remove } = useBetterQuery("user", query);
+  const { list, remove } = useQuery("user", query);
   const { data, isLoading } = list.useQuery();
 
   const columns = [
@@ -345,13 +345,13 @@ export const UserEdit = () => (
 ```tsx title="app/admin/users/[id]/edit/page.tsx"
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { CrudForm } from "@/components/ui/crud-form";
 import { useRouter } from "next/navigation";
 
 export default function UserEditPage({ params }: { params: { id: string } }) {
-  const { get, update } = useBetterQuery("user", query);
+  const { get, update } = useQuery("user", query);
   const { data, isLoading } = get.useQuery({ where: { id: params.id } });
   const router = useRouter();
 
@@ -406,10 +406,10 @@ const [deleteOne] = useDelete();
 **After (better-admin):**
 
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 
-const { list, update, remove } = useBetterQuery("user", query);
+const { list, update, remove } = useQuery("user", query);
 const { data, isLoading } = list.useQuery();
 // update.mutateAsync({ where: { id }, data })
 // remove.mutateAsync({ where: { id } })
@@ -431,7 +431,7 @@ const { data, isLoading } = list.useQuery();
 
 ```tsx
 const [search, setSearch] = useState("");
-const { list } = useBetterQuery("user", query);
+const { list } = useQuery("user", query);
 const { data } = list.useQuery({
   where: search ? { name: { contains: search } } : {},
 });
@@ -452,7 +452,7 @@ const { data } = list.useQuery({
 ```tsx
 const [page, setPage] = useState(1);
 const perPage = 25;
-const { list } = useBetterQuery("user", query);
+const { list } = useQuery("user", query);
 const { data } = list.useQuery({
   skip: (page - 1) * perPage,
   take: perPage,
@@ -472,7 +472,7 @@ const { data } = list.useQuery({
 **After:**
 
 ```tsx
-const { list } = useBetterQuery("user", query);
+const { list } = useQuery("user", query);
 const { data } = list.useQuery({
   orderBy: { name: "asc" },
 });
@@ -491,7 +491,7 @@ const { data } = list.useQuery({
 **After:**
 
 ```tsx
-const { get: getUser } = useBetterQuery("user", query);
+const { get: getUser } = useQuery("user", query);
 const { data: author } = getUser.useQuery({
   where: { id: post.authorId },
 });

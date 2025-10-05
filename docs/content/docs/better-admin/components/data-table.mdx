@@ -56,13 +56,13 @@ export const PostList = () => (
 For more control, use Better Query directly:
 
 ```tsx
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 import { DataTable } from '@/components/admin/data-table';
 
 export function UsersList() {
   // Fetch users from database
-  const { list } = useBetterQuery("user", query);
+  const { list } = useQuery("user", query);
   const { data, isLoading } = list.useQuery();
 
   if (isLoading) return <div>Loading...</div>;

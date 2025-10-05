@@ -15,9 +15,9 @@ export const authClient = createAuthClient({
 export const { signIn, signUp, signOut, useSession } = authClient;
 
 // 2. Create auth provider for better-admin
-import { createBetterAuthProvider } from "better-admin";
+import { createAuthProvider } from "better-admin";
 
-export const authProvider = createBetterAuthProvider({
+export const authProvider = createAuthProvider({
 	authClient,
 	onError: (error) => {
 		console.error("Auth error:", error);

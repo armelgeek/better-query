@@ -20,7 +20,7 @@
 	},
 	"betterQuery": {
 		"operations": ["list"],
-		"hook": "useBetterQuery(\"resource\", query).list()",
-		"example": "const { list } = useBetterQuery(\"activity\", query);\nconst { data: recentActivities } = list.useQuery({ orderBy: { createdAt: 'desc' }, take: 5 });"
+		"hook": "useQuery(\"resource\", query).list()",
+		"example": "const { list } = useQuery(\"activity\", query);\nconst { data: recentActivities } = list.useQuery({ orderBy: { createdAt: 'desc' }, take: 5 });"
 	}
 }

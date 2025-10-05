@@ -106,14 +106,14 @@ export interface DataProvider {
  * @example
  * ```ts
  * import { query } from './query';
- * import { createBetterQueryProvider } from 'better-admin/providers/data';
+ * import { createQueryProvider } from 'better-admin/providers/data';
  *
- * const dataProvider = createBetterQueryProvider({
+ * const dataProvider = createQueryProvider({
  *   queryClient: query,
  * });
  * ```
  */
-export function createBetterQueryProvider(
+export function createQueryProvider(
 	options: DataProviderOptions,
 ): DataProvider {
 	const { queryClient, onError } = options;
@@ -270,10 +270,10 @@ export function createBetterQueryProvider(
  *
  * @example
  * ```tsx
- * import { useBetterQuery } from 'better-admin/providers/data';
+ * import { useQuery } from 'better-admin/providers/data';
  *
  * function UsersList() {
- *   const { data, isLoading, error } = useBetterQuery('users').list();
+ *   const { data, isLoading, error } = useQuery('users').list();
  *
  *   if (isLoading) return <div>Loading...</div>;
  *   if (error) return <div>Error: {error.message}</div>;
@@ -282,7 +282,7 @@ export function createBetterQueryProvider(
  * }
  * ```
  */
-export function useBetterQuery(resource: string, queryClient: any) {
+export function useQuery(resource: string, queryClient: any) {
 	const resourceQuery = queryClient(resource);
 
 	return {

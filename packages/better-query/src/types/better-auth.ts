@@ -185,7 +185,7 @@ export type ExtractBetterAuthUser<T> = T extends {
 /**
  * Create type-safe Better Auth integration helper
  */
-export function createBetterAuthIntegration<
+export function createAuthIntegration<
 	TAuth extends { $inferredTypes: { User: any } },
 >(auth: TAuth): BetterAuthQuery<ExtractBetterAuthUser<TAuth>> {
 	type User = ExtractBetterAuthUser<TAuth>;

@@ -59,10 +59,10 @@ Better Admin integrates with better-auth and better-query, **not** ra-core or re
 ### Auth Provider (better-auth)
 
 ```typescript
-import { createBetterAuthProvider } from "better-admin";
+import { createAuthProvider } from "better-admin";
 import { authClient } from "./auth-client";
 
-export const authProvider = createBetterAuthProvider({
+export const authProvider = createAuthProvider({
   authClient,
 });
 ```
@@ -70,10 +70,10 @@ export const authProvider = createBetterAuthProvider({
 ### Data Provider (better-query)
 
 ```typescript
-import { createBetterQueryProvider } from "better-admin";
+import { createQueryProvider } from "better-admin";
 import { query } from "./query";
 
-export const dataProvider = createBetterQueryProvider({
+export const dataProvider = createQueryProvider({
   queryClient: query,
 });
 ```
@@ -88,13 +88,13 @@ The fastest way to create an admin interface - just declare your resources:
 
 ```tsx
 import { Admin, Resource } from 'better-admin';
-import { createBetterAuthProvider, createBetterQueryProvider } from 'better-admin';
+import { createAuthProvider, createQueryProvider } from 'better-admin';
 
 export default function App() {
   return (
     <Admin
-      authProvider={createBetterAuthProvider({ authClient })}
-      dataProvider={createBetterQueryProvider({ queryClient: query })}
+      authProvider={createAuthProvider({ authClient })}
+      dataProvider={createQueryProvider({ queryClient: query })}
     >
       <Resource name="users" />
       <Resource name="posts" />
@@ -158,12 +158,12 @@ Build beautiful dashboards with ready-to-use components:
 
 ```tsx title="app/admin/page.tsx"
 import { StatCard, DashboardGrid, RecentActivity } from "@/components/admin";
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { Users, ShoppingCart } from "lucide-react";
 
 export default function DashboardPage() {
-  const { count } = useBetterQuery("user", query);
+  const { count } = useQuery("user", query);
   const { data: totalUsers, isLoading } = count.useQuery();
 
   return (
@@ -206,12 +206,12 @@ export default function DashboardPage() {
 All components use **better-query** for data operations:
 
 ```tsx title="app/admin/users/page.tsx"
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { DataTable } from "@/components/admin/data-table";
 
 export function UsersPage() {
-  const { list } = useBetterQuery("user", query);
+  const { list } = useQuery("user", query);
   const { data, isLoading } = list.useQuery();
   
   if (isLoading) return <div>Loading...</div>;
@@ -228,12 +228,12 @@ export function UsersPage() {
 ### 5. CRUD Operations
 
 ```tsx title="app/admin/users/create/page.tsx"
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { CrudForm } from "@/components/admin/crud-form";
 
 export function UserCreate() {
-  const { create } = useBetterQuery("user", query);
+  const { create } = useQuery("user", query);
   
   const fields = [
     { name: "name", label: "Name", type: "text", required: true },
@@ -389,10 +389,10 @@ All components are designed to work seamlessly with **better-query**, not ra-cor
 ### List View Pattern
 
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 
-const { list } = useBetterQuery("resource", query);
+const { list } = useQuery("resource", query);
 const { data, isLoading, error } = list.useQuery();
 
 <DataTable data={data || []} columns={columns} />
@@ -401,10 +401,10 @@ const { data, isLoading, error } = list.useQuery();
 ### Create Pattern
 
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 
-const { create } = useBetterQuery("resource", query);
+const { create } = useQuery("resource", query);
 
 <CrudForm 
   fields={fields} 
@@ -415,10 +415,10 @@ const { create } = useBetterQuery("resource", query);
 ### Edit Pattern
 
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 
-const { get, update } = useBetterQuery("resource", query);
+const { get, update } = useQuery("resource", query);
 const { data } = get.useQuery({ where: { id } });
 
 <CrudForm 
@@ -441,10 +441,10 @@ A powerful data table with sorting, filtering, and pagination.
 
 **Example:**
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 
-const { list } = useBetterQuery("user", query);
+const { list } = useQuery("user", query);
 const { data } = list.useQuery();
 
 <DataTable 
@@ -466,10 +466,10 @@ Flexible form builder with automatic validation.
 
 **Example:**
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 
-const { create } = useBetterQuery("user", query);
+const { create } = useQuery("user", query);
 
 <CrudForm
   fields={[
@@ -491,10 +491,10 @@ Card-based grid layout for displaying resources.
 
 **Example:**
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 
-const { list } = useBetterQuery("project", query);
+const { list } = useQuery("project", query);
 const { data } = list.useQuery();
 
 <ResourceList

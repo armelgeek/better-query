@@ -25,11 +25,11 @@ Here's a basic example of setting up the Admin component:
 
 ```tsx
 import { Admin } from '@/components/admin';
-import { createBetterAuthProvider } from 'better-admin';
+import { createAuthProvider } from 'better-admin';
 import { authClient } from '@/lib/auth-client';
 
 // Create the auth provider
-const authProvider = createBetterAuthProvider({ authClient });
+const authProvider = createAuthProvider({ authClient });
 
 export default function App() {
   return (
@@ -55,8 +55,8 @@ export default function App() {
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `authProvider` | `AuthProvider` | No | Authentication provider from `createBetterAuthProvider` |
-| `dataProvider` | `DataProvider` | No | Data provider from `createBetterQueryProvider` |
+| `authProvider` | `AuthProvider` | No | Authentication provider from `createAuthProvider` |
+| `dataProvider` | `DataProvider` | No | Data provider from `createQueryProvider` |
 | `theme` | `"light" \| "dark" \| "system"` | No | Color theme for the interface (default: `"system"`) |
 | `children` | `ReactNode` | Yes | Resource components and admin pages |
 
@@ -90,11 +90,11 @@ Add authentication to protect your admin:
 
 ```tsx
 import { Admin } from '@/components/admin';
-import { createBetterAuthProvider } from 'better-admin';
+import { createAuthProvider } from 'better-admin';
 import { authClient } from '@/lib/auth-client';
 
 // Create auth provider
-const authProvider = createBetterAuthProvider({ authClient });
+const authProvider = createAuthProvider({ authClient });
 
 export default function App() {
   return (
@@ -142,13 +142,13 @@ A production-ready setup with auth and data:
 
 ```tsx
 import { Admin } from '@/components/admin';
-import { createBetterAuthProvider, createBetterQueryProvider } from 'better-admin';
+import { createAuthProvider, createQueryProvider } from 'better-admin';
 import { authClient } from '@/lib/auth-client';
 import { query } from '@/lib/query';
 
 // Create providers
-const authProvider = createBetterAuthProvider({ authClient });
-const dataProvider = createBetterQueryProvider({ queryClient: query });
+const authProvider = createAuthProvider({ authClient });
+const dataProvider = createQueryProvider({ queryClient: query });
 
 export default function App() {
   return (
@@ -214,7 +214,7 @@ The Admin component uses React Context to provide services to all child componen
 └─────────────────────────────────────┘
 ```
 
-Any component inside `<Admin>` can access authentication and data operations using hooks like `useAuth()` or `useBetterQuery()`.
+Any component inside `<Admin>` can access authentication and data operations using hooks like `useAuth()` or `useQuery()`.
 
 ## Common Patterns
 
@@ -320,7 +320,7 @@ Learn about related concepts and components:
 
 ```tsx
 // 1. Create provider
-const authProvider = createBetterAuthProvider({ authClient });
+const authProvider = createAuthProvider({ authClient });
 
 // 2. Pass to Admin
 <Admin authProvider={authProvider}>

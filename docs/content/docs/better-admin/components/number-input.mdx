@@ -119,11 +119,11 @@ NumberInput integrates with better-query:
 
 ```tsx
 import { Edit, SimpleForm, TextInput, NumberInput } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 
 export function ProductEdit({ id }: { id: string }) {
-  const { data, update } = useBetterQuery("product", query);
+  const { data, update } = useQuery("product", query);
 
   return (
     <Edit
@@ -207,12 +207,12 @@ import {
   NumberInput,
   SelectInput,
 } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 import { required, min } from '@/lib/validators';
 
 export function ProductCreate() {
-  const { create } = useBetterQuery("product", query);
+  const { create } = useQuery("product", query);
 
   return (
     <Create

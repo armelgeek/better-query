@@ -531,7 +531,7 @@ const query = betterQuery({
   ],
 });
 
-const dataProvider = createBetterQueryProvider({ queryClient: query });
+const dataProvider = createQueryProvider({ queryClient: query });
 
 <Admin dataProvider={dataProvider}>
   <Resource name="user" />

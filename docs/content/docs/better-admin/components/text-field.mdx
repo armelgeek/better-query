@@ -66,12 +66,12 @@ export const PostShow = () => (
 TextField automatically displays data from better-query:
 
 ```tsx
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { Show, SimpleShowLayout, TextField } from '@/components/admin';
 import { query } from '@/lib/query';
 
 export function PostShow({ id }: { id: string }) {
-  const { data } = useBetterQuery("post", query);
+  const { data } = useQuery("post", query);
 
   return (
     <Show resource="post" id={id}>

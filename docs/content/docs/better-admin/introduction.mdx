@@ -79,11 +79,11 @@ Better Admin uses better-auth to handle all authentication concerns:
 
 **Example:**
 ```typescript title="lib/admin-auth.ts"
-import { createBetterAuthProvider } from "better-admin";
+import { createAuthProvider } from "better-admin";
 import { authClient } from "./auth-client";
 
 // This creates a bridge between better-auth and your admin interface
-export const authProvider = createBetterAuthProvider({
+export const authProvider = createAuthProvider({
   authClient,
 });
 ```
@@ -104,11 +104,11 @@ Better Admin uses better-query for all data operations:
 
 **Example:**
 ```typescript title="lib/admin-data.ts"
-import { createBetterQueryProvider } from "better-admin";
+import { createQueryProvider } from "better-admin";
 import { query } from "./query";
 
 // This connects your database queries to the admin components
-export const dataProvider = createBetterQueryProvider({
+export const dataProvider = createQueryProvider({
   queryClient: query,
 });
 ```
@@ -166,11 +166,11 @@ npm install better-auth
 2. Create an auth provider to connect better-auth to your admin:
 
 ```typescript title="lib/admin-auth.ts"
-import { createBetterAuthProvider } from "better-admin";
+import { createAuthProvider } from "better-admin";
 import { authClient } from "./auth-client";
 
 // This makes better-auth work with your admin interface
-export const authProvider = createBetterAuthProvider({
+export const authProvider = createAuthProvider({
   authClient,
 });
 ```
@@ -190,11 +190,11 @@ npm install better-query
 2. Create a data provider to connect your database:
 
 ```typescript title="lib/admin-data.ts"
-import { createBetterQueryProvider } from "better-admin";
+import { createQueryProvider } from "better-admin";
 import { query } from "./query";
 
 // This connects your database to the admin components
-export const dataProvider = createBetterQueryProvider({
+export const dataProvider = createQueryProvider({
   queryClient: query,
 });
 ```
@@ -228,13 +228,13 @@ Create your first admin page:
 ```tsx title="app/admin/users/page.tsx"
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { DataTable } from "@/components/ui/data-table";
 
 export default function UsersPage() {
   // Fetch users from your database
-  const { list } = useBetterQuery("user", query);
+  const { list } = useQuery("user", query);
   const { data, isLoading } = list.useQuery();
 
   if (isLoading) return <div>Loading...</div>;
@@ -277,12 +277,12 @@ A powerful data table with sorting, filtering, and pagination built on @tanstack
 
 **Usage:**
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { DataTable } from "@/components/ui/data-table";
 
 export function UsersTable() {
-  const { list } = useBetterQuery("user", query);
+  const { list } = useQuery("user", query);
   const { data } = list.useQuery();
 
   return (
@@ -309,12 +309,12 @@ A flexible form builder with validation using react-hook-form and zod.
 
 **Usage:**
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { CrudForm } from "@/components/ui/crud-form";
 
 export function UserForm() {
-  const { create } = useBetterQuery("user", query);
+  const { create } = useQuery("user", query);
 
   const fields = [
     { name: "name", label: "Name", type: "text", required: true },
@@ -344,12 +344,12 @@ A reusable list component for displaying resources with actions.
 
 **Usage:**
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { ResourceList } from "@/components/ui/resource-list";
 
 export function ProjectsList() {
-  const { list } = useBetterQuery("project", query);
+  const { list } = useQuery("project", query);
   const { data } = list.useQuery();
 
   return (

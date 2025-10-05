@@ -5,7 +5,7 @@ description: Build custom dashboards with stats, charts, and data visualizations
 
 # Dashboard
 
-A dashboard is the main page of your admin interface that displays key metrics, statistics, and quick access to important information. Better Admin makes it easy to build custom dashboards using the `useBetterQuery` hook to fetch and display data from multiple resources.
+A dashboard is the main page of your admin interface that displays key metrics, statistics, and quick access to important information. Better Admin makes it easy to build custom dashboards using the `useQuery` hook to fetch and display data from multiple resources.
 
 <Callout type="info">
 **Think of it as your admin homepage**: The dashboard gives you a quick overview of your application's data - total users, recent orders, active sessions, or any other metrics that matter to your business.
@@ -29,13 +29,13 @@ The simplest dashboard shows key statistics from your resources:
 ```tsx title="app/admin/page.tsx"
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardPage() {
-  const { count: userCount } = useBetterQuery("user", query);
-  const { count: postCount } = useBetterQuery("post", query);
+  const { count: userCount } = useQuery("user", query);
+  const { count: postCount } = useQuery("post", query);
 
   const { data: totalUsers } = userCount.useQuery();
   const { data: totalPosts } = postCount.useQuery();
@@ -67,7 +67,7 @@ export default function DashboardPage() {
 ```
 
 **What this does:**
-1. Uses `useBetterQuery` to access the count operation for each resource
+1. Uses `useQuery` to access the count operation for each resource
 2. Fetches the total count with `useQuery()` hook
 3. Displays the counts in a responsive grid layout
 
@@ -84,13 +84,13 @@ Show statistics filtered by specific criteria:
 ```tsx title="app/admin/page.tsx"
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardPage() {
-  const { count: userCount, list: userList } = useBetterQuery("user", query);
-  const { count: postCount } = useBetterQuery("post", query);
+  const { count: userCount, list: userList } = useQuery("user", query);
+  const { count: postCount } = useQuery("post", query);
 
   // Total counts
   const { data: totalUsers } = userCount.useQuery();
@@ -217,15 +217,15 @@ A more complex example for an e-commerce application:
 ```tsx title="app/admin/page.tsx"
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, ShoppingCart, Users, Package } from "lucide-react";
 
 export default function DashboardPage() {
-  const { count: orderCount, list: orderList } = useBetterQuery("order", query);
-  const { count: productCount } = useBetterQuery("product", query);
-  const { count: customerCount } = useBetterQuery("customer", query);
+  const { count: orderCount, list: orderList } = useQuery("order", query);
+  const { count: productCount } = useQuery("product", query);
+  const { count: customerCount } = useQuery("customer", query);
 
   // Today's date for filtering
   const today = new Date();
@@ -382,9 +382,9 @@ export default function DashboardPage() {
 **Performance tip**: When calculating totals or aggregates, limit the query with `take` to avoid fetching too much data. For production, consider using database aggregate functions or custom operations.
 </Callout>
 
-## Using the useBetterQuery Hook
+## Using the useQuery Hook
 
-The `useBetterQuery` hook is the foundation of dashboard functionality. It provides reactive access to your better-query operations.
+The `useQuery` hook is the foundation of dashboard functionality. It provides reactive access to your better-query operations.
 
 ### Available Operations
 
@@ -396,7 +396,7 @@ const {
   update,    // Update existing record
   remove,    // Delete record
   count,     // Count records
-} = useBetterQuery("resourceName", query);
+} = useQuery("resourceName", query);
 ```
 
 ### Count Operation
@@ -404,7 +404,7 @@ const {
 Get the total number of records:
 
 ```tsx
-const { count } = useBetterQuery("user", query);
+const { count } = useQuery("user", query);
 const { data: totalUsers, isLoading, error } = count.useQuery();
 
 // With filters
@@ -418,7 +418,7 @@ const { data: activeUsers } = count.useQuery({
 Fetch multiple records with options:
 
 ```tsx
-const { list } = useBetterQuery("post", query);
+const { list } = useQuery("post", query);
 
 const { data: posts, isLoading, error } = list.useQuery({
   take: 10,                        // Limit results
@@ -434,9 +434,9 @@ Create rich dashboards by combining multiple operations:
 
 ```tsx
 export default function DashboardPage() {
-  const userQuery = useBetterQuery("user", query);
-  const postQuery = useBetterQuery("post", query);
-  const commentQuery = useBetterQuery("comment", query);
+  const userQuery = useQuery("user", query);
+  const postQuery = useQuery("post", query);
+  const commentQuery = useQuery("comment", query);
 
   // Counts
   const { data: userCount } = userQuery.count.useQuery();
@@ -466,7 +466,7 @@ Always handle loading states for better UX:
 
 ```tsx
 export default function DashboardPage() {
-  const { count } = useBetterQuery("user", query);
+  const { count } = useQuery("user", query);
   const { data: userCount, isLoading } = count.useQuery();
 
   if (isLoading) {
@@ -491,7 +491,7 @@ Gracefully handle errors:
 
 ```tsx
 export default function DashboardPage() {
-  const { count } = useBetterQuery("user", query);
+  const { count } = useQuery("user", query);
   const { data: userCount, isLoading, error } = count.useQuery();
 
   if (error) {
@@ -542,7 +542,7 @@ For complex dashboards, break them into components:
 
 ```tsx title="components/dashboard/stats-cards.tsx"
 export function StatsCards() {
-  const { count } = useBetterQuery("user", query);
+  const { count } = useQuery("user", query);
   const { data: userCount } = count.useQuery();
 
   return (
@@ -581,11 +581,11 @@ export default function DashboardPage() {
 Better Query supports real-time updates when using the realtime plugin:
 
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 
 export default function DashboardPage() {
-  const { count } = useBetterQuery("order", query);
+  const { count } = useQuery("order", query);
   
   // This will automatically update when new orders are created
   const { data: orderCount } = count.useQuery(undefined, {
@@ -602,7 +602,7 @@ Create dashboards with date range filters:
 
 ```tsx
 import { useState } from "react";
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 
 export default function DashboardPage() {
@@ -611,7 +611,7 @@ export default function DashboardPage() {
     to: new Date(),
   });
 
-  const { count } = useBetterQuery("order", query);
+  const { count } = useQuery("order", query);
   
   const { data: orderCount } = count.useQuery({
     where: {
@@ -637,7 +637,7 @@ Show comparisons between time periods:
 
 ```tsx
 export default function DashboardPage() {
-  const { count } = useBetterQuery("order", query);
+  const { count } = useQuery("order", query);
 
   const today = new Date();
   const yesterday = new Date(today);
@@ -683,12 +683,12 @@ You can integrate popular charting libraries for visualizations:
 ### With Recharts
 
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
 export default function DashboardPage() {
-  const { list } = useBetterQuery("order", query);
+  const { list } = useQuery("order", query);
 
   // Get orders from last 7 days
   const sevenDaysAgo = new Date();

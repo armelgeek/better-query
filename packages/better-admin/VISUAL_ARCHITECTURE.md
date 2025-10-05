@@ -136,7 +136,7 @@ Component → useResourceContext() → ResourceContext
 
 3. Create Providers
    ─────────────────
-   const dataProvider = createBetterQueryProvider({ 
+   const dataProvider = createQueryProvider({ 
      queryClient: query 
    })
 
@@ -159,7 +159,7 @@ Component → useResourceContext() → ResourceContext
 ```
 app/admin/users/
 ├── page.tsx (100 lines)
-│   ├── Import useBetterQuery
+│   ├── Import useQuery
 │   ├── Setup data fetching
 │   ├── Handle loading state
 │   ├── Define columns
@@ -167,7 +167,7 @@ app/admin/users/
 │   └── Add navigation
 │
 ├── create/page.tsx (80 lines)
-│   ├── Import useBetterQuery
+│   ├── Import useQuery
 │   ├── Setup create mutation
 │   ├── Define form fields
 │   ├── Handle validation
@@ -175,7 +175,7 @@ app/admin/users/
 │   └── Add navigation
 │
 └── [id]/edit/page.tsx (80 lines)
-    ├── Import useBetterQuery
+    ├── Import useQuery
     ├── Fetch existing data
     ├── Setup update mutation
     ├── Define form fields

@@ -87,10 +87,10 @@ Components integrate with better-auth for authentication:
 
 ```tsx
 import { Admin } from '@/components/admin';
-import { createBetterAuthProvider } from 'better-admin';
+import { createAuthProvider } from 'better-admin';
 import { authClient } from '@/lib/auth-client';
 
-const authProvider = createBetterAuthProvider({ authClient });
+const authProvider = createAuthProvider({ authClient });
 
 export default function App() {
   return (

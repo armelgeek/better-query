@@ -20,7 +20,7 @@
 	},
 	"betterQuery": {
 		"operations": ["count"],
-		"hook": "useBetterQuery(\"resource\", query).count()",
-		"example": "const { count } = useBetterQuery(\"order\", query);\nconst { data: todayOrders } = count.useQuery({ where: { createdAt: { gte: today } } });"
+		"hook": "useQuery(\"resource\", query).count()",
+		"example": "const { count } = useQuery(\"order\", query);\nconst { data: todayOrders } = count.useQuery({ where: { createdAt: { gte: today } } });"
 	}
 }

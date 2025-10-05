@@ -132,16 +132,16 @@ export const query = betterQuery({
 // ============================================================================
 // 5. Create Admin Providers (lib/admin-providers.ts)
 // ============================================================================
-import { createBetterAuthProvider, createBetterQueryProvider } from "better-admin";
+import { createAuthProvider, createQueryProvider } from "better-admin";
 
-export const authProvider = createBetterAuthProvider({
+export const authProvider = createAuthProvider({
 	authClient,
 	onError: (error) => {
 		console.error("Auth error:", error);
 	},
 });
 
-export const dataProvider = createBetterQueryProvider({
+export const dataProvider = createQueryProvider({
 	queryClient: query,
 	onError: (error) => {
 		console.error("Data error:", error);
@@ -294,11 +294,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import Link from "next/link";
 
 export default function UsersPage() {
-	const { list, remove } = useBetterQuery("user", query);
+	const { list, remove } = useQuery("user", query);
 	const { data, isLoading } = list.useQuery({
 		orderBy: { createdAt: "desc" },
 	});
@@ -353,11 +353,11 @@ export default function UsersPage() {
 ("use client");
 
 import { CrudForm } from "@/components/ui/crud-form";
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { useRouter } from "next/navigation";
 
 export default function UserCreatePage() {
-	const { create } = useBetterQuery("user", query);
+	const { create } = useQuery("user", query);
 	const router = useRouter();
 
 	const fields = [
@@ -395,11 +395,11 @@ export default function UserCreatePage() {
 ("use client");
 
 import { CrudForm } from "@/components/ui/crud-form";
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { useRouter } from "next/navigation";
 
 export default function UserEditPage({ params }: { params: { id: string } }) {
-	const { get, update } = useBetterQuery("user", query);
+	const { get, update } = useQuery("user", query);
 	const { data, isLoading } = get.useQuery({ where: { id: params.id } });
 	const router = useRouter();
 
@@ -446,11 +446,11 @@ export default function UserEditPage({ params }: { params: { id: string } }) {
 ("use client");
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 
 export default function DashboardPage() {
-	const { count: userCount } = useBetterQuery("user", query);
-	const { count: postCount } = useBetterQuery("post", query);
+	const { count: userCount } = useQuery("user", query);
+	const { count: postCount } = useQuery("post", query);
 
 	const { data: totalUsers } = userCount.useQuery();
 	const { data: totalPosts } = postCount.useQuery();

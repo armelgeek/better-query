@@ -852,8 +852,8 @@
 			},
 			"betterQuery": {
 				"operations": ["count", "list"],
-				"hook": "useBetterQuery(\"resource\", query).count()",
-				"example": "const { count } = useBetterQuery(\"user\", query);\nconst { data: totalUsers } = count.useQuery();"
+				"hook": "useQuery(\"resource\", query).count()",
+				"example": "const { count } = useQuery(\"user\", query);\nconst { data: totalUsers } = count.useQuery();"
 			}
 		},
 		{
@@ -875,8 +875,8 @@
 			},
 			"betterQuery": {
 				"operations": ["count"],
-				"hook": "useBetterQuery(\"resource\", query).count()",
-				"example": "const { count } = useBetterQuery(\"order\", query);\nconst { data: todayOrders } = count.useQuery({ where: { createdAt: { gte: today } } });"
+				"hook": "useQuery(\"resource\", query).count()",
+				"example": "const { count } = useQuery(\"order\", query);\nconst { data: todayOrders } = count.useQuery({ where: { createdAt: { gte: today } } });"
 			}
 		},
 		{
@@ -898,8 +898,8 @@
 			},
 			"betterQuery": {
 				"operations": ["list"],
-				"hook": "useBetterQuery(\"resource\", query).list()",
-				"example": "const { list } = useBetterQuery(\"activity\", query);\nconst { data: recentActivities } = list.useQuery({ orderBy: { createdAt: 'desc' }, take: 5 });"
+				"hook": "useQuery(\"resource\", query).list()",
+				"example": "const { list } = useQuery(\"activity\", query);\nconst { data: recentActivities } = list.useQuery({ orderBy: { createdAt: 'desc' }, take: 5 });"
 			}
 		}
 	]

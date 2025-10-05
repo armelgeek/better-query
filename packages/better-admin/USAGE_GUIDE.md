@@ -365,12 +365,12 @@ Ready-to-use dashboard components extending shadcn/ui.
 **Example: Complete Dashboard**
 ```tsx
 import { StatCard, DashboardGrid, RecentActivity } from "@/components/admin";
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { Users } from "lucide-react";
 
 export default function Dashboard() {
-  const { count } = useBetterQuery("user", query);
+  const { count } = useQuery("user", query);
   const { data: totalUsers, isLoading } = count.useQuery();
 
   return (

@@ -16,7 +16,7 @@ This implementation successfully integrates **better-auth** and **better-query**
 - React hook (`useBetterAuth`) for accessing auth state
 
 **Key Functions:**
-- `createBetterAuthProvider(options)` - Creates auth provider instance
+- `createAuthProvider(options)` - Creates auth provider instance
 - `useBetterAuth(authClient)` - React hook for auth state
 
 ### 2. Data Provider (`src/providers/data-provider.ts`)
@@ -25,12 +25,12 @@ This implementation successfully integrates **better-auth** and **better-query**
 - Integrates better-query for all CRUD operations
 - Supports pagination, filtering, and sorting
 - Full CRUD methods (getList, getOne, getMany, create, update, delete, deleteMany)
-- React hook (`useBetterQuery`) for data operations
+- React hook (`useQuery`) for data operations
 - Error handling with custom error callbacks
 
 **Key Functions:**
-- `createBetterQueryProvider(options)` - Creates data provider instance
-- `useBetterQuery(resource, queryClient)` - React hook for data operations
+- `createQueryProvider(options)` - Creates data provider instance
+- `useQuery(resource, queryClient)` - React hook for data operations
 
 ### 3. Examples
 
@@ -131,12 +131,12 @@ packages/better-admin/
 
 ```typescript
 // Auth Provider
-import { createBetterAuthProvider } from "better-admin";
-const authProvider = createBetterAuthProvider({ authClient });
+import { createAuthProvider } from "better-admin";
+const authProvider = createAuthProvider({ authClient });
 
 // Data Provider
-import { createBetterQueryProvider } from "better-admin";
-const dataProvider = createBetterQueryProvider({ queryClient: query });
+import { createQueryProvider } from "better-admin";
+const dataProvider = createQueryProvider({ queryClient: query });
 ```
 
 ### Use in Components
@@ -146,7 +146,7 @@ const dataProvider = createBetterQueryProvider({ queryClient: query });
 const { user, isLoading, signOut } = useBetterAuth(authClient);
 
 // Data Operations
-const { list, create, update, remove } = useBetterQuery("user", query);
+const { list, create, update, remove } = useQuery("user", query);
 const { data } = list.useQuery();
 ```
 

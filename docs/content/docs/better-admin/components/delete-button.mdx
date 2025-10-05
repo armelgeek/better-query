@@ -70,10 +70,10 @@ DeleteButton integrates with better-query for deletion:
 
 ```tsx
 import { DeleteButton } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 
 export function UserDeleteButton({ userId }: { userId: string }) {
-  const { remove } = useBetterQuery("user", query);
+  const { remove } = useQuery("user", query);
 
   return (
     <DeleteButton
@@ -164,12 +164,12 @@ import {
   EditButton,
   DeleteButton,
 } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 import { useBetterAuth } from 'better-admin';
 
 export function PostShow({ id }: { id: string }) {
-  const { data } = useBetterQuery("post", query);
+  const { data } = useQuery("post", query);
   const { user } = useBetterAuth();
   
   const canDelete = user?.role === 'admin';

@@ -141,11 +141,11 @@ TextInput works seamlessly with better-query forms:
 
 ```tsx
 import { Edit, SimpleForm, TextInput } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 
 export function PostEdit({ id }: { id: string }) {
-  const { data, update } = useBetterQuery("post", query);
+  const { data, update } = useQuery("post", query);
 
   return (
     <Edit
@@ -204,12 +204,12 @@ import {
   NumberInput,
   SelectInput,
 } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 import { required, email, minLength } from '@/lib/validators';
 
 export function UserCreate() {
-  const { create } = useBetterQuery("user", query);
+  const { create } = useQuery("user", query);
 
   return (
     <Create

@@ -109,11 +109,11 @@ BooleanInput works with better-query:
 
 ```tsx
 import { Edit, SimpleForm, TextInput, BooleanInput } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 
 export function PostEdit({ id }: { id: string }) {
-  const { data, update } = useBetterQuery("post", query);
+  const { data, update } = useQuery("post", query);
 
   return (
     <Edit
@@ -209,12 +209,12 @@ import {
   SelectInput,
   BooleanInput,
 } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 import { required } from '@/lib/validators';
 
 export function ProductCreate() {
-  const { create } = useBetterQuery("product", query);
+  const { create } = useQuery("product", query);
 
   return (
     <Create

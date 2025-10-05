@@ -13,14 +13,14 @@ import { QuickActions } from "@/components/admin/quick-actions";
 import { RecentActivity } from "@/components/admin/recent-activity";
 import { StatCard } from "@/components/admin/stat-card";
 import { query } from "@/lib/query";
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { DollarSign, ShoppingCart, TrendingUp, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
 	const router = useRouter();
-	const { count: userCount, list: userList } = useBetterQuery("user", query);
-	const { count: orderCount, list: orderList } = useBetterQuery("order", query);
+	const { count: userCount, list: userList } = useQuery("user", query);
+	const { count: orderCount, list: orderList } = useQuery("order", query);
 
 	// Current period stats
 	const { data: totalUsers, isLoading: loadingUsers } = userCount.useQuery();

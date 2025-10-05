@@ -291,7 +291,7 @@ Uses better-query to fetch records:
 
 ```tsx
 // Behind the scenes, List does this:
-const { list } = useBetterQuery("posts", query);
+const { list } = useQuery("posts", query);
 const { data, isLoading, error } = list.useQuery();
 ```
 

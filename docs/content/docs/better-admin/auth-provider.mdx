@@ -114,10 +114,10 @@ export const { signIn, signUp, signOut, useSession } = authClient;
 Create the provider that connects Better Auth to Better Admin:
 
 ```typescript title="lib/admin-auth.ts"
-import { createBetterAuthProvider } from "better-admin";
+import { createAuthProvider } from "better-admin";
 import { authClient } from "./auth-client";
 
-export const authProvider = createBetterAuthProvider({
+export const authProvider = createAuthProvider({
   authClient,
   onError: (error) => {
     console.error("Auth error:", error);
@@ -139,7 +139,7 @@ export const authProvider = createBetterAuthProvider({
 
 ## API Reference
 
-### createBetterAuthProvider
+### createAuthProvider
 
 Creates an auth provider that integrates better-auth with better-admin.
 
@@ -314,7 +314,7 @@ export default function AdminLayout({ children }) {
 The auth provider can return user permissions based on the user's role:
 
 ```typescript title="lib/admin-auth.ts"
-export const authProvider = createBetterAuthProvider({
+export const authProvider = createAuthProvider({
   authClient,
   onError: (error) => {
     console.error("Auth error:", error);
@@ -377,7 +377,7 @@ Then use in your login page:
 The auth provider includes built-in error handling. You can customize error behavior:
 
 ```typescript
-export const authProvider = createBetterAuthProvider({
+export const authProvider = createAuthProvider({
   authClient,
   onError: (error) => {
     // Custom error handling
@@ -403,7 +403,7 @@ If you're migrating from react-admin, the auth provider interface is compatible:
 import { AuthProvider } from "ra-core";
 
 // After (better-admin)
-import { createBetterAuthProvider } from "better-admin";
+import { createAuthProvider } from "better-admin";
 ```
 
 The main differences:

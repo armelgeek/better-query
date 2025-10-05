@@ -57,14 +57,14 @@ export interface AuthProvider {
  * @example
  * ```ts
  * import { authClient } from './auth-client';
- * import { createBetterAuthProvider } from 'better-admin/providers/auth';
+ * import { createAuthProvider } from 'better-admin/providers/auth';
  *
- * const authProvider = createBetterAuthProvider({
+ * const authProvider = createAuthProvider({
  *   authClient,
  * });
  * ```
  */
-export function createBetterAuthProvider(
+export function createAuthProvider(
 	options: AuthProviderOptions,
 ): AuthProvider {
 	const { authClient, onError } = options;

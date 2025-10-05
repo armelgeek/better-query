@@ -55,9 +55,9 @@ export const query = betterQuery({
 });
 
 // 2. Create data provider for better-admin
-import { createBetterQueryProvider } from "better-admin";
+import { createQueryProvider } from "better-admin";
 
-export const dataProvider = createBetterQueryProvider({
+export const dataProvider = createQueryProvider({
 	queryClient: query,
 	onError: (error) => {
 		console.error("Data error:", error);
@@ -77,10 +77,10 @@ export function App() {
 
 import { DataTable } from "@/components/ui/data-table";
 // 4. Use in list components
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 
 export function UsersList() {
-	const { list } = useBetterQuery("user", query);
+	const { list } = useQuery("user", query);
 	const { data, isLoading, error } = list.useQuery();
 
 	if (isLoading) return <div>Loading...</div>;
@@ -93,7 +93,7 @@ export function UsersList() {
 import { CrudForm } from "@/components/ui/crud-form";
 
 export function UserCreate() {
-	const { create } = useBetterQuery("user", query);
+	const { create } = useQuery("user", query);
 
 	const fields = [
 		{ name: "name", label: "Name", type: "text", required: true },
@@ -115,7 +115,7 @@ export function UserCreate() {
 
 // 6. Use in edit forms
 export function UserEdit({ id }: { id: string }) {
-	const { get, update } = useBetterQuery("user", query);
+	const { get, update } = useQuery("user", query);
 	const { data, isLoading } = get.useQuery({ where: { id } });
 
 	if (isLoading) return <div>Loading...</div>;
@@ -135,7 +135,7 @@ export function UserEdit({ id }: { id: string }) {
 
 // 7. Use with pagination and filters
 export function UsersListAdvanced() {
-	const { list } = useBetterQuery("user", query);
+	const { list } = useQuery("user", query);
 	const [page, setPage] = useState(1);
 	const [filters, setFilters] = useState({});
 

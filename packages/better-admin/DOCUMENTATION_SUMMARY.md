@@ -64,7 +64,7 @@ This document summarizes all the documentation updates made for better-admin to 
 
 **Comprehensive update including:**
 - Clear statement: "No ra-core, no ra-data-simple-rest"
-- All examples use `useBetterQuery` hooks
+- All examples use `useQuery` hooks
 - Comparison table with react-admin
 - "Why Not react-admin?" section explaining advantages
 - Featured component examples with better-query integration
@@ -101,23 +101,23 @@ This document summarizes all the documentation updates made for better-admin to 
 All documentation follows this pattern for better-query integration:
 
 ```tsx
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 
 // List data
-const { list } = useBetterQuery("resource", query);
+const { list } = useQuery("resource", query);
 const { data } = list.useQuery();
 
 // Create data
-const { create } = useBetterQuery("resource", query);
+const { create } = useQuery("resource", query);
 await create.mutateAsync(data);
 
 // Update data
-const { update } = useBetterQuery("resource", query);
+const { update } = useQuery("resource", query);
 await update.mutateAsync({ where: { id }, data });
 
 // Delete data
-const { remove } = useBetterQuery("resource", query);
+const { remove } = useQuery("resource", query);
 await remove.mutateAsync({ where: { id } });
 ```
 
@@ -150,10 +150,10 @@ await remove.mutateAsync({ where: { id } });
 ## Key Features Documented
 
 ### Provider Integration
-- `createBetterAuthProvider()` - better-auth integration
-- `createBetterQueryProvider()` - better-query integration
+- `createAuthProvider()` - better-auth integration
+- `createQueryProvider()` - better-query integration
 - `useBetterAuth()` - React hook for auth
-- `useBetterQuery()` - React hook for data operations
+- `useQuery()` - React hook for data operations
 
 ### Component Patterns
 - List-Detail pattern

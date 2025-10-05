@@ -19,8 +19,8 @@ export const authClient = createAuthClient({
 });
 
 // lib/admin-auth.ts
-import { createBetterAuthProvider } from "better-admin";
-export const authProvider = createBetterAuthProvider({ authClient });
+import { createAuthProvider } from "better-admin";
+export const authProvider = createAuthProvider({ authClient });
 ```
 
 ### 2. Data Provider
@@ -34,8 +34,8 @@ export const query = betterQuery({
 });
 
 // lib/admin-data.ts
-import { createBetterQueryProvider } from "better-admin";
-export const dataProvider = createBetterQueryProvider({ 
+import { createQueryProvider } from "better-admin";
+export const dataProvider = createQueryProvider({ 
   queryClient: query 
 });
 ```
@@ -53,22 +53,22 @@ const { user, isLoading, signOut } = useBetterAuth(authClient);
 ### Data Operations
 
 ```typescript
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 
 // List
-const { list } = useBetterQuery("user", query);
+const { list } = useQuery("user", query);
 const { data } = list.useQuery();
 
 // Create
-const { create } = useBetterQuery("user", query);
+const { create } = useQuery("user", query);
 await create.mutateAsync({ name: "John", email: "john@example.com" });
 
 // Update
-const { update } = useBetterQuery("user", query);
+const { update } = useQuery("user", query);
 await update.mutateAsync({ where: { id }, data: { name: "Jane" } });
 
 // Delete
-const { remove } = useBetterQuery("user", query);
+const { remove } = useQuery("user", query);
 await remove.mutateAsync({ where: { id } });
 ```
 
@@ -90,7 +90,7 @@ npx better-admin list --category data-display
 ### List Page
 
 ```tsx
-const { list } = useBetterQuery("user", query);
+const { list } = useQuery("user", query);
 const { data, isLoading } = list.useQuery();
 
 return <DataTable columns={columns} data={data || []} />;
@@ -99,7 +99,7 @@ return <DataTable columns={columns} data={data || []} />;
 ### Create Page
 
 ```tsx
-const { create } = useBetterQuery("user", query);
+const { create } = useQuery("user", query);
 
 <CrudForm 
   fields={fields}
@@ -110,7 +110,7 @@ const { create } = useBetterQuery("user", query);
 ### Edit Page
 
 ```tsx
-const { get, update } = useBetterQuery("user", query);
+const { get, update } = useQuery("user", query);
 const { data } = get.useQuery({ where: { id } });
 
 <CrudForm 

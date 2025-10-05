@@ -138,10 +138,10 @@ export const { signIn, signUp, signOut, useSession } = authClient;
 Finally, create the auth provider that connects Better Auth to Better Admin:
 
 ```typescript title="lib/admin-auth.ts"
-import { createBetterAuthProvider } from "better-admin";
+import { createAuthProvider } from "better-admin";
 import { authClient } from "./auth-client";
 
-export const authProvider = createBetterAuthProvider({
+export const authProvider = createAuthProvider({
   authClient,
 });
 ```
@@ -214,10 +214,10 @@ export const query = betterQuery({
 Create the data provider that connects your resources to Better Admin:
 
 ```typescript title="lib/admin-data.ts"
-import { createBetterQueryProvider } from "better-admin";
+import { createQueryProvider } from "better-admin";
 import { query } from "./query";
 
-export const dataProvider = createBetterQueryProvider({
+export const dataProvider = createQueryProvider({
   queryClient: query,
 });
 ```
@@ -381,7 +381,7 @@ Create a page to view and manage users:
 ```tsx title="app/admin/users/page.tsx"
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
@@ -389,7 +389,7 @@ import Link from "next/link";
 
 export default function UsersPage() {
   // Fetch users from the database
-  const { list } = useBetterQuery("user", query);
+  const { list } = useQuery("user", query);
   const { data, isLoading } = list.useQuery();
 
   // Define which columns to show
@@ -416,7 +416,7 @@ export default function UsersPage() {
 ```
 
 **What this does:**
-- Uses `useBetterQuery` to fetch users from the database
+- Uses `useQuery` to fetch users from the database
 - Displays users in a sortable, filterable data table
 - Provides a button to create new users
 
@@ -431,13 +431,13 @@ Create a page to add new users:
 ```tsx title="app/admin/users/create/page.tsx"
 "use client";
 
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 import { query } from "@/lib/query";
 import { CrudForm } from "@/components/ui/crud-form";
 import { useRouter } from "next/navigation";
 
 export default function CreateUserPage() {
-  const { create } = useBetterQuery("user", query);
+  const { create } = useQuery("user", query);
   const router = useRouter();
 
   // Define the form fields

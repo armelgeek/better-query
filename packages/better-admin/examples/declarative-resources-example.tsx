@@ -102,15 +102,15 @@ export const authClient = createAuthClient({
 // ============================================================================
 import { Admin, Resource } from "better-admin";
 import {
-	createBetterAuthProvider,
-	createBetterQueryProvider,
+	createAuthProvider,
+	createQueryProvider,
 } from "better-admin";
 
-const authProvider = createBetterAuthProvider({
+const authProvider = createAuthProvider({
 	authClient,
 });
 
-const dataProvider = createBetterQueryProvider({
+const dataProvider = createQueryProvider({
 	queryClient: query,
 });
 
@@ -147,10 +147,10 @@ export default function App() {
 import { CrudForm } from "@/components/ui/crud-form";
 // You can still provide custom components for specific operations
 import { DataTable } from "@/components/ui/data-table";
-import { useBetterQuery } from "better-admin";
+import { useQuery } from "better-admin";
 
 function CustomUserList() {
-	const { list } = useBetterQuery("user", query);
+	const { list } = useQuery("user", query);
 	const { data, isLoading } = list.useQuery();
 
 	const columns = [

@@ -20,7 +20,7 @@
 	},
 	"betterQuery": {
 		"operations": ["count", "list"],
-		"hook": "useBetterQuery(\"resource\", query).count()",
-		"example": "const { count } = useBetterQuery(\"user\", query);\nconst { data: totalUsers } = count.useQuery();"
+		"hook": "useQuery(\"resource\", query).count()",
+		"example": "const { count } = useQuery(\"user\", query);\nconst { data: totalUsers } = count.useQuery();"
 	}
 }

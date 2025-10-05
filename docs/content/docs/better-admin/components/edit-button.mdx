@@ -132,11 +132,11 @@ EditButton works seamlessly with better-query data:
 
 ```tsx
 import { List, DataTable, EditButton, DeleteButton } from '@/components/admin';
-import { useBetterQuery } from 'better-admin';
+import { useQuery } from 'better-admin';
 import { query } from '@/lib/query';
 
 export function PostList() {
-  const { data } = useBetterQuery("post", query);
+  const { data } = useQuery("post", query);
 
   return (
     <List>
