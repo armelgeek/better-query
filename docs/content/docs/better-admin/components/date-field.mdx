@@ -1,0 +1,348 @@
+---
+title: DateField
+description: Display formatted date values
+---
+
+# DateField
+
+The `<DateField>` component displays date and time values with customizable formatting. It supports localization and timezone handling.
+
+## Usage
+
+Display dates in lists and show pages:
+
+```tsx
+import { DataTable, DateField } from '@/components/admin';
+
+const PostList = () => (
+  <DataTable>
+    <DataTable.Col source="title" />
+    <DataTable.Col source="published_at">
+      <DateField />
+    </DataTable.Col>
+    <DataTable.Col source="updated_at">
+      <DateField showTime />
+    </DataTable.Col>
+  </DataTable>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add date-field
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `source` | Optional* | `string` | From col | Field name to display |
+| `record` | Optional | `object` | From context | Record object |
+| `showTime` | Optional | `boolean` | `false` | Show time along with date |
+| `showDate` | Optional | `boolean` | `true` | Show date |
+| `locales` | Optional | `string \| string[]` | browser | Locale for formatting |
+| `options` | Optional | `Intl.DateTimeFormatOptions` | - | Date format options |
+| `emptyText` | Optional | `string` | "-" | Text when value is empty |
+
+*source is required unless provided by DataTable.Col
+
+## Show Time
+
+Display date and time together:
+
+```tsx
+<DateField source="created_at" showTime />
+<DateField source="last_login" showTime />
+```
+
+## Time Only
+
+Display only the time:
+
+```tsx
+<DateField source="scheduled_at" showDate={false} showTime />
+```
+
+## Custom Format
+
+Use Intl.DateTimeFormatOptions for custom formatting:
+
+```tsx
+<DateField 
+  source="published_at"
+  options={{
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }}
+/>
+{/* Output: January 15, 2024 */}
+
+<DateField 
+  source="created_at"
+  options={{
+    dateStyle: 'short'
+  }}
+/>
+{/* Output: 1/15/24 */}
+
+<DateField 
+  source="updated_at"
+  options={{
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  }}
+  showTime
+/>
+{/* Output: Jan 15, 2024, 2:30 PM */}
+```
+
+## Localization
+
+Display dates in different locales:
+
+```tsx
+<DateField source="published_at" locales="en-US" />
+<DateField source="published_at" locales="fr-FR" />
+<DateField source="published_at" locales="de-DE" />
+<DateField source="published_at" locales={['en-US', 'en-GB']} />
+```
+
+## In Show Pages
+
+Use DateField in show layouts:
+
+```tsx
+import { Show, SimpleShowLayout, TextField, DateField } from '@/components/admin';
+
+export const PostShow = () => (
+  <Show>
+    <SimpleShowLayout>
+      <TextField source="title" />
+      <DateField source="published_at" showTime />
+      <DateField source="created_at" showTime />
+      <DateField source="updated_at" showTime />
+    </SimpleShowLayout>
+  </Show>
+);
+```
+
+## With better-query
+
+DateField automatically works with better-query dates:
+
+```tsx
+import { useBetterQuery } from 'better-admin';
+import { DataTable, DateField, TextField } from '@/components/admin';
+import { query } from '@/lib/query';
+
+export function PostList() {
+  const { data } = useBetterQuery("post", query);
+
+  return (
+    <DataTable data={data}>
+      <DataTable.Col source="title">
+        <TextField />
+      </DataTable.Col>
+      <DataTable.Col source="published_at">
+        <DateField showTime />
+      </DataTable.Col>
+      <DataTable.Col source="updated_at">
+        <DateField 
+          options={{ dateStyle: 'short', timeStyle: 'short' }}
+          showTime
+        />
+      </DataTable.Col>
+    </DataTable>
+  );
+}
+```
+
+## Empty Values
+
+Customize text for empty/null dates:
+
+```tsx
+<DateField source="completed_at" emptyText="Not completed" />
+<DateField source="deleted_at" emptyText="Active" />
+```
+
+## Relative Time
+
+Create a custom relative time field:
+
+```tsx
+import { useRecordContext } from '@/lib/hooks';
+import { formatDistanceToNow } from 'date-fns';
+
+export function RelativeDateField({ source }: { source: string }) {
+  const record = useRecordContext();
+  const date = record?.[source];
+  
+  if (!date) return <span>-</span>;
+  
+  return (
+    <span className="text-muted-foreground">
+      {formatDistanceToNow(new Date(date), { addSuffix: true })}
+    </span>
+  );
+}
+
+// Usage
+<DataTable.Col source="created_at">
+  <RelativeDateField />
+</DataTable.Col>
+```
+
+## With Tooltips
+
+Show detailed date on hover:
+
+```tsx
+import { DateField } from '@/components/admin';
+import { Tooltip } from '@/components/ui/tooltip';
+import { useRecordContext } from '@/lib/hooks';
+
+export function DateFieldWithTooltip({ source }: { source: string }) {
+  const record = useRecordContext();
+  const date = record?.[source];
+  
+  if (!date) return <span>-</span>;
+  
+  return (
+    <Tooltip content={new Date(date).toLocaleString()}>
+      <span>
+        <DateField source={source} options={{ dateStyle: 'short' }} />
+      </span>
+    </Tooltip>
+  );
+}
+```
+
+## Complete Example
+
+```tsx
+import {
+  DataTable,
+  TextField,
+  DateField,
+  NumberField,
+  ReferenceField,
+  EditButton,
+} from '@/components/admin';
+
+export const OrderList = () => (
+  <DataTable>
+    <DataTable.Col source="order_number">
+      <TextField />
+    </DataTable.Col>
+    
+    <DataTable.Col label="Customer">
+      <ReferenceField source="customer_id" reference="customers">
+        <TextField source="name" />
+      </ReferenceField>
+    </DataTable.Col>
+    
+    <DataTable.Col source="total">
+      <NumberField options={{ style: 'currency', currency: 'USD' }} />
+    </DataTable.Col>
+    
+    <DataTable.Col source="ordered_at">
+      <DateField 
+        showTime
+        options={{
+          dateStyle: 'medium',
+          timeStyle: 'short'
+        }}
+      />
+    </DataTable.Col>
+    
+    <DataTable.Col source="shipped_at">
+      <DateField 
+        emptyText="Not shipped"
+        options={{ dateStyle: 'short' }}
+      />
+    </DataTable.Col>
+    
+    <DataTable.Col source="delivered_at">
+      <DateField 
+        emptyText="In transit"
+        options={{ dateStyle: 'short' }}
+      />
+    </DataTable.Col>
+    
+    <DataTable.Col label="Actions">
+      <EditButton />
+    </DataTable.Col>
+  </DataTable>
+);
+```
+
+## Date Format Presets
+
+Common format examples:
+
+```tsx
+{/* Short date: 1/15/24 */}
+<DateField source="date" options={{ dateStyle: 'short' }} />
+
+{/* Medium date: Jan 15, 2024 */}
+<DateField source="date" options={{ dateStyle: 'medium' }} />
+
+{/* Long date: January 15, 2024 */}
+<DateField source="date" options={{ dateStyle: 'long' }} />
+
+{/* Full date: Monday, January 15, 2024 */}
+<DateField source="date" options={{ dateStyle: 'full' }} />
+
+{/* Date and time: 1/15/24, 2:30 PM */}
+<DateField 
+  source="datetime" 
+  showTime
+  options={{ 
+    dateStyle: 'short',
+    timeStyle: 'short'
+  }} 
+/>
+
+{/* Custom: Jan 15 at 2:30 PM */}
+<DateField 
+  source="datetime"
+  showTime
+  options={{
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }}
+/>
+```
+
+## Timezone Handling
+
+Handle timezones:
+
+```tsx
+<DateField 
+  source="scheduled_at"
+  showTime
+  options={{
+    timeZone: 'America/New_York',
+    timeZoneName: 'short'
+  }}
+/>
+```
+
+## Related Components
+
+- [TextField](/docs/better-admin/components/text-field) - Display text
+- [NumberField](/docs/better-admin/components/number-field) - Display numbers
+- [EmailField](/docs/better-admin/components/email-field) - Display emails
+
+## Next Steps
+
+- [Learn about formatting dates](/docs/better-admin/formatting)
+- [Work with timezones](/docs/better-admin/timezones)
+- [Explore other Field components](/docs/better-admin/components)

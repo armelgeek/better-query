@@ -9,13 +9,17 @@
     "create",
     "edit",
     "show",
+    "simple-form",
     "array-input",
+    "text-input",
+    "number-input",
+    "select-input",
+    "text-field",
+    "date-field",
+    "reference-field",
     "create-button",
     "edit-button",
     "delete-button",
-    "show-button",
-    "text-field",
-    "text-input",
-    "reference-field"
+    "show-button"
   ]
 }
