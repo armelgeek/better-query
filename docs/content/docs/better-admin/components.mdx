@@ -5,15 +5,15 @@ description: Complete reference for all 78 better-admin components
 
 # Better Admin Components
 
-Better Admin provides **78 production-ready components** organized into **10 categories**. All components are designed to work seamlessly with **better-query** and **better-auth**, following the patterns from [shadcn-admin-kit](https://marmelab.com/shadcn-admin-kit/) while being completely independent of react-admin (ra-core).
+Better Admin provides **78 production-ready components** organized into **10 categories**. All components are designed to work seamlessly with **better-query** and **better-auth**, following the patterns from [shadcn-admin-kit](https://marmelab.com/shadcn-admin-kit/).
 
 ## Overview
 
-Unlike react-admin, Better Admin uses:
-- **better-query** for all data operations (not ra-data-simple-rest)
-- **better-auth** for authentication (not ra-core auth)
-- **shadcn/ui** components for UI (not Material-UI)
-- **Direct database access** (no REST API required)
+Better Admin is built on modern technologies:
+- **better-query** for all data operations with full TypeScript inference
+- **better-auth** for secure authentication and authorization
+- **shadcn/ui** components for beautiful, accessible UI
+- **Direct database access** or any backend - no REST API required
 
 ## Installation
 
@@ -1365,20 +1365,6 @@ export function CustomDataTable({ className, ...props }: any) {
 }
 ```
 
-## Migration from react-admin
-
-Better Admin components replace react-admin components:
-
-| react-admin | better-admin | better-query Hook |
-|-------------|--------------|-------------------|
-| `<List>` | `<DataTable>` | `list.useQuery()` |
-| `<Create>` | `<CrudForm>` | `create.mutateAsync()` |
-| `<Edit>` | `<CrudForm>` | `update.mutateAsync()` |
-| `<Show>` | `<Show>` | `get.useQuery()` |
-| `<Datagrid>` | `<DataTable>` | `list.useQuery()` |
-| `<SimpleForm>` | `<SimpleForm>` | mutations |
-| `useDataProvider` | `useBetterQuery` | Direct query client |
-
 ## Component Dependencies
 
 Most components depend on shadcn/ui components. The CLI automatically installs these:
@@ -1394,7 +1380,7 @@ npx better-admin add data-table
 - [Auth Provider](/docs/better-admin/auth-provider) - Setup authentication
 - [Data Provider](/docs/better-admin/data-provider) - Setup data operations
 - [API Reference](/docs/better-admin/api-reference) - Complete API docs
-- [Migration Guide](/docs/better-admin/migration) - Migrate from react-admin
+- [Quick Start](/docs/better-admin/quick-start) - Get started with Better Admin
 
 ## Usage Examples
 
