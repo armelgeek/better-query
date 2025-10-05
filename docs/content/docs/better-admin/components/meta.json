@@ -3,6 +3,7 @@
 	"pages": [
 		"index",
 		"admin",
+		"resource",
 		"layout",
 		"list",
 		"data-table",
