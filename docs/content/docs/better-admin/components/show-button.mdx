@@ -1,0 +1,151 @@
+---
+title: ShowButton
+description: Link button to navigate to the show page of a record
+---
+
+# ShowButton
+
+The `<ShowButton>` component is a link button that navigates to the show/detail page of the current record. It must be used inside a RecordContext.
+
+## Usage
+
+Use it in a DataTable or as an action button:
+
+```tsx
+import { DataTable, ShowButton, EditButton } from '@/components/admin';
+
+const PostList = () => (
+  <DataTable>
+    <DataTable.Col source="title" />
+    <DataTable.Col source="author" />
+    <DataTable.Col label="Actions">
+      <div className="flex gap-2">
+        <ShowButton />
+        <EditButton />
+      </div>
+    </DataTable.Col>
+  </DataTable>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add show-button
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `label` | Optional | `string` | "Show" | Button label text |
+| `record` | Optional | `object` | From context | Record object with id |
+| `resource` | Optional | `string` | From context | Resource name |
+| `icon` | Optional | `ReactNode` | Eye icon | Custom button icon |
+| `variant` | Optional | `string` | "ghost" | Button variant |
+
+## Row Click Alternative
+
+Make entire rows clickable to navigate to show page:
+
+```tsx
+<DataTable rowClick="show">
+  <DataTable.Col source="title" />
+  <DataTable.Col source="author" />
+  <DataTable.Col source="published_at" />
+</DataTable>
+```
+
+## Custom Label
+
+```tsx
+<ShowButton label="View" />
+<ShowButton label="Details" />
+```
+
+## Custom Icon
+
+```tsx
+import { Eye } from 'lucide-react';
+
+<ShowButton icon={<Eye />} />
+```
+
+## Different Variants
+
+```tsx
+<ShowButton variant="default" />
+<ShowButton variant="outline" />
+<ShowButton variant="ghost" />
+```
+
+## With better-query
+
+ShowButton works with better-query data:
+
+```tsx
+import { List, DataTable, ShowButton } from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+
+export function UserList() {
+  const { data } = useBetterQuery("user", query);
+
+  return (
+    <List>
+      <DataTable data={data}>
+        <DataTable.Col source="name" />
+        <DataTable.Col source="email" />
+        <DataTable.Col label="Actions">
+          <ShowButton />
+        </DataTable.Col>
+      </DataTable>
+    </List>
+  );
+}
+```
+
+## Complete Example
+
+```tsx
+import {
+  DataTable,
+  ShowButton,
+  EditButton,
+  DeleteButton,
+  TextField,
+  DateField,
+} from '@/components/admin';
+
+export const OrderList = () => (
+  <DataTable>
+    <DataTable.Col source="id" />
+    <DataTable.Col source="order_number">
+      <TextField />
+    </DataTable.Col>
+    <DataTable.Col source="total" />
+    <DataTable.Col source="created_at">
+      <DateField />
+    </DataTable.Col>
+    <DataTable.Col label="Actions">
+      <div className="flex gap-2">
+        <ShowButton variant="outline" />
+        <EditButton />
+        <DeleteButton variant="destructive" />
+      </div>
+    </DataTable.Col>
+  </DataTable>
+);
+```
+
+## Related Components
+
+- [Show](/docs/better-admin/components/show) - Show page container
+- [EditButton](/docs/better-admin/components/edit-button) - Navigate to edit page
+- [DataTable](/docs/better-admin/components/data-table) - Table component
+
+## Next Steps
+
+- [Learn about the Show page](/docs/better-admin/components/show)
+- [Configure DataTable row clicks](/docs/better-admin/components/data-table)
+- [Customize button styles](/docs/better-admin/theming)

@@ -1,0 +1,270 @@
+---
+title: DeleteButton
+description: Button to delete a record with confirmation
+---
+
+# DeleteButton
+
+The `<DeleteButton>` component displays a button that deletes the current record after user confirmation. It must be used inside a RecordContext.
+
+## Usage
+
+Use it in a DataTable or Show page:
+
+```tsx
+import { DataTable, EditButton, DeleteButton } from '@/components/admin';
+
+const PostList = () => (
+  <DataTable>
+    <DataTable.Col source="title" />
+    <DataTable.Col source="status" />
+    <DataTable.Col label="Actions">
+      <div className="flex gap-2">
+        <EditButton />
+        <DeleteButton />
+      </div>
+    </DataTable.Col>
+  </DataTable>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add delete-button
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `label` | Optional | `string` | "Delete" | Button label text |
+| `record` | Optional | `object` | From context | Record to delete |
+| `resource` | Optional | `string` | From context | Resource name |
+| `confirmTitle` | Optional | `string` | "Delete?" | Confirmation dialog title |
+| `confirmContent` | Optional | `string` | "Are you sure?" | Confirmation message |
+| `mutationOptions` | Optional | `object` | - | React Query mutation options |
+| `redirect` | Optional | `string \| false` | "list" | Where to redirect after delete |
+
+## With Confirmation
+
+By default, DeleteButton shows a confirmation dialog:
+
+```tsx
+<DeleteButton
+  confirmTitle="Delete Post?"
+  confirmContent="This action cannot be undone."
+/>
+```
+
+## Custom Labels
+
+```tsx
+<DeleteButton label="Remove" />
+<DeleteButton label="Delete Forever" />
+```
+
+## With better-query
+
+DeleteButton integrates with better-query for deletion:
+
+```tsx
+import { DeleteButton } from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+
+export function UserDeleteButton({ userId }: { userId: string }) {
+  const { remove } = useBetterQuery("user", query);
+
+  return (
+    <DeleteButton
+      record={{ id: userId }}
+      mutationOptions={{
+        onSuccess: () => {
+          console.log('User deleted');
+        },
+      }}
+    />
+  );
+}
+```
+
+## With Permissions
+
+Control visibility based on user permissions:
+
+```tsx
+import { DeleteButton } from '@/components/admin';
+import { useBetterAuth } from 'better-admin';
+import { useRecordContext } from '@/lib/hooks';
+
+export function ProtectedDeleteButton() {
+  const { user } = useBetterAuth();
+  const record = useRecordContext();
+  
+  const canDelete = user?.role === 'admin' || user?.id === record?.author_id;
+
+  if (!canDelete) return null;
+  
+  return <DeleteButton />;
+}
+```
+
+## Redirect After Delete
+
+Control where to redirect after deletion:
+
+```tsx
+<DeleteButton redirect="list" /> {/* Go to list page */}
+<DeleteButton redirect={false} /> {/* Stay on same page */}
+<DeleteButton redirect="/custom-page" /> {/* Custom redirect */}
+```
+
+## Custom Confirmation
+
+Customize the confirmation dialog:
+
+```tsx
+<DeleteButton
+  confirmTitle="Permanently Delete?"
+  confirmContent={
+    <div>
+      <p>This will permanently delete the record.</p>
+      <p className="text-destructive font-semibold mt-2">
+        This action cannot be undone!
+      </p>
+    </div>
+  }
+/>
+```
+
+## Bulk Delete
+
+For deleting multiple records, use BulkDeleteButton:
+
+```tsx
+import { BulkDeleteButton } from '@/components/admin';
+
+<DataTable>
+  <DataTable.Col source="id" />
+  <DataTable.Col source="name" />
+  <DataTable.BulkActions>
+    <BulkDeleteButton />
+  </DataTable.BulkActions>
+</DataTable>
+```
+
+## Complete Example
+
+```tsx
+import {
+  Show,
+  SimpleShowLayout,
+  TextField,
+  DateField,
+  EditButton,
+  DeleteButton,
+} from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+import { useBetterAuth } from 'better-admin';
+
+export function PostShow({ id }: { id: string }) {
+  const { data } = useBetterQuery("post", query);
+  const { user } = useBetterAuth();
+  
+  const canDelete = user?.role === 'admin';
+
+  return (
+    <Show
+      resource="post"
+      id={id}
+      actions={
+        <>
+          <EditButton />
+          {canDelete && (
+            <DeleteButton
+              confirmTitle="Delete Post?"
+              confirmContent="This post will be permanently deleted."
+              redirect="list"
+            />
+          )}
+        </>
+      }
+    >
+      <SimpleShowLayout>
+        <TextField source="title" />
+        <TextField source="content" />
+        <DateField source="published_at" />
+      </SimpleShowLayout>
+    </Show>
+  );
+}
+```
+
+## Error Handling
+
+Handle deletion errors:
+
+```tsx
+<DeleteButton
+  mutationOptions={{
+    onError: (error) => {
+      console.error('Failed to delete:', error);
+      // Show notification
+    },
+    onSuccess: () => {
+      // Show success notification
+    },
+  }}
+/>
+```
+
+## Optimistic Update
+
+Use optimistic updates for better UX:
+
+```tsx
+import { useQueryClient } from '@tanstack/react-query';
+import { DeleteButton } from '@/components/admin';
+
+export function OptimisticDeleteButton() {
+  const queryClient = useQueryClient();
+
+  return (
+    <DeleteButton
+      mutationOptions={{
+        onMutate: async (deletedId) => {
+          // Cancel outgoing queries
+          await queryClient.cancelQueries(['posts']);
+          
+          // Snapshot previous value
+          const previousPosts = queryClient.getQueryData(['posts']);
+          
+          // Optimistically remove from cache
+          queryClient.setQueryData(['posts'], (old: any) =>
+            old?.filter((post: any) => post.id !== deletedId)
+          );
+          
+          return { previousPosts };
+        },
+        onError: (err, deletedId, context: any) => {
+          // Rollback on error
+          queryClient.setQueryData(['posts'], context.previousPosts);
+        },
+      }}
+    />
+  );
+}
+```
+
+## Related Components
+
+- [EditButton](/docs/better-admin/components/edit-button) - Navigate to edit page
+- [BulkDeleteButton](/docs/better-admin/components/bulk-delete-button) - Delete multiple records
+- [Confirm](/docs/better-admin/components/confirm) - Confirmation dialog component
+
+## Next Steps
+
+- [Learn about BulkDeleteButton](/docs/better-admin/components/bulk-delete-button)
+- [Configure permissions](/docs/better-admin/auth-provider)
+- [Handle errors](/docs/better-admin/error-handling)

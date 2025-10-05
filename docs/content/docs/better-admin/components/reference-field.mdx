@@ -1,0 +1,274 @@
+---
+title: ReferenceField
+description: Display a field from a related record
+---
+
+# ReferenceField
+
+The `<ReferenceField>` component fetches and displays data from a related record. It's used to show relationships between resources in lists and show pages.
+
+## Usage
+
+Display a related record's field:
+
+```tsx
+import { DataTable, ReferenceField, TextField } from '@/components/admin';
+
+const PostList = () => (
+  <DataTable>
+    <DataTable.Col source="title" />
+    <DataTable.Col label="Author">
+      <ReferenceField source="author_id" reference="users">
+        <TextField source="name" />
+      </ReferenceField>
+    </DataTable.Col>
+  </DataTable>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add reference-field
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `source` | Required | `string` | - | Field containing the foreign key |
+| `reference` | Required | `string` | - | Name of the related resource |
+| `children` | Required | `ReactNode` | - | Field(s) to display from related record |
+| `link` | Optional | `false \| "show" \| "edit"` | "show" | Navigation on click |
+| `emptyText` | Optional | `string` | "-" | Text when no relation found |
+
+## With Multiple Fields
+
+Display multiple fields from the related record:
+
+```tsx
+<ReferenceField source="author_id" reference="users">
+  <div className="flex flex-col">
+    <TextField source="name" className="font-semibold" />
+    <TextField source="email" className="text-sm text-muted-foreground" />
+  </div>
+</ReferenceField>
+```
+
+## Link Configuration
+
+Control navigation behavior:
+
+```tsx
+{/* Navigate to show page (default) */}
+<ReferenceField source="author_id" reference="users">
+  <TextField source="name" />
+</ReferenceField>
+
+{/* Navigate to edit page */}
+<ReferenceField source="author_id" reference="users" link="edit">
+  <TextField source="name" />
+</ReferenceField>
+
+{/* No navigation */}
+<ReferenceField source="author_id" reference="users" link={false}>
+  <TextField source="name" />
+</ReferenceField>
+```
+
+## With better-query
+
+ReferenceField integrates with better-query for data fetching:
+
+```tsx
+import { DataTable, ReferenceField, TextField } from '@/components/admin';
+import { query } from '@/lib/query';
+
+export function OrderList() {
+  return (
+    <DataTable>
+      <DataTable.Col source="order_number" />
+      <DataTable.Col label="Customer">
+        <ReferenceField source="customer_id" reference="customers">
+          <TextField source="name" />
+        </ReferenceField>
+      </DataTable.Col>
+      <DataTable.Col label="Product">
+        <ReferenceField source="product_id" reference="products">
+          <TextField source="title" />
+        </ReferenceField>
+      </DataTable.Col>
+    </DataTable>
+  );
+}
+```
+
+## Empty State
+
+Customize text when relation is missing:
+
+```tsx
+<ReferenceField 
+  source="author_id" 
+  reference="users"
+  emptyText="No author assigned"
+>
+  <TextField source="name" />
+</ReferenceField>
+```
+
+## Nested References
+
+Display nested relationships:
+
+```tsx
+<DataTable.Col label="Author's Country">
+  <ReferenceField source="author_id" reference="users" link={false}>
+    <ReferenceField source="country_id" reference="countries">
+      <TextField source="name" />
+    </ReferenceField>
+  </ReferenceField>
+</DataTable.Col>
+```
+
+## With Custom Rendering
+
+Use custom components to display related data:
+
+```tsx
+import { ReferenceField } from '@/components/admin';
+import { Avatar } from '@/components/ui/avatar';
+import { useRecordContext } from '@/lib/hooks';
+
+function UserAvatar() {
+  const user = useRecordContext();
+  return (
+    <div className="flex items-center gap-2">
+      <Avatar src={user?.avatar} alt={user?.name} />
+      <span>{user?.name}</span>
+    </div>
+  );
+}
+
+// Usage
+<ReferenceField source="user_id" reference="users">
+  <UserAvatar />
+</ReferenceField>
+```
+
+## In Show Pages
+
+Use ReferenceField in show layouts:
+
+```tsx
+import { Show, SimpleShowLayout, ReferenceField, TextField } from '@/components/admin';
+
+export const PostShow = () => (
+  <Show>
+    <SimpleShowLayout>
+      <TextField source="title" />
+      <ReferenceField source="author_id" reference="users" link="edit">
+        <TextField source="name" />
+      </ReferenceField>
+      <ReferenceField source="category_id" reference="categories">
+        <TextField source="name" />
+      </ReferenceField>
+    </SimpleShowLayout>
+  </Show>
+);
+```
+
+## Complete Example
+
+```tsx
+import {
+  DataTable,
+  ReferenceField,
+  TextField,
+  DateField,
+  NumberField,
+  EditButton,
+} from '@/components/admin';
+
+export const InvoiceList = () => (
+  <DataTable>
+    <DataTable.Col source="invoice_number" />
+    
+    <DataTable.Col label="Customer">
+      <ReferenceField source="customer_id" reference="customers" link="show">
+        <div className="flex flex-col">
+          <TextField source="name" className="font-semibold" />
+          <TextField source="email" className="text-xs text-muted-foreground" />
+        </div>
+      </ReferenceField>
+    </DataTable.Col>
+    
+    <DataTable.Col label="Product">
+      <ReferenceField source="product_id" reference="products">
+        <TextField source="name" />
+      </ReferenceField>
+    </DataTable.Col>
+    
+    <DataTable.Col source="amount">
+      <NumberField options={{ style: 'currency', currency: 'USD' }} />
+    </DataTable.Col>
+    
+    <DataTable.Col source="date">
+      <DateField />
+    </DataTable.Col>
+    
+    <DataTable.Col label="Actions">
+      <EditButton />
+    </DataTable.Col>
+  </DataTable>
+);
+```
+
+## Performance Optimization
+
+ReferenceField automatically batches requests to avoid N+1 queries:
+
+```tsx
+{/* These will be batched into a single request */}
+<DataTable>
+  <DataTable.Col label="Author">
+    <ReferenceField source="author_id" reference="users">
+      <TextField source="name" />
+    </ReferenceField>
+  </DataTable.Col>
+  <DataTable.Col label="Category">
+    <ReferenceField source="category_id" reference="categories">
+      <TextField source="name" />
+    </ReferenceField>
+  </DataTable.Col>
+</DataTable>
+```
+
+## With Loading State
+
+Handle loading state:
+
+```tsx
+import { ReferenceField } from '@/components/admin';
+import { Skeleton } from '@/components/ui/skeleton';
+
+<ReferenceField 
+  source="author_id" 
+  reference="users"
+  loading={<Skeleton className="h-4 w-24" />}
+>
+  <TextField source="name" />
+</ReferenceField>
+```
+
+## Related Components
+
+- [ReferenceInput](/docs/better-admin/components/reference-input) - Select related record in forms
+- [ReferenceArrayField](/docs/better-admin/components/reference-array-field) - Display multiple related records
+- [ReferenceManyField](/docs/better-admin/components/reference-many-field) - Display reverse relationships
+
+## Next Steps
+
+- [Learn about ReferenceInput](/docs/better-admin/components/reference-input)
+- [Work with relationships](/docs/better-admin/relationships)
+- [Optimize reference queries](/docs/better-admin/performance)
