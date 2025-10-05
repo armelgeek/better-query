@@ -1,0 +1,534 @@
+---
+title: Better Admin
+description: Admin interface components with better-auth and better-query integration
+---
+
+# Better Admin
+
+Better Admin is a comprehensive admin interface solution that brings together **better-auth** for authentication and **better-query** for data operations. It provides a complete toolkit for building production-ready admin panels with full TypeScript type safety and direct database access.
+
+<Callout type="info">
+**What is Better Admin?** Think of it as a bridge between your database and a beautiful admin interface. It handles all the complex parts like authentication, data fetching, forms, and tables, so you can focus on building your business logic.
+</Callout>
+
+## Why Better Admin?
+
+Better Admin solves the common challenges of building admin interfaces by providing a cohesive solution that connects authentication, data management, and UI components.
+
+### Key Benefits
+
+- 🔐 **Secure by Default**: Built-in authentication with better-auth handles login, sessions, and permissions
+- 📊 **Type-Safe Data Operations**: better-query ensures your data operations are type-safe from database to UI
+- 🎯 **Full TypeScript Support**: Autocomplete and type checking throughout your entire admin panel
+- 📦 **78+ Production-Ready Components**: Pre-built components for tables, forms, buttons, and more
+- 🚀 **Modern Tech Stack**: Built with React Query, better-auth, and better-query for optimal performance
+- 📝 **Smart CLI Tool**: Automatically installs components and their dependencies
+- 🎨 **Fully Customizable**: All components are copied to your project, modify them as needed
+- 🔧 **Flexible Architecture**: Works with direct database access or any backend API
+- ⚡ **High Performance**: Direct database queries eliminate unnecessary API layers
+
+<Callout type="tip">
+**New to admin panels?** Better Admin handles the repetitive work of building CRUD (Create, Read, Update, Delete) interfaces, letting you focus on your unique business requirements.
+</Callout>
+
+## How It Works
+
+Better Admin connects three powerful libraries into a cohesive system:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      Your Admin UI                       │
+│              (React Components + Forms)                  │
+└───────────────────┬─────────────────────────────────────┘
+                    │
+        ┌───────────┴──────────┐
+        │                      │
+┌───────▼────────┐    ┌───────▼─────────┐
+│  Better Auth   │    │  Better Query   │
+│ (Who can       │    │ (What data      │
+│  access?)      │    │  to show?)      │
+└───────┬────────┘    └───────┬─────────┘
+        │                      │
+        └───────────┬──────────┘
+                    │
+           ┌────────▼─────────┐
+           │   Your Database  │
+           │  (SQLite, MySQL, │
+           │   PostgreSQL)    │
+           └──────────────────┘
+```
+
+**1. Better Auth** - Handles user authentication and authorization
+**2. Better Query** - Manages data operations with type safety
+**3. Better Admin Components** - Provides the UI to tie it all together
+
+<Callout type="info">
+**Think of it like building blocks**: Better Auth verifies who can access your admin panel, Better Query fetches and updates the data, and Better Admin components display everything beautifully.
+</Callout>
+
+## Features
+
+### Authentication with Better Auth
+
+Better Admin uses better-auth to handle all authentication concerns:
+
+- **Multiple Login Methods**: Email/password, OAuth (Google, GitHub, etc.), magic links
+- **Session Management**: Automatic session handling with secure cookies
+- **Permission System**: Role-based access control built-in
+- **Type-Safe Hooks**: Fully typed authentication hooks for React
+
+**Example:**
+```typescript title="lib/admin-auth.ts"
+import { createBetterAuthProvider } from "better-admin";
+import { authClient } from "./auth-client";
+
+// This creates a bridge between better-auth and your admin interface
+export const authProvider = createBetterAuthProvider({
+  authClient,
+});
+```
+
+<Callout type="tip">
+**Why separate auth?** By handling authentication separately, you can easily add admin features to an existing app that already uses better-auth.
+</Callout>
+
+### Data Operations with Better Query
+
+Better Admin uses better-query for all data operations:
+
+- **Type-Safe CRUD**: Create, Read, Update, Delete with full TypeScript inference
+- **Built-In Permissions**: Control who can do what at the resource level
+- **React Query Integration**: Automatic caching, refetching, and optimistic updates
+- **Relationship Support**: Handle related data easily (users → posts, orders → items)
+- **Direct Database Access**: Query your database directly without building REST APIs
+
+**Example:**
+```typescript title="lib/admin-data.ts"
+import { createBetterQueryProvider } from "better-admin";
+import { query } from "./query";
+
+// This connects your database queries to the admin components
+export const dataProvider = createBetterQueryProvider({
+  queryClient: query,
+});
+```
+
+<Callout type="info">
+**Direct database queries**: Unlike traditional admin panels that need a REST API, Better Admin can query your database directly, making it faster and simpler to set up.
+</Callout>
+
+### Component Library
+
+Better Admin provides 78 production-ready components organized into logical categories:
+
+| Category | Components | Use Case |
+|----------|-----------|----------|
+| **Data Display** | 11 components | Tables, lists, field displays |
+| **Forms** | 18 components | Input fields, validation, form submission |
+| **Layout** | 10 components | Page structure, navigation, sidebars |
+| **Feedback** | 5 components | Loading states, errors, notifications |
+| **Buttons** | 13 components | Action buttons for CRUD operations |
+| **Fields** | 9 components | Specialized field displays |
+| **Views** | 3 components | Auto-generated views |
+| **Authentication** | 2 components | Login pages, auth flows |
+| **UI Components** | 4 components | Theme toggles, menus |
+| **Toolbars** | 2 components | Action bars for forms and lists |
+
+<Callout type="tip">
+**Install only what you need**: Use the CLI to install specific components. They're copied to your project, so you can customize them freely.
+</Callout>
+
+## Quick Start
+
+Let's build a simple admin interface in a few steps:
+
+### Installation
+
+Initialize Better Admin in your project:
+
+```bash title="Terminal"
+npx better-admin init
+```
+
+This command:
+1. Creates a `better-admin.json` configuration file
+2. Detects your project structure
+3. Sets up paths and aliases
+
+### Setup Authentication
+
+1. Install and configure better-auth:
+
+```bash title="Terminal"
+npm install better-auth
+```
+
+2. Create an auth provider to connect better-auth to your admin:
+
+```typescript title="lib/admin-auth.ts"
+import { createBetterAuthProvider } from "better-admin";
+import { authClient } from "./auth-client";
+
+// This makes better-auth work with your admin interface
+export const authProvider = createBetterAuthProvider({
+  authClient,
+});
+```
+
+<Callout type="info">
+**What's an auth provider?** It's a bridge that tells your admin components how to check if users are logged in and what permissions they have.
+</Callout>
+
+### Setup Data Provider
+
+1. Install and configure better-query:
+
+```bash title="Terminal"
+npm install better-query
+```
+
+2. Create a data provider to connect your database:
+
+```typescript title="lib/admin-data.ts"
+import { createBetterQueryProvider } from "better-admin";
+import { query } from "./query";
+
+// This connects your database to the admin components
+export const dataProvider = createBetterQueryProvider({
+  queryClient: query,
+});
+```
+
+<Callout type="info">
+**What's a data provider?** It's an adapter that tells your admin components how to fetch, create, update, and delete data.
+</Callout>
+
+### Add Components
+
+Install your first component using the CLI:
+
+```bash title="Terminal"
+npx better-admin add data-table
+```
+
+The CLI automatically:
+1. ✓ Detects required shadcn/ui dependencies (like `table`, `button`)
+2. ✓ Installs missing shadcn/ui components
+3. ✓ Installs npm dependencies (like `@tanstack/react-table`)
+4. ✓ Copies the component to `@/components/admin/data-table.tsx`
+
+<Callout type="tip">
+**Components are yours**: Once installed, components are copied to your project. You can modify them however you need!
+</Callout>
+
+### Use in Your App
+
+Create your first admin page:
+
+```tsx title="app/admin/users/page.tsx"
+"use client";
+
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { DataTable } from "@/components/ui/data-table";
+
+export default function UsersPage() {
+  // Fetch users from your database
+  const { list } = useBetterQuery("user", query);
+  const { data, isLoading } = list.useQuery();
+
+  if (isLoading) return <div>Loading...</div>;
+
+  // Define what columns to show
+  const columns = [
+    { accessorKey: "name", header: "Name" },
+    { accessorKey: "email", header: "Email" },
+    { accessorKey: "role", header: "Role" },
+  ];
+
+  return <DataTable columns={columns} data={data || []} />;
+}
+```
+
+**That's it!** You now have a working admin table that:
+- Fetches data from your database
+- Displays it in a sortable, filterable table
+- Updates automatically when data changes
+
+<Callout type="success">
+**Next Steps**: Add create, edit, and delete functionality by following the [Quick Start Guide](/docs/better-admin/quick-start).
+</Callout>
+
+## Available Components
+
+Better Admin provides components for every part of your admin interface. Here are the most commonly used ones:
+
+### data-table
+
+A powerful data table with sorting, filtering, and pagination built on @tanstack/react-table.
+
+**What it does**: Displays your data in a professional table with built-in features like sorting columns, searching, and pagination.
+
+**Dependencies:**
+- shadcn/ui: table, button, input, dropdown-menu, select
+- npm: @tanstack/react-table
+
+**Better Query Integration:** Uses the `list` operation
+
+**Usage:**
+```tsx
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { DataTable } from "@/components/ui/data-table";
+
+export function UsersTable() {
+  const { list } = useBetterQuery("user", query);
+  const { data } = list.useQuery();
+
+  return (
+    <DataTable 
+      columns={columns} 
+      data={data || []}
+      searchKey="name"  // Enable search by name
+    />
+  );
+}
+```
+
+### crud-form
+
+A flexible form builder with validation using react-hook-form and zod.
+
+**What it does**: Creates forms for adding or editing records with automatic validation.
+
+**Dependencies:**
+- shadcn/ui: form, input, button, label, select, textarea
+- npm: react-hook-form, @hookform/resolvers, zod
+
+**Better Query Integration:** Uses `create` and `update` operations
+
+**Usage:**
+```tsx
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { CrudForm } from "@/components/ui/crud-form";
+
+export function UserForm() {
+  const { create } = useBetterQuery("user", query);
+
+  const fields = [
+    { name: "name", label: "Name", type: "text", required: true },
+    { name: "email", label: "Email", type: "email", required: true },
+  ];
+
+  return (
+    <CrudForm 
+      fields={fields}
+      onSubmit={create.mutateAsync}  // Automatically saves to database
+      submitLabel="Create User"
+    />
+  );
+}
+```
+
+### resource-list
+
+A reusable list component for displaying resources with actions.
+
+**What it does**: Shows your data as cards instead of a table, great for displaying content with images or multiple fields.
+
+**Dependencies:**
+- shadcn/ui: card, button, badge
+
+**Better Query Integration:** Uses the `list` operation
+
+**Usage:**
+```tsx
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { ResourceList } from "@/components/ui/resource-list";
+
+export function ProjectsList() {
+  const { list } = useBetterQuery("project", query);
+  const { data } = list.useQuery();
+
+  return (
+    <ResourceList
+      items={data || []}
+      renderTitle={(item) => item.name}
+      renderDescription={(item) => item.description}
+      actions={[
+        { label: "View", onClick: (item) => viewItem(item) },
+        { label: "Edit", onClick: (item) => editItem(item) },
+      ]}
+    />
+  );
+}
+```
+
+<Callout type="info">
+**Want to see all components?** Browse the complete list with `npx better-admin list` or visit the [Components documentation](/docs/better-admin/components).
+</Callout>
+
+## Configuration
+
+The `better-admin.json` file controls how the CLI works with your project:
+
+```json title="better-admin.json"
+{
+  "$schema": "https://better-admin.dev/schema.json",
+  "style": "default",              // UI style (default, new-york)
+  "rsc": false,                    // React Server Components
+  "tsx": true,                     // Use TypeScript
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "src/app/globals.css",
+    "baseColor": "slate",          // Base color theme
+    "cssVariables": true           // Use CSS variables for theming
+  },
+  "aliases": {
+    "components": "@/components",   // Where components are installed
+    "utils": "@/lib/utils",         // Utility functions location
+    "ui": "@/components/ui"         // shadcn/ui components location
+  }
+}
+```
+
+<Callout type="info">
+**Why configure paths?** The CLI needs to know where to install components in your project structure. These aliases match common Next.js and React project layouts.
+</Callout>
+
+## CLI Commands
+
+The Better Admin CLI helps you manage components in your project.
+
+### init
+
+Initialize Better Admin in your project.
+
+```bash title="Terminal"
+npx better-admin init
+```
+
+**What it does:**
+- Creates a `better-admin.json` configuration file
+- Detects your project structure (Next.js, Vite, etc.)
+- Sets up default paths for components
+
+**Options:**
+```bash
+# Skip prompts and use defaults
+npx better-admin init --yes
+```
+
+### add
+
+Add a component to your project.
+
+```bash title="Terminal"
+npx better-admin add <component-name>
+```
+
+**What it does:**
+1. Downloads the component code
+2. Installs required shadcn/ui dependencies
+3. Installs required npm packages
+4. Copies files to your project
+
+**Examples:**
+```bash
+# Install a single component
+npx better-admin add data-table
+
+# Install multiple components at once
+npx better-admin add data-table crud-form login-page
+
+# Overwrite existing files
+npx better-admin add data-table --overwrite
+
+# Skip confirmation prompts
+npx better-admin add data-table --yes
+```
+
+<Callout type="tip">
+**Not sure what's available?** Run `npx better-admin list` to see all components you can install.
+</Callout>
+
+### list
+
+List all available components.
+
+```bash title="Terminal"
+npx better-admin list
+```
+
+**Filter by category:**
+```bash
+# Show only form components
+npx better-admin list --category forms
+
+# Show only data display components
+npx better-admin list --category data-display
+
+# Show only components with better-query integration
+npx better-admin list --with-query
+```
+
+**Available categories:**
+- `auth` - Authentication components
+- `data-display` - Tables, lists, field displays
+- `forms` - Input fields and form builders
+- `layout` - Page structure and navigation
+- `buttons` - Action buttons
+- `feedback` - Loading states, errors, notifications
+- `views` - Auto-generated views
+- `fields` - Field displays
+- `toolbars` - Action bars
+- `ui` - UI components like menus
+
+<Callout type="info">
+**Understanding categories**: Each category groups related components. For example, if you're building a list page, look in the `data-display` category.
+</Callout>
+
+## Learning Path
+
+New to Better Admin? Follow this recommended learning path:
+
+### 1. Start Here
+- **[Quick Start](/docs/better-admin/quick-start)** - Build your first admin interface (15 min)
+  - Set up authentication
+  - Create a data provider
+  - Build your first list page
+
+### 2. Core Concepts
+- **[Auth Provider](/docs/better-admin/auth-provider)** - Understand authentication (10 min)
+  - How login works
+  - Protecting routes
+  - Managing permissions
+
+- **[Data Provider](/docs/better-admin/data-provider)** - Master data operations (15 min)
+  - Fetching data
+  - Creating and updating records
+  - Handling relationships
+
+### 3. Building Features
+- **[Components](/docs/better-admin/components)** - Explore available components (30 min)
+  - Browse by category
+  - See usage examples
+  - Install what you need
+
+- **[Examples](/docs/better-admin/examples)** - See complete examples (20 min)
+  - Full CRUD interfaces
+  - Advanced filtering
+  - Complex forms
+
+### 4. Advanced Topics
+- **[CLI Reference](/docs/better-admin/cli)** - Master the CLI tool (10 min)
+- **[API Reference](/docs/better-admin/api-reference)** - Complete API documentation (reference)
+- **[Migration Guide](/docs/better-admin/migration)** - Migrating from react-admin (if applicable)
+
+<Callout type="success">
+**Total time to get productive: ~1 hour**
+
+Start with the Quick Start guide and build your first working admin interface. You can explore advanced features as you need them.
+</Callout>
