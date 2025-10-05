@@ -1,0 +1,751 @@
+---
+title: Dashboard
+description: Build custom dashboards with stats, charts, and data visualizations
+---
+
+# Dashboard
+
+A dashboard is the main page of your admin interface that displays key metrics, statistics, and quick access to important information. Better Admin makes it easy to build custom dashboards using the `useBetterQuery` hook to fetch and display data from multiple resources.
+
+<Callout type="info">
+**Think of it as your admin homepage**: The dashboard gives you a quick overview of your application's data - total users, recent orders, active sessions, or any other metrics that matter to your business.
+</Callout>
+
+## What You Can Build
+
+With Better Admin dashboards, you can:
+- **Display statistics** - Show counts, sums, and aggregates from your resources
+- **Track real-time data** - Display live updates using better-query's reactive hooks
+- **Visualize trends** - Create charts and graphs with your preferred charting library
+- **Quick actions** - Add buttons for common admin tasks
+- **Multi-resource views** - Combine data from multiple resources in one view
+
+## Basic Dashboard
+
+### Simple Stats Dashboard
+
+The simplest dashboard shows key statistics from your resources:
+
+```tsx title="app/admin/page.tsx"
+"use client";
+
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+export default function DashboardPage() {
+  const { count: userCount } = useBetterQuery("user", query);
+  const { count: postCount } = useBetterQuery("post", query);
+
+  const { data: totalUsers } = userCount.useQuery();
+  const { data: totalPosts } = postCount.useQuery();
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Users</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{totalUsers || 0}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Posts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{totalPosts || 0}</p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+```
+
+**What this does:**
+1. Uses `useBetterQuery` to access the count operation for each resource
+2. Fetches the total count with `useQuery()` hook
+3. Displays the counts in a responsive grid layout
+
+<Callout type="tip">
+**Why use count?** The `count` operation is efficient because it only queries the database for the number of records, not the actual data, making your dashboard fast even with large datasets.
+</Callout>
+
+## Advanced Dashboards
+
+### Dashboard with Filters
+
+Show statistics filtered by specific criteria:
+
+```tsx title="app/admin/page.tsx"
+"use client";
+
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+export default function DashboardPage() {
+  const { count: userCount, list: userList } = useBetterQuery("user", query);
+  const { count: postCount } = useBetterQuery("post", query);
+
+  // Total counts
+  const { data: totalUsers } = userCount.useQuery();
+  const { data: totalPosts } = postCount.useQuery();
+
+  // Active users (logged in within last 7 days)
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const { data: activeUsers } = userCount.useQuery({
+    where: {
+      lastLoginAt: {
+        gte: sevenDaysAgo,
+      },
+    },
+  });
+
+  // Published posts
+  const { data: publishedPosts } = postCount.useQuery({
+    where: {
+      published: true,
+    },
+  });
+
+  // Recent users (last 5)
+  const { data: recentUsers } = userList.useQuery({
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Dashboard</h1>
+      
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Users</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{totalUsers || 0}</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Active Users (7d)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{activeUsers || 0}</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {Math.round(((activeUsers || 0) / (totalUsers || 1)) * 100)}% active
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Posts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{totalPosts || 0}</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Published Posts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{publishedPosts || 0}</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {Math.round(((publishedPosts || 0) / (totalPosts || 1)) * 100)}% published
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Users</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {recentUsers && recentUsers.length > 0 ? (
+            <div className="space-y-2">
+              {recentUsers.map((user: any) => (
+                <div key={user.id} className="flex justify-between items-center">
+                  <div>
+                    <p className="font-medium">{user.name}</p>
+                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">No recent users</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+**What this adds:**
+- Filtered counts (active users, published posts)
+- Percentage calculations for quick insights
+- Recent activity list showing the latest users
+- Responsive grid that adapts to screen size
+
+<Callout type="info">
+**Date filtering**: You can use comparison operators like `gte` (greater than or equal), `lte` (less than or equal), `gt`, `lt` to filter by dates and numbers.
+</Callout>
+
+### E-commerce Dashboard
+
+A more complex example for an e-commerce application:
+
+```tsx title="app/admin/page.tsx"
+"use client";
+
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DollarSign, ShoppingCart, Users, Package } from "lucide-react";
+
+export default function DashboardPage() {
+  const { count: orderCount, list: orderList } = useBetterQuery("order", query);
+  const { count: productCount } = useBetterQuery("product", query);
+  const { count: customerCount } = useBetterQuery("customer", query);
+
+  // Today's date for filtering
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Statistics
+  const { data: totalOrders } = orderCount.useQuery();
+  const { data: todayOrders } = orderCount.useQuery({
+    where: {
+      createdAt: { gte: today },
+    },
+  });
+
+  const { data: pendingOrders } = orderCount.useQuery({
+    where: {
+      status: "pending",
+    },
+  });
+
+  const { data: totalProducts } = productCount.useQuery();
+  const { data: lowStockProducts } = productCount.useQuery({
+    where: {
+      stock: { lte: 10 },
+    },
+  });
+
+  const { data: totalCustomers } = customerCount.useQuery();
+
+  // Recent orders for revenue calculation
+  const { data: recentOrders } = orderList.useQuery({
+    orderBy: { createdAt: "desc" },
+    take: 100,
+    where: {
+      status: "completed",
+    },
+  });
+
+  // Calculate revenue
+  const totalRevenue = recentOrders?.reduce(
+    (sum: number, order: any) => sum + (order.total || 0),
+    0
+  ) || 0;
+
+  const todayRevenue = recentOrders
+    ?.filter((order: any) => new Date(order.createdAt) >= today)
+    .reduce((sum: number, order: any) => sum + (order.total || 0), 0) || 0;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <p className="text-sm text-muted-foreground">
+          {new Date().toLocaleDateString("en-US", { 
+            weekday: "long", 
+            year: "numeric", 
+            month: "long", 
+            day: "numeric" 
+          })}
+        </p>
+      </div>
+
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${(totalRevenue / 100).toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Today: ${(todayRevenue / 100).toFixed(2)}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Orders</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalOrders || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {todayOrders || 0} today • {pendingOrders || 0} pending
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Customers</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalCustomers || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Total registered customers
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Products</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalProducts || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {lowStockProducts || 0} low stock
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Alerts */}
+      {(pendingOrders || 0) > 0 && (
+        <Card className="border-orange-500">
+          <CardHeader>
+            <CardTitle className="text-orange-500">Pending Orders</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>You have {pendingOrders} orders waiting to be processed.</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {(lowStockProducts || 0) > 0 && (
+        <Card className="border-red-500">
+          <CardHeader>
+            <CardTitle className="text-red-500">Low Stock Alert</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>{lowStockProducts} products have low stock (≤10 units).</p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+```
+
+**Key features:**
+- Revenue calculations from order data
+- Multiple filtered counts (today's orders, pending orders, low stock)
+- Icons for visual appeal
+- Alert cards for important notifications
+- Date formatting for better UX
+
+<Callout type="tip">
+**Performance tip**: When calculating totals or aggregates, limit the query with `take` to avoid fetching too much data. For production, consider using database aggregate functions or custom operations.
+</Callout>
+
+## Using the useBetterQuery Hook
+
+The `useBetterQuery` hook is the foundation of dashboard functionality. It provides reactive access to your better-query operations.
+
+### Available Operations
+
+```tsx
+const {
+  list,      // Fetch multiple records
+  get,       // Fetch single record by ID
+  create,    // Create new record
+  update,    // Update existing record
+  remove,    // Delete record
+  count,     // Count records
+} = useBetterQuery("resourceName", query);
+```
+
+### Count Operation
+
+Get the total number of records:
+
+```tsx
+const { count } = useBetterQuery("user", query);
+const { data: totalUsers, isLoading, error } = count.useQuery();
+
+// With filters
+const { data: activeUsers } = count.useQuery({
+  where: { status: "active" }
+});
+```
+
+### List Operation
+
+Fetch multiple records with options:
+
+```tsx
+const { list } = useBetterQuery("post", query);
+
+const { data: posts, isLoading, error } = list.useQuery({
+  take: 10,                        // Limit results
+  skip: 0,                         // Pagination offset
+  orderBy: { createdAt: "desc" },  // Sort order
+  where: { published: true },      // Filters
+});
+```
+
+### Combining Operations
+
+Create rich dashboards by combining multiple operations:
+
+```tsx
+export default function DashboardPage() {
+  const userQuery = useBetterQuery("user", query);
+  const postQuery = useBetterQuery("post", query);
+  const commentQuery = useBetterQuery("comment", query);
+
+  // Counts
+  const { data: userCount } = userQuery.count.useQuery();
+  const { data: postCount } = postQuery.count.useQuery();
+  const { data: commentCount } = commentQuery.count.useQuery();
+
+  // Lists
+  const { data: recentPosts } = postQuery.list.useQuery({
+    take: 5,
+    orderBy: { createdAt: "desc" },
+  });
+
+  const { data: topAuthors } = userQuery.list.useQuery({
+    take: 10,
+    orderBy: { postCount: "desc" }, // Assuming you have this field
+  });
+
+  // Render your dashboard...
+}
+```
+
+## Best Practices
+
+### 1. Loading States
+
+Always handle loading states for better UX:
+
+```tsx
+export default function DashboardPage() {
+  const { count } = useBetterQuery("user", query);
+  const { data: userCount, isLoading } = count.useQuery();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900" />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h1>Total Users: {userCount}</h1>
+    </div>
+  );
+}
+```
+
+### 2. Error Handling
+
+Gracefully handle errors:
+
+```tsx
+export default function DashboardPage() {
+  const { count } = useBetterQuery("user", query);
+  const { data: userCount, isLoading, error } = count.useQuery();
+
+  if (error) {
+    return (
+      <div className="p-4 border border-red-500 rounded">
+        <h2 className="text-red-500 font-bold">Error loading dashboard</h2>
+        <p>{error.message}</p>
+      </div>
+    );
+  }
+
+  // ... rest of component
+}
+```
+
+### 3. Optimize Queries
+
+Keep your dashboard fast:
+
+```tsx
+// ✅ Good: Only fetch what you need
+const { data: recentUsers } = list.useQuery({
+  take: 5,
+  select: ["id", "name", "email"], // Only select needed fields
+});
+
+// ❌ Bad: Fetching too much data
+const { data: allUsers } = list.useQuery(); // Could be thousands of records
+```
+
+### 4. Use Proper Caching
+
+Better Query automatically caches results, but you can configure it:
+
+```tsx
+const { data: stats } = count.useQuery(
+  { where: { status: "active" } },
+  {
+    staleTime: 60000, // Cache for 1 minute
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+  }
+);
+```
+
+### 5. Separate Concerns
+
+For complex dashboards, break them into components:
+
+```tsx title="components/dashboard/stats-cards.tsx"
+export function StatsCards() {
+  const { count } = useBetterQuery("user", query);
+  const { data: userCount } = count.useQuery();
+
+  return (
+    <div className="grid grid-cols-4 gap-4">
+      <Card>
+        <CardHeader>Total Users</CardHeader>
+        <CardContent>{userCount || 0}</CardContent>
+      </Card>
+      {/* More cards... */}
+    </div>
+  );
+}
+```
+
+```tsx title="app/admin/page.tsx"
+import { StatsCards } from "@/components/dashboard/stats-cards";
+import { RecentActivity } from "@/components/dashboard/recent-activity";
+import { AlertsPanel } from "@/components/dashboard/alerts-panel";
+
+export default function DashboardPage() {
+  return (
+    <div className="space-y-6">
+      <h1>Dashboard</h1>
+      <StatsCards />
+      <RecentActivity />
+      <AlertsPanel />
+    </div>
+  );
+}
+```
+
+## Common Patterns
+
+### Real-time Updates
+
+Better Query supports real-time updates when using the realtime plugin:
+
+```tsx
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+
+export default function DashboardPage() {
+  const { count } = useBetterQuery("order", query);
+  
+  // This will automatically update when new orders are created
+  const { data: orderCount } = count.useQuery(undefined, {
+    refetchInterval: 5000, // Refetch every 5 seconds
+  });
+
+  return <div>Active Orders: {orderCount}</div>;
+}
+```
+
+### Date Range Filtering
+
+Create dashboards with date range filters:
+
+```tsx
+import { useState } from "react";
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+
+export default function DashboardPage() {
+  const [dateRange, setDateRange] = useState({
+    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+    to: new Date(),
+  });
+
+  const { count } = useBetterQuery("order", query);
+  
+  const { data: orderCount } = count.useQuery({
+    where: {
+      createdAt: {
+        gte: dateRange.from,
+        lte: dateRange.to,
+      },
+    },
+  });
+
+  return (
+    <div>
+      <DateRangePicker value={dateRange} onChange={setDateRange} />
+      <p>Orders in range: {orderCount}</p>
+    </div>
+  );
+}
+```
+
+### Comparison Metrics
+
+Show comparisons between time periods:
+
+```tsx
+export default function DashboardPage() {
+  const { count } = useBetterQuery("order", query);
+
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const { data: todayOrders } = count.useQuery({
+    where: {
+      createdAt: { gte: today },
+    },
+  });
+
+  const { data: yesterdayOrders } = count.useQuery({
+    where: {
+      createdAt: {
+        gte: yesterday,
+        lt: today,
+      },
+    },
+  });
+
+  const percentageChange = yesterdayOrders
+    ? ((todayOrders - yesterdayOrders) / yesterdayOrders) * 100
+    : 0;
+
+  return (
+    <Card>
+      <CardHeader>Today's Orders</CardHeader>
+      <CardContent>
+        <p className="text-4xl font-bold">{todayOrders || 0}</p>
+        <p className={percentageChange >= 0 ? "text-green-500" : "text-red-500"}>
+          {percentageChange.toFixed(1)}% vs yesterday
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+## Integration with Charts
+
+You can integrate popular charting libraries for visualizations:
+
+### With Recharts
+
+```tsx
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+
+export default function DashboardPage() {
+  const { list } = useBetterQuery("order", query);
+
+  // Get orders from last 7 days
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const { data: orders } = list.useQuery({
+    where: {
+      createdAt: { gte: sevenDaysAgo },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  // Group orders by day
+  const chartData = orders?.reduce((acc: any[], order: any) => {
+    const date = new Date(order.createdAt).toLocaleDateString();
+    const existing = acc.find((item) => item.date === date);
+    
+    if (existing) {
+      existing.orders += 1;
+      existing.revenue += order.total;
+    } else {
+      acc.push({ date, orders: 1, revenue: order.total });
+    }
+    
+    return acc;
+  }, []) || [];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Orders Trend (Last 7 Days)</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <LineChart width={600} height={300} data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="date" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Line type="monotone" dataKey="orders" stroke="#8884d8" />
+          <Line type="monotone" dataKey="revenue" stroke="#82ca9d" />
+        </LineChart>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+## Next Steps
+
+Now that you know how to build dashboards:
+
+- Learn about [Data Table](/docs/better-admin/components/data-table) for displaying detailed lists
+- Explore [Simple Form](/docs/better-admin/components/simple-form) for creating data entry forms
+- Check out [Resource](/docs/better-admin/components/resource) to understand how resources work
+- Read about [Better Query Integration](/docs/better-admin/data-provider) for advanced data operations
+
+<Callout type="tip">
+**Need inspiration?** Check out the [Examples](/docs/better-admin/examples) page for complete dashboard implementations you can use as starting points.
+</Callout>

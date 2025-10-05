@@ -5,6 +5,7 @@
 		"admin",
 		"resource",
 		"layout",
+		"dashboard",
 		"list",
 		"data-table",
 		"create",
