@@ -1,0 +1,26 @@
+{
+	"name": "stat-card",
+	"type": "components:ui",
+	"category": "dashboard",
+	"description": "Dashboard stat card with metrics, icons, and trends",
+	"dependencies": {
+		"shadcn": ["card"],
+		"npm": []
+	},
+	"registryDependencies": [],
+	"files": [
+		{
+			"path": "components/admin/stat-card.tsx",
+			"content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Card, CardContent, CardHeader, CardTitle } from \"@/components/ui/card\";\nimport { cn } from \"@/lib/utils\";\n\nexport interface StatCardProps {\n\ttitle: string;\n\tvalue: string | number;\n\ticon?: React.ReactNode;\n\tdescription?: string;\n\ttrend?: {\n\t\tvalue: number;\n\t\tdirection: \"up\" | \"down\";\n\t\tlabel?: string;\n\t};\n\tloading?: boolean;\n\tclassName?: string;\n}\n\nexport function StatCard({\n\ttitle,\n\tvalue,\n\ticon,\n\tdescription,\n\ttrend,\n\tloading = false,\n\tclassName,\n}: StatCardProps) {\n\tif (loading) {\n\t\treturn (\n\t\t\t<Card className={cn(\"animate-pulse\", className)}>\n\t\t\t\t<CardHeader className=\"flex flex-row items-center justify-between space-y-0 pb-2\">\n\t\t\t\t\t<CardTitle className=\"text-sm font-medium\">\n\t\t\t\t\t\t<div className=\"h-4 w-24 bg-muted rounded\" />\n\t\t\t\t\t</CardTitle>\n\t\t\t\t\t{icon && <div className=\"h-4 w-4 bg-muted rounded\" />}\n\t\t\t\t</CardHeader>\n\t\t\t\t<CardContent>\n\t\t\t\t\t<div className=\"h-8 w-32 bg-muted rounded mb-2\" />\n\t\t\t\t\t<div className=\"h-3 w-20 bg-muted rounded\" />\n\t\t\t\t</CardContent>\n\t\t\t</Card>\n\t\t);\n\t}\n\n\treturn (\n\t\t<Card className={className}>\n\t\t\t<CardHeader className=\"flex flex-row items-center justify-between space-y-0 pb-2\">\n\t\t\t\t<CardTitle className=\"text-sm font-medium\">{title}</CardTitle>\n\t\t\t\t{icon && (\n\t\t\t\t\t<div className=\"h-4 w-4 text-muted-foreground\">{icon}</div>\n\t\t\t\t)}\n\t\t\t</CardHeader>\n\t\t\t<CardContent>\n\t\t\t\t<div className=\"text-2xl font-bold\">{value}</div>\n\t\t\t\t{(description || trend) && (\n\t\t\t\t\t<div className=\"flex items-center gap-2 text-xs text-muted-foreground mt-1\">\n\t\t\t\t\t\t{trend && (\n\t\t\t\t\t\t\t<span\n\t\t\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\t\t\"flex items-center font-medium\",\n\t\t\t\t\t\t\t\t\ttrend.direction === \"up\"\n\t\t\t\t\t\t\t\t\t\t? \"text-green-600 dark:text-green-400\"\n\t\t\t\t\t\t\t\t\t\t: \"text-red-600 dark:text-red-400\",\n\t\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{trend.direction === \"up\" ? \"↑\" : \"↓\"} {Math.abs(trend.value)}%\n\t\t\t\t\t\t\t\t{trend.label && (\n\t\t\t\t\t\t\t\t\t<span className=\"ml-1 text-muted-foreground font-normal\">\n\t\t\t\t\t\t\t\t\t\t{trend.label}\n\t\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t)}\n\t\t\t\t\t\t{description && <span>{description}</span>}\n\t\t\t\t\t</div>\n\t\t\t\t)}\n\t\t\t</CardContent>\n\t\t</Card>\n\t);\n}\n",
+			"type": "components:ui"
+		}
+	],
+	"tailwind": {
+		"config": {}
+	},
+	"betterQuery": {
+		"operations": ["count", "list"],
+		"hook": "useBetterQuery(\"resource\", query).count()",
+		"example": "const { count } = useBetterQuery(\"user\", query);\nconst { data: totalUsers } = count.useQuery();"
+	}
+}

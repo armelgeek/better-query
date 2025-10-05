@@ -1,0 +1,21 @@
+{
+	"name": "dashboard-grid",
+	"type": "components:ui",
+	"category": "dashboard",
+	"description": "Responsive grid layout for dashboard components",
+	"dependencies": {
+		"shadcn": [],
+		"npm": []
+	},
+	"registryDependencies": [],
+	"files": [
+		{
+			"path": "components/admin/dashboard-grid.tsx",
+			"content": "\"use client\";\n\nimport * as React from \"react\";\nimport { cn } from \"@/lib/utils\";\n\nexport interface DashboardGridProps {\n\tchildren: React.ReactNode;\n\tcolumns?: {\n\t\tdefault?: number;\n\t\tsm?: number;\n\t\tmd?: number;\n\t\tlg?: number;\n\t\txl?: number;\n\t};\n\tgap?: \"sm\" | \"md\" | \"lg\" | \"xl\";\n\tclassName?: string;\n}\n\nconst gapClasses = {\n\tsm: \"gap-2\",\n\tmd: \"gap-4\",\n\tlg: \"gap-6\",\n\txl: \"gap-8\",\n};\n\nexport function DashboardGrid({\n\tchildren,\n\tcolumns = { default: 1, md: 2, lg: 3, xl: 4 },\n\tgap = \"md\",\n\tclassName,\n}: DashboardGridProps) {\n\tconst gridClasses = cn(\n\t\t\"grid\",\n\t\tgapClasses[gap],\n\t\tcolumns.default && `grid-cols-${columns.default}`,\n\t\tcolumns.sm && `sm:grid-cols-${columns.sm}`,\n\t\tcolumns.md && `md:grid-cols-${columns.md}`,\n\t\tcolumns.lg && `lg:grid-cols-${columns.lg}`,\n\t\tcolumns.xl && `xl:grid-cols-${columns.xl}`,\n\t\tclassName,\n\t);\n\n\treturn <div className={gridClasses}>{children}</div>;\n}\n",
+			"type": "components:ui"
+		}
+	],
+	"tailwind": {
+		"config": {}
+	}
+}
