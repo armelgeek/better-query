@@ -5,27 +5,49 @@ description: Real-world examples of building admin interfaces with better-admin
 
 # Better Admin Examples
 
-Complete examples demonstrating how to build admin interfaces with better-auth and better-query.
+Learn by example! This page shows you complete, working examples of real-world admin interfaces built with Better Admin. Each example includes full source code you can copy and adapt.
 
-## Quick Start Example
+<Callout type="info">
+**How to use these examples**: Each example is self-contained. You can copy the entire code into your project and it should work with minimal modifications (mainly environment variables and database setup).
+</Callout>
 
-A minimal admin interface with authentication and CRUD operations.
+## Example 1: Simple User Management
 
-### 1. Setup Authentication
+**What you'll build**: A basic admin interface for managing users with authentication.
+
+**Features**:
+- ✅ User login with email/password
+- ✅ List all users in a table
+- ✅ Create new users with a form
+- ✅ Edit existing users
+- ✅ Delete users with confirmation
+- ✅ Role-based permissions (only admins can modify)
+
+**Time to build**: ~30 minutes
+
+### Step 1: Setup Authentication
+
+First, configure Better Auth for handling user login:
 
 ```typescript title="lib/auth.ts"
 import { betterAuth } from "better-auth";
 import Database from "better-sqlite3";
 
+// Create database connection
 const db = new Database("app.db");
 
+// Configure Better Auth
 export const auth = betterAuth({
   database: db,
   emailAndPassword: {
-    enabled: true,
+    enabled: true,  // Enable email/password login
   },
 });
 ```
+
+**What this does**: Sets up authentication with email/password login and connects to a SQLite database.
+
+Create the client for use in React:
 
 ```typescript title="lib/auth-client.ts"
 import { createAuthClient } from "better-auth/client";
@@ -35,7 +57,13 @@ export const authClient = createAuthClient({
 });
 ```
 
-### 2. Setup Data Layer
+<Callout type="tip">
+**Production tip**: Replace `http://localhost:3000` with `process.env.NEXT_PUBLIC_APP_URL` for production deployments.
+</Callout>
+
+### Step 2: Setup Data Layer
+
+Define your user resource with permissions:
 
 ```typescript title="lib/query.ts"
 import { betterQuery, createResource } from "better-query";
@@ -44,6 +72,7 @@ import Database from "better-sqlite3";
 
 const db = new Database("app.db");
 
+// Define user resource
 const userResource = createResource({
   name: "user",
   schema: {
@@ -54,6 +83,7 @@ const userResource = createResource({
     createdAt: { type: "date" },
     updatedAt: { type: "date" },
   },
+  // Add authentication to all requests
   middlewares: [
     {
       handler: async (context) => {
@@ -66,18 +96,39 @@ const userResource = createResource({
       },
     },
   ],
+  // Define permissions
   permissions: {
     create: async (context) => {
       const user = context.user as any;
-      return user?.role === "admin";
+      return user?.role === "admin";  // Only admins can create
     },
-    read: async (context) => !!context.user,
+    read: async (context) => !!context.user,  // Any logged-in user can read
     update: async (context) => {
       const user = context.user as any;
-      return user?.role === "admin";
+      return user?.role === "admin";  // Only admins can update
     },
     delete: async (context) => {
       const user = context.user as any;
+      return user?.role === "admin";  // Only admins can delete
+    },
+  },
+});
+
+// Create query client
+export const query = betterQuery({
+  database: db,
+  resources: [userResource],
+});
+```
+
+**What this does**: 
+- Defines what a user looks like (schema)
+- Adds authentication to all queries
+- Sets permissions (only admins can modify users)
+
+<Callout type="info">
+**Understanding permissions**: The `read` permission returns `true` if the user is logged in. The `create`, `update`, and `delete` permissions only return `true` for admin users. This means regular users can view the list but can't make changes.
+</Callout>
       return user?.role === "admin";
     },
   },

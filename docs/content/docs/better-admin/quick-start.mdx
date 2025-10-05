@@ -5,49 +5,95 @@ description: Get started with better-admin in minutes
 
 # Quick Start
 
-Get your admin interface up and running in minutes with better-admin, better-auth, and better-query.
+This guide will walk you through building your first admin interface with Better Admin. In about 15 minutes, you'll have a working admin panel with authentication and CRUD operations.
+
+<Callout type="info">
+**What you'll build**: A complete admin interface for managing users, including login page, protected routes, and a user management interface.
+</Callout>
 
 ## Prerequisites
 
-- Node.js 18+ installed
-- A Next.js 14+ project (or other React framework)
-- Basic familiarity with TypeScript
+Before starting, make sure you have:
+
+- **Node.js 18 or higher** - [Download here](https://nodejs.org/)
+- **A Next.js 14+ project** - Or another React framework
+- **Basic TypeScript knowledge** - We'll use TypeScript for type safety
+
+<Callout type="tip">
+**New to Next.js?** Create a new project with `npx create-next-app@latest my-admin-app`
+</Callout>
 
 ## Installation
 
-### 1. Install Dependencies
+### Step 1: Install Dependencies
+
+Install all three packages - Better Admin, Better Auth, and Better Query:
 
 ```bash title="Terminal"
 npm install better-auth better-query better-admin
 ```
 
-### 2. Initialize Better Admin
+<Callout type="info">
+**Why three packages?**
+- **better-auth** handles user authentication
+- **better-query** manages database operations
+- **better-admin** provides UI components to tie everything together
+</Callout>
+
+### Step 2: Initialize Better Admin
+
+Run the initialization command:
 
 ```bash title="Terminal"
 npx better-admin init
 ```
 
-This creates a `better-admin.json` configuration file.
+**What this does:**
+- Creates a `better-admin.json` configuration file
+- Detects your project structure (Next.js app router, pages router, etc.)
+- Sets up default paths for components
 
-### 3. Install shadcn/ui
+You'll see output like:
+```
+✓ Created better-admin.json
+✓ Detected project structure: Next.js App Router
+✓ Set component path: src/components
+```
 
-If you haven't already, initialize shadcn/ui:
+### Step 3: Install shadcn/ui
+
+Better Admin components are built on top of shadcn/ui. If you haven't already, initialize it:
 
 ```bash title="Terminal"
 npx shadcn@latest init
 ```
 
+<Callout type="tip">
+**Already have shadcn/ui?** You can skip this step. Better Admin will work with your existing setup.
+</Callout>
+
 ## Setup Authentication
 
-### 1. Create Database Connection
+Now let's set up authentication so users can log in to your admin panel.
+
+### Step 1: Create Database Connection
+
+First, create a database connection file:
 
 ```typescript title="lib/db.ts"
 import Database from "better-sqlite3";
 
+// This creates a SQLite database file
 export const db = new Database("app.db");
 ```
 
-### 2. Setup Better Auth Server
+<Callout type="info">
+**Using a different database?** Better Auth supports PostgreSQL, MySQL, and other databases. Check the [Better Auth docs](https://better-auth.dev) for other database options.
+</Callout>
+
+### Step 2: Setup Better Auth Server
+
+Create your auth configuration on the server side:
 
 ```typescript title="lib/auth.ts"
 import { betterAuth } from "better-auth";
@@ -56,12 +102,19 @@ import { db } from "./db";
 export const auth = betterAuth({
   database: db,
   emailAndPassword: {
-    enabled: true,
+    enabled: true,  // Allow login with email and password
   },
 });
 ```
 
-### 3. Create Auth Client
+**What this does:**
+- Configures Better Auth to use your database
+- Enables email/password authentication
+- Sets up session management automatically
+
+### Step 3: Create Auth Client
+
+Create a client for use in your React components:
 
 ```typescript title="lib/auth-client.ts"
 import { createAuthClient } from "better-auth/react";
@@ -70,10 +123,19 @@ export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
 });
 
+// Export convenient hooks
 export const { signIn, signUp, signOut, useSession } = authClient;
 ```
 
-### 4. Create Auth Provider
+**What this provides:**
+- `signIn` - Function to sign in users
+- `signUp` - Function to register new users
+- `signOut` - Function to sign out
+- `useSession` - Hook to check if user is logged in
+
+### Step 4: Create Auth Provider
+
+Finally, create the auth provider that connects Better Auth to Better Admin:
 
 ```typescript title="lib/admin-auth.ts"
 import { createBetterAuthProvider } from "better-admin";
@@ -84,15 +146,24 @@ export const authProvider = createBetterAuthProvider({
 });
 ```
 
+<Callout type="success">
+**Authentication is now set up!** Your admin panel can now check if users are logged in and what permissions they have.
+</Callout>
+
 ## Setup Data Provider
 
-### 1. Define Resources
+Now let's set up the data layer so your admin can manage records in the database.
+
+### Step 1: Define Resources
+
+A "resource" is a type of data in your database (like users, posts, products, etc.). Let's create a user resource:
 
 ```typescript title="lib/query.ts"
 import { betterQuery, createResource } from "better-query";
 import { auth } from "./auth";
 import { db } from "./db";
 
+// Define what a user looks like
 const userResource = createResource({
   name: "user",
   schema: {
@@ -101,6 +172,7 @@ const userResource = createResource({
     email: { type: "string", required: true },
     role: { type: "string" },
   },
+  // Add authentication to all requests
   middlewares: [
     {
       handler: async (context) => {
@@ -111,27 +183,35 @@ const userResource = createResource({
       },
     },
   ],
+  // Define who can do what
   permissions: {
-    create: async (context) => !!context.user,
-    read: async (context) => !!context.user,
+    create: async (context) => !!context.user,  // Any logged-in user can create
+    read: async (context) => !!context.user,    // Any logged-in user can read
     update: async (context) => {
       const user = context.user as any;
-      return user?.role === "admin";
+      return user?.role === "admin";  // Only admins can update
     },
     delete: async (context) => {
       const user = context.user as any;
-      return user?.role === "admin";
+      return user?.role === "admin";  // Only admins can delete
     },
   },
 });
 
+// Create the query client with your resources
 export const query = betterQuery({
   database: db,
   resources: [userResource],
 });
 ```
 
-### 2. Create Data Provider
+<Callout type="info">
+**What are permissions?** They control who can create, read, update, or delete records. In this example, any logged-in user can view users, but only admins can modify them.
+</Callout>
+
+### Step 2: Create Data Provider
+
+Create the data provider that connects your resources to Better Admin:
 
 ```typescript title="lib/admin-data.ts"
 import { createBetterQueryProvider } from "better-admin";
@@ -142,23 +222,57 @@ export const dataProvider = createBetterQueryProvider({
 });
 ```
 
+<Callout type="success">
+**Data layer is ready!** Your admin can now fetch, create, update, and delete users from the database with proper permissions.
+</Callout>
+
 ## Add Admin Components
 
-### 1. Install Data Table Component
+Now let's add the UI components we'll need for our admin interface.
+
+### Step 1: Install Data Table Component
+
+The data table displays lists of records:
 
 ```bash title="Terminal"
 npx better-admin add data-table
 ```
 
-### 2. Install Form Component
+**What happens:**
+```
+✓ Downloading component
+✓ Installing dependencies: @tanstack/react-table
+✓ Installing shadcn/ui components: table, button, input
+✓ Component installed to src/components/admin/data-table.tsx
+```
+
+### Step 2: Install Form Component
+
+The CRUD form handles creating and editing records:
 
 ```bash title="Terminal"
 npx better-admin add crud-form
 ```
 
+**What happens:**
+```
+✓ Downloading component
+✓ Installing dependencies: react-hook-form, zod
+✓ Installing shadcn/ui components: form, input, button, label
+✓ Component installed to src/components/admin/crud-form.tsx
+```
+
+<Callout type="tip">
+**Want to see all available components?** Run `npx better-admin list` to browse the complete catalog.
+</Callout>
+
 ## Create Admin Pages
 
-### 1. Login Page
+Now let's build the actual admin pages that users will interact with.
+
+### Step 1: Login Page
+
+Create a login page so users can authenticate:
 
 ```tsx title="app/login/page.tsx"
 "use client";
@@ -176,31 +290,52 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Sign in with Better Auth
     const result = await authClient.signIn.email({ email, password });
+    
+    // Redirect to admin if successful
     if (!result.error) router.push("/admin");
   };
 
   return (
     <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-8 space-y-4">
+      <h1 className="text-2xl font-bold">Admin Login</h1>
+      
       <Input
         type="email"
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        required
       />
+      
       <Input
         type="password"
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        required
       />
+      
       <Button type="submit" className="w-full">Sign In</Button>
     </form>
   );
 }
 ```
 
-### 2. Admin Layout with Auth Protection
+**What this does:**
+- Shows a simple login form
+- Calls Better Auth to verify credentials
+- Redirects to `/admin` on successful login
+
+<Callout type="warning">
+**First time setup**: You'll need to create your first admin user in the database before you can log in. See the [Auth Provider guide](/docs/better-admin/auth-provider) for details.
+</Callout>
+
+### Step 2: Admin Layout with Auth Protection
+
+Create a layout that protects all admin routes:
 
 ```tsx title="app/admin/layout.tsx"
 "use client";
@@ -214,18 +349,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user, isLoading } = useBetterAuth(authClient);
   const router = useRouter();
 
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !user) router.push("/login");
   }, [user, isLoading, router]);
 
+  // Show loading while checking auth
   if (isLoading) return <div>Loading...</div>;
+  
+  // Don't render until authenticated
   if (!user) return null;
 
   return <div className="p-8">{children}</div>;
 }
 ```
 
-### 3. Users List Page
+**What this does:**
+- Checks if user is logged in using `useBetterAuth`
+- Redirects to `/login` if not authenticated
+- Shows a loading state while checking
+- Only renders children if user is authenticated
+
+<Callout type="info">
+**Why a layout?** In Next.js App Router, layouts wrap all pages in a folder. This means all pages under `/admin` are automatically protected.
+</Callout>
+
+### Step 3: Users List Page
+
+Create a page to view and manage users:
 
 ```tsx title="app/admin/users/page.tsx"
 "use client";
@@ -237,9 +388,11 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function UsersPage() {
+  // Fetch users from the database
   const { list } = useBetterQuery("user", query);
   const { data, isLoading } = list.useQuery();
 
+  // Define which columns to show
   const columns = [
     { accessorKey: "name", header: "Name" },
     { accessorKey: "email", header: "Email" },
@@ -255,13 +408,25 @@ export default function UsersPage() {
           <Link href="/admin/users/create">Create User</Link>
         </Button>
       </div>
+      
       <DataTable columns={columns} data={data || []} />
     </div>
   );
 }
 ```
 
-### 4. Create User Page
+**What this does:**
+- Uses `useBetterQuery` to fetch users from the database
+- Displays users in a sortable, filterable data table
+- Provides a button to create new users
+
+<Callout type="tip">
+**Data updates automatically**: When you create or update a user, the table refetches automatically thanks to React Query.
+</Callout>
+
+### Step 4: Create User Page
+
+Create a page to add new users:
 
 ```tsx title="app/admin/users/create/page.tsx"
 "use client";
@@ -275,6 +440,7 @@ export default function CreateUserPage() {
   const { create } = useBetterQuery("user", query);
   const router = useRouter();
 
+  // Define the form fields
   const fields = [
     { name: "name", label: "Name", type: "text", required: true },
     { name: "email", label: "Email", type: "email", required: true },
@@ -283,10 +449,14 @@ export default function CreateUserPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Create User</h1>
+      
       <CrudForm
         fields={fields}
         onSubmit={async (data) => {
+          // Save to database
           await create.mutateAsync(data);
+          
+          // Go back to users list
           router.push("/admin/users");
         }}
         submitLabel="Create"
@@ -296,14 +466,42 @@ export default function CreateUserPage() {
 }
 ```
 
+**What this does:**
+- Shows a form with name and email fields
+- Validates input automatically
+- Saves to the database when submitted
+- Redirects back to the users list
+
+<Callout type="success">
+**You now have a complete admin interface!** You can view users, create new ones, and everything is protected by authentication.
+</Callout>
+
 ## Environment Variables
 
-Create a `.env.local` file:
+Create a `.env.local` file in your project root with these variables:
 
 ```bash title=".env.local"
+# Your app's URL (use your production URL in production)
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-BETTER_AUTH_SECRET=your-secret-key-here
+
+# Secret key for Better Auth (generate a random string)
+BETTER_AUTH_SECRET=your-secret-key-here-change-this
+
+# Database connection (SQLite in this example)
 DATABASE_URL=sqlite:app.db
+```
+
+<Callout type="warning">
+**Security**: Never commit the `.env.local` file to version control. Generate a strong random string for `BETTER_AUTH_SECRET` in production.
+</Callout>
+
+**How to generate a secret key:**
+```bash
+# On macOS/Linux
+openssl rand -base64 32
+
+# Or use an online generator
+# https://generate-secret.vercel.app/
 ```
 
 ## Run Your App
@@ -314,36 +512,160 @@ Start the development server:
 npm run dev
 ```
 
-Visit:
-- http://localhost:3000/login - Login page
-- http://localhost:3000/admin/users - Users list (after login)
+**Your admin is now running!** Open your browser and visit:
+
+- **http://localhost:3000/login** - Login page
+- **http://localhost:3000/admin/users** - Users list (after login)
+
+<Callout type="info">
+**First login**: You'll need to create your first admin user directly in the database. See the troubleshooting section below for how to do this.
+</Callout>
+
+## What You've Built
+
+Congratulations! You now have:
+
+✅ A complete authentication system with Better Auth  
+✅ A protected admin area that requires login  
+✅ A users list page with a data table  
+✅ A create user form  
+✅ Automatic data fetching and caching  
+✅ Type-safe operations from database to UI  
 
 ## Next Steps
 
-- [Auth Provider](/docs/better-admin/auth-provider) - Learn more about authentication
-- [Data Provider](/docs/better-admin/data-provider) - Learn more about data operations
-- [Components](/docs/better-admin/components) - Browse all available components
-- [Examples](https://github.com/armelgeek/better-kit/tree/master/packages/better-admin/examples) - See complete examples
+Now that you have the basics working, you can:
+
+### Add More Features
+
+1. **Add Edit Functionality**
+   - Install the edit button component
+   - Create an edit page for users
+   - Learn more in [Components](/docs/better-admin/components)
+
+2. **Add Delete Functionality**
+   - Install the delete button component
+   - Add confirmation dialogs
+   - Handle optimistic updates
+
+3. **Add More Resources**
+   - Create resources for posts, products, orders, etc.
+   - Define relationships between resources
+   - Learn more in [Data Provider](/docs/better-admin/data-provider)
+
+### Enhance Your Admin
+
+1. **Improve the UI**
+   - Add a sidebar navigation
+   - Create a dashboard
+   - Add charts and statistics
+
+2. **Add Advanced Features**
+   - Implement filtering and search
+   - Add bulk operations
+   - Set up file uploads
+
+3. **Customize Components**
+   - Modify installed components to match your brand
+   - Create custom input types
+   - Build custom views
+
+### Learn More
+
+- **[Auth Provider Guide](/docs/better-admin/auth-provider)** - Master authentication and permissions
+- **[Data Provider Guide](/docs/better-admin/data-provider)** - Advanced data operations and relationships
+- **[Components](/docs/better-admin/components)** - Browse all available components
+- **[Examples](/docs/better-admin/examples)** - See complete example applications
 
 ## Common Issues
 
 ### "Cannot find module 'better-auth'"
 
-Install better-auth: `npm install better-auth`
+**Problem**: The package isn't installed.
+
+**Solution**: Install it with:
+```bash
+npm install better-auth
+```
 
 ### "Database not found"
 
-Make sure your database file path is correct in `lib/db.ts`
+**Problem**: The database file path is incorrect or the database hasn't been created.
+
+**Solution**: 
+1. Check that `DATABASE_URL` in `.env.local` matches your `lib/db.ts` path
+2. The database file will be created automatically when you first run the app
+3. Make sure the directory exists and is writable
 
 ### Components not found
 
-Run `npx better-admin add <component>` to install the component
+**Problem**: You're trying to use a component that hasn't been installed.
+
+**Solution**: Install the component with:
+```bash
+npx better-admin add <component-name>
+```
+
+For example:
+```bash
+npx better-admin add data-table
+```
 
 ### TypeScript errors
 
-Make sure you have TypeScript 5.0+ installed: `npm install -D typescript@latest`
+**Problem**: TypeScript version is too old.
+
+**Solution**: Update TypeScript:
+```bash
+npm install -D typescript@latest
+```
+
+### "No users found" / Can't log in
+
+**Problem**: You need to create your first admin user.
+
+**Solution**: Create a user directly in the database:
+
+**Option 1: Using SQLite CLI**
+```bash
+sqlite3 app.db
+```
+```sql
+INSERT INTO user (id, email, name, role) 
+VALUES ('1', 'admin@example.com', 'Admin User', 'admin');
+```
+
+**Option 2: Using a seed script**
+Create `scripts/seed.ts`:
+```typescript
+import { db } from '../lib/db';
+
+db.exec(`
+  INSERT INTO user (id, email, name, role) 
+  VALUES ('1', 'admin@example.com', 'Admin User', 'admin');
+`);
+
+console.log('✓ Admin user created');
+```
+
+Then run:
+```bash
+npx tsx scripts/seed.ts
+```
+
+<Callout type="tip">
+**Production setup**: In production, use a proper user signup flow or an admin creation script. Never hardcode credentials!
+</Callout>
 
 ## Support
 
-- [GitHub Issues](https://github.com/armelgeek/better-kit/issues)
-- [Documentation](/docs/better-admin/introduction)
+Need help? Here are your options:
+
+- **[GitHub Issues](https://github.com/armelgeek/better-kit/issues)** - Report bugs or request features
+- **[Documentation](/docs/better-admin/introduction)** - Browse the complete documentation
+- **[Examples](/docs/better-admin/examples)** - Learn from complete examples
+- **Community** - Join discussions with other developers
+
+<Callout type="success">
+**Congratulations!** You've successfully built your first admin interface with Better Admin. Keep exploring the documentation to learn about advanced features.
+</Callout>

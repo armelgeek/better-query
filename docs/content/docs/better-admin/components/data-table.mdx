@@ -5,9 +5,27 @@ description: Feature-rich table component for Better Admin
 
 # DataTable
 
-The `DataTable` component provides a powerful table with sorting, filtering, pagination, and selection capabilities. It's designed to work seamlessly with the List component and better-query.
+The `DataTable` component is a powerful, production-ready table that displays your data with built-in sorting, filtering, pagination, and selection. It's built on top of @tanstack/react-table and designed to work seamlessly with Better Query.
+
+<Callout type="info">
+**What you'll use it for**: Displaying lists of records (users, posts, products, etc.) in a professional table format with features users expect like sorting columns, searching, and pagination.
+</Callout>
+
+## Key Features
+
+- ✅ **Sorting** - Click column headers to sort data
+- ✅ **Filtering** - Built-in search and filter capabilities
+- ✅ **Pagination** - Automatic pagination with page controls
+- ✅ **Row Selection** - Select single or multiple rows
+- ✅ **Responsive** - Works on mobile and desktop
+- ✅ **Customizable** - Full control over columns and rendering
+- ✅ **Type-Safe** - Full TypeScript support
 
 ## Usage
+
+### Basic Example
+
+Here's the simplest way to use DataTable:
 
 ```tsx
 import { List, DataTable } from '@/components/admin';
@@ -24,17 +42,58 @@ export const PostList = () => (
 );
 ```
 
+**What this creates:**
+- A table with 4 columns
+- Automatic data fetching from the "posts" resource
+- Default loading and error states
+
+<Callout type="tip">
+**What is `source`?** It's the field name from your data. If your posts have a `title` field, use `source="title"` to display it.
+</Callout>
+
+### With Better Query
+
+For more control, use Better Query directly:
+
+```tsx
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+import { DataTable } from '@/components/admin/data-table';
+
+export function UsersList() {
+  // Fetch users from database
+  const { list } = useBetterQuery("user", query);
+  const { data, isLoading } = list.useQuery();
+
+  if (isLoading) return <div>Loading...</div>;
+
+  // Define columns
+  const columns = [
+    { accessorKey: "name", header: "Name" },
+    { accessorKey: "email", header: "Email" },
+    { accessorKey: "role", header: "Role" },
+  ];
+
+  return <DataTable columns={columns} data={data || []} />;
+}
+```
+
+**Why use this approach?**
+- More control over data fetching
+- Easier to add custom loading states
+- Can transform data before displaying
+
 ## Components
 
 ### DataTable.Col
 
-Defines a column in the table.
+Defines a column in the table. Each column displays one field from your data.
 
 ```tsx
 <DataTable.Col 
-  source="title" 
-  label="Post Title"
-  sortable
+  source="title"           // Field name from your data
+  label="Post Title"       // Column header text
+  sortable                 // Enable sorting on this column
   render={(value, record) => (
     <Link to={`/posts/${record.id}`}>{value}</Link>
   )}
@@ -43,13 +102,21 @@ Defines a column in the table.
 
 #### Props
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `source` | `string` | Field name from the data |
-| `label` | `string` | Column header text |
-| `sortable` | `boolean` | Enable sorting |
-| `render` | `(value, record) => ReactNode` | Custom cell renderer |
-| `width` | `string \| number` | Column width |
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `source` | `string` | Yes | Field name from the data object |
+| `label` | `string` | No | Column header text (defaults to source) |
+| `sortable` | `boolean` | No | Enable sorting for this column |
+| `render` | `(value, record) => ReactNode` | No | Custom renderer for cell content |
+| `width` | `string \| number` | No | Column width (e.g., "200px" or 200) |
+
+<Callout type="info">
+**Custom rendering**: The `render` function receives two arguments:
+- `value` - The value of this field
+- `record` - The complete data object for this row
+
+This lets you access other fields when rendering. For example, you might show a user's name but link to their full profile.
+</Callout>
 
 ## Examples
 

@@ -5,20 +5,36 @@ description: Root application component for Better Admin
 
 # Admin
 
-The `Admin` component is the root wrapper for your Better Admin application. It provides context for authentication, data providers, and global configuration.
+The `Admin` component is the root wrapper for your Better Admin application. It provides the foundation for authentication, data operations, and global configuration.
+
+<Callout type="info">
+**Think of it as the foundation**: Just like a house needs a foundation, your admin interface needs the `Admin` component to provide context for authentication and data to all other components.
+</Callout>
+
+## What It Does
+
+The `Admin` component:
+- **Provides authentication context** - Makes auth state available to all child components
+- **Provides data context** - Connects your data provider to all components
+- **Sets up React Query** - Handles caching and state management
+- **Manages routing** - Works with your framework's router (Next.js, React Router, etc.)
 
 ## Usage
+
+Here's a basic example of setting up the Admin component:
 
 ```tsx
 import { Admin } from '@/components/admin';
 import { createBetterAuthProvider } from 'better-admin';
 import { authClient } from '@/lib/auth-client';
 
+// Create the auth provider
 const authProvider = createBetterAuthProvider({ authClient });
 
 export default function App() {
   return (
     <Admin authProvider={authProvider}>
+      {/* Your admin routes go here */}
       <Resource name="posts" list={PostList} edit={PostEdit} create={PostCreate} />
       <Resource name="users" list={UserList} edit={UserEdit} />
     </Admin>
@@ -26,18 +42,33 @@ export default function App() {
 }
 ```
 
+**What this does:**
+- Wraps your entire admin application
+- Makes authentication available to all components
+- Provides routing and navigation context
+
+<Callout type="info">
+**Where does this go?** In Next.js App Router, put this in your `app/admin/layout.tsx`. In Pages Router or other frameworks, wrap your admin routes with this component.
+</Callout>
+
 ## Props
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `authProvider` | `AuthProvider` | Authentication provider instance |
-| `dataProvider` | `DataProvider` | Data provider for API calls |
-| `theme` | `'light' \| 'dark' \| 'system'` | Theme configuration |
-| `children` | `ReactNode` | Resource components and other content |
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `authProvider` | `AuthProvider` | No | Authentication provider from `createBetterAuthProvider` |
+| `dataProvider` | `DataProvider` | No | Data provider from `createBetterQueryProvider` |
+| `theme` | `"light" \| "dark" \| "system"` | No | Color theme for the interface (default: `"system"`) |
+| `children` | `ReactNode` | Yes | Resource components and admin pages |
+
+<Callout type="tip">
+**Providers are optional**: You can use the Admin component without providers and manage auth/data yourself. However, many Better Admin components expect these providers to work properly.
+</Callout>
 
 ## Examples
 
 ### Basic Setup
+
+A minimal admin interface with just authentication:
 
 ```tsx
 import { Admin, Resource } from '@/components/admin';
@@ -51,13 +82,18 @@ export default function App() {
 }
 ```
 
+**Use this when**: You're just getting started or don't need authentication yet.
+
 ### With Authentication
+
+Add authentication to protect your admin:
 
 ```tsx
 import { Admin } from '@/components/admin';
 import { createBetterAuthProvider } from 'better-admin';
 import { authClient } from '@/lib/auth-client';
 
+// Create auth provider
 const authProvider = createBetterAuthProvider({ authClient });
 
 export default function App() {
@@ -69,7 +105,19 @@ export default function App() {
 }
 ```
 
+**What this adds:**
+- User login/logout
+- Protected routes
+- Permission checking
+- User identity in components
+
+<Callout type="info">
+**How it protects routes**: The auth provider automatically redirects unauthenticated users to your login page. You control this behavior in your auth provider configuration.
+</Callout>
+
 ### With Custom Theme
+
+Control the appearance of your admin:
 
 ```tsx
 import { Admin } from '@/components/admin';
@@ -83,14 +131,216 @@ export default function App() {
 }
 ```
 
+**Available themes:**
+- `"light"` - Light mode
+- `"dark"` - Dark mode
+- `"system"` - Matches user's system preference (default)
+
+### Complete Setup with Both Providers
+
+A production-ready setup with auth and data:
+
+```tsx
+import { Admin } from '@/components/admin';
+import { createBetterAuthProvider, createBetterQueryProvider } from 'better-admin';
+import { authClient } from '@/lib/auth-client';
+import { query } from '@/lib/query';
+
+// Create providers
+const authProvider = createBetterAuthProvider({ authClient });
+const dataProvider = createBetterQueryProvider({ queryClient: query });
+
+export default function App() {
+  return (
+    <Admin 
+      authProvider={authProvider}
+      dataProvider={dataProvider}
+      theme="system"
+    >
+      {/* Your admin pages */}
+      <Resource name="posts" list={PostList} edit={PostEdit} create={PostCreate} />
+      <Resource name="users" list={UserList} edit={UserEdit} />
+      <Resource name="comments" list={CommentList} />
+    </Admin>
+  );
+}
+```
+
+**This setup provides:**
+- Full authentication with better-auth
+- Type-safe data operations with better-query
+- System theme preference
+- Multiple resource types
+
 ## Installation
+
+Install the Admin component using the CLI:
 
 ```bash
 npx better-admin add admin
 ```
 
+**What gets installed:**
+- The Admin component
+- Required shadcn/ui dependencies
+- Type definitions
+
+<Callout type="info">
+**Already have it?** If you've initialized Better Admin, you might already have this component. Check `src/components/admin/` directory.
+</Callout>
+
+## How It Works
+
+The Admin component uses React Context to provide services to all child components:
+
+```
+┌─────────────────────────────────────┐
+│         <Admin>                      │
+│  ┌──────────────────────────────┐  │
+│  │  Authentication Context       │  │
+│  │  - Current user               │  │
+│  │  - Login/logout functions     │  │
+│  │  - Permissions                │  │
+│  └──────────────────────────────┘  │
+│  ┌──────────────────────────────┐  │
+│  │  Data Context                 │  │
+│  │  - CRUD operations            │  │
+│  │  - Resource definitions       │  │
+│  │  - Caching                    │  │
+│  └──────────────────────────────┘  │
+│                                      │
+│         Your Admin Pages             │
+│      (Can access both contexts)      │
+└─────────────────────────────────────┘
+```
+
+Any component inside `<Admin>` can access authentication and data operations using hooks like `useAuth()` or `useBetterQuery()`.
+
+## Common Patterns
+
+### Next.js App Router
+
+In Next.js with App Router, use the Admin component in your layout:
+
+```tsx title="app/admin/layout.tsx"
+import { Admin } from '@/components/admin';
+import { authProvider, dataProvider } from '@/lib/providers';
+
+export default function AdminLayout({ children }) {
+  return (
+    <Admin authProvider={authProvider} dataProvider={dataProvider}>
+      {children}
+    </Admin>
+  );
+}
+```
+
+Then create admin pages:
+
+```tsx title="app/admin/users/page.tsx"
+export default function UsersPage() {
+  // This page automatically has access to auth and data contexts
+  return <div>Users list here</div>;
+}
+```
+
+### Next.js Pages Router
+
+With Pages Router, wrap your admin routes:
+
+```tsx title="pages/admin/_app.tsx"
+import { Admin } from '@/components/admin';
+
+export default function AdminApp({ Component, pageProps }) {
+  return (
+    <Admin>
+      <Component {...pageProps} />
+    </Admin>
+  );
+}
+```
+
+### React Router
+
+For React Router apps:
+
+```tsx title="App.tsx"
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Admin } from '@/components/admin';
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Admin>
+        <Routes>
+          <Route path="/admin/users" element={<UsersList />} />
+          <Route path="/admin/posts" element={<PostsList />} />
+        </Routes>
+      </Admin>
+    </BrowserRouter>
+  );
+}
+```
+
 ## Related
 
-- [Resource](/docs/better-admin/components/resource) - Define resources
-- [Layout](/docs/better-admin/components/layout) - Application layout
-- [Auth Provider](/docs/better-admin/auth-provider) - Authentication setup
+Learn about related concepts and components:
+
+- **[Resource](/docs/better-admin/components/resource)** - Define and configure resources (users, posts, etc.)
+- **[Layout](/docs/better-admin/components/layout)** - Structure your admin interface with navigation
+- **[Auth Provider](/docs/better-admin/auth-provider)** - Set up authentication and permissions
+- **[Data Provider](/docs/better-admin/data-provider)** - Configure data operations
+
+## Troubleshooting
+
+### "useAuth must be used within Admin component"
+
+**Problem**: You're trying to use auth hooks outside the Admin component.
+
+**Solution**: Make sure your components are children of the `<Admin>` component:
+
+```tsx
+// ✅ Correct
+<Admin authProvider={authProvider}>
+  <MyComponent />  {/* Can use useAuth here */}
+</Admin>
+
+// ❌ Wrong
+<MyComponent />  {/* Cannot use useAuth here */}
+<Admin authProvider={authProvider}>
+  ...
+</Admin>
+```
+
+### Auth provider not working
+
+**Problem**: Authentication state isn't available in components.
+
+**Solution**: Verify you've created and passed the auth provider correctly:
+
+```tsx
+// 1. Create provider
+const authProvider = createBetterAuthProvider({ authClient });
+
+// 2. Pass to Admin
+<Admin authProvider={authProvider}>
+  ...
+</Admin>
+```
+
+### Theme not changing
+
+**Problem**: Setting theme prop doesn't change appearance.
+
+**Solution**: Make sure you've configured Tailwind CSS for dark mode:
+
+```js title="tailwind.config.js"
+module.exports = {
+  darkMode: 'class',  // or 'media'
+  // ...
+}
+```
+
+<Callout type="tip">
+**Still stuck?** Check the [Quick Start guide](/docs/better-admin/quick-start) for a complete working example, or see [Common Issues](/docs/better-admin/quick-start#common-issues).
+</Callout>

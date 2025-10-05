@@ -5,15 +5,41 @@ description: Complete command-line interface reference for better-admin
 
 # Better Admin CLI
 
-The Better Admin CLI provides commands for installing and managing components in your project.
+The Better Admin CLI is your command-line tool for managing Better Admin components. It handles installation, updates, and configuration so you can focus on building your admin interface.
+
+<Callout type="info">
+**What's a CLI?** A CLI (Command-Line Interface) is a tool you run in your terminal. Instead of manually copying files and installing dependencies, the CLI does it all for you automatically.
+</Callout>
+
+## Why Use the CLI?
+
+The CLI saves you time by automating:
+- ✅ Component installation
+- ✅ Dependency resolution (finds what each component needs)
+- ✅ shadcn/ui integration
+- ✅ Configuration setup
+- ✅ Version management
+
+**Without CLI**: Manually copy files, install dependencies, configure imports (30+ minutes)  
+**With CLI**: Run one command (30 seconds)
 
 ## Installation
 
-The CLI is included with the `better-admin` package:
+The CLI comes with the `better-admin` package:
 
 ```bash title="Terminal"
 npm install better-admin
 ```
+
+Once installed, you can run it with:
+
+```bash title="Terminal"
+npx better-admin <command>
+```
+
+<Callout type="tip">
+**Using `npx`**: The `npx` command runs the Better Admin CLI without installing it globally. It's the recommended way to use the CLI.
+</Callout>
 
 ## Commands
 

@@ -5,9 +5,27 @@ description: Display lists of records with Better Admin
 
 # List
 
-The `List` component provides a container for displaying lists of records. It integrates with better-query for data fetching and provides pagination, filtering, and sorting capabilities.
+The `List` component is a container for displaying lists of records. It handles all the complex parts of data fetching, pagination, filtering, and error handling, so you can focus on how to display your data.
+
+<Callout type="info">
+**Think of it as a data wrapper**: The List component fetches your data and makes it available to child components like DataTable. It's the backbone of any list page in your admin.
+</Callout>
+
+## What It Does
+
+The List component automatically:
+- **Fetches data** from your database using better-query
+- **Handles pagination** with page navigation
+- **Manages filters** and search
+- **Shows loading states** while fetching
+- **Handles errors** gracefully
+- **Provides data to children** through React context
 
 ## Usage
+
+### Basic Example
+
+The simplest way to display a list:
 
 ```tsx
 import { List, DataTable } from '@/components/admin';
@@ -23,19 +41,36 @@ export const PostList = () => (
 );
 ```
 
+**What happens:**
+1. List fetches all posts from your database
+2. DataTable receives the posts and displays them
+3. Pagination is added automatically if you have many posts
+4. Loading state shows while fetching
+
+<Callout type="info">
+**What is a resource?** A resource is a type of data in your database, like "posts", "users", or "products". You define resources in your better-query configuration.
+</Callout>
+
 ## Props
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `resource` | `string` | Resource name for API calls |
-| `title` | `string` | Page title override |
-| `children` | `ReactNode` | List content (typically DataTable) |
-| `actions` | `ReactNode` | Custom action buttons |
-| `filters` | `FilterConfig[]` | Available filters |
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `resource` | `string` | Yes | Name of the resource to fetch (e.g., "posts", "users") |
+| `title` | `string` | No | Page title (defaults to resource name) |
+| `children` | `ReactNode` | Yes | Content to display (usually DataTable) |
+| `actions` | `ReactNode` | No | Action buttons to show in the header |
+| `filters` | `FilterConfig[]` | No | Available filter options |
+| `perPage` | `number` | No | Number of items per page (default: 10) |
+
+<Callout type="tip">
+**The resource prop is key**: Make sure the resource name matches what you defined in your better-query configuration. If you created a "user" resource, use `resource="user"`.
+</Callout>
 
 ## Examples
 
 ### Basic List
+
+Display a simple list of records:
 
 ```tsx
 import { List, DataTable } from '@/components/admin';
@@ -52,10 +87,15 @@ export const PostList = () => (
 );
 ```
 
+**Best for**: Simple lists where you just want to display data.
+
 ### With Custom Actions
+
+Add buttons to the list header:
 
 ```tsx
 import { List, DataTable, CreateButton } from '@/components/admin';
+import { Button } from '@/components/ui/button';
 
 export const PostList = () => (
   <List 
@@ -64,6 +104,7 @@ export const PostList = () => (
       <div className="flex gap-2">
         <CreateButton />
         <Button variant="outline">Export</Button>
+        <Button variant="outline">Import</Button>
       </div>
     }
   >
@@ -75,14 +116,37 @@ export const PostList = () => (
 );
 ```
 
+**What this adds:**
+- Create button - Navigates to the create page
+- Export button - Your custom export functionality
+- Import button - Your custom import functionality
+
+<Callout type="tip">
+**CreateButton is smart**: It automatically navigates to `/{resource}/create` when clicked. For this example, it goes to `/posts/create`.
+</Callout>
+
 ### With Filters
+
+Add filtering capabilities:
 
 ```tsx
 import { List, DataTable } from '@/components/admin';
 
 const filters = [
-  { source: 'status', type: 'select', choices: ['draft', 'published'] },
-  { source: 'author', type: 'text' },
+  { 
+    source: 'status', 
+    type: 'select', 
+    choices: [
+      { id: 'draft', name: 'Draft' },
+      { id: 'published', name: 'Published' },
+      { id: 'archived', name: 'Archived' }
+    ]
+  },
+  { 
+    source: 'author', 
+    type: 'text',
+    placeholder: 'Search by author...'
+  },
 ];
 
 export const PostList = () => (
@@ -96,7 +160,14 @@ export const PostList = () => (
 );
 ```
 
+**What this adds:**
+- Dropdown to filter by status
+- Text input to search by author
+- Filters update the data automatically
+
 ### With Custom Title
+
+Override the default page title:
 
 ```tsx
 import { List, DataTable } from '@/components/admin';
@@ -111,34 +182,225 @@ export const PostList = () => (
 );
 ```
 
-## Data Integration
+**Default behavior**: Without a custom title, List shows "Posts" (the resource name, capitalized).
 
-The List component automatically:
-- Fetches data using better-query
-- Handles pagination
-- Manages loading and error states
-- Provides data to child components
+### Complete Example
+
+A production-ready list with all features:
 
 ```tsx
-// Data is automatically available to child components
+import { List, DataTable, CreateButton, EditButton, DeleteButton } from '@/components/admin';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+
+const filters = [
+  { source: 'status', type: 'select', choices: statusChoices },
+  { source: 'author', type: 'text' },
+  { source: 'category', type: 'select', choices: categoryChoices },
+];
+
 export const PostList = () => (
-  <List resource="posts">
+  <List 
+    resource="posts" 
+    title="Blog Posts"
+    filters={filters}
+    perPage={25}
+    actions={
+      <div className="flex gap-2">
+        <CreateButton />
+        <Button variant="outline">Export CSV</Button>
+      </div>
+    }
+  >
     <DataTable>
-      {/* DataTable receives the fetched data */}
-      <DataTable.Col source="title" />
+      <DataTable.Col 
+        source="title" 
+        sortable
+        render={(title, record) => (
+          <a href={`/posts/${record.id}`} className="font-medium hover:underline">
+            {title}
+          </a>
+        )}
+      />
+      <DataTable.Col 
+        source="status"
+        render={(status) => (
+          <Badge variant={status === 'published' ? 'default' : 'secondary'}>
+            {status}
+          </Badge>
+        )}
+      />
+      <DataTable.Col source="author" sortable />
+      <DataTable.Col source="created_at" sortable />
+      <DataTable.Col 
+        label="Actions"
+        render={(_, record) => (
+          <div className="flex gap-2">
+            <EditButton record={record} size="sm" />
+            <DeleteButton record={record} size="sm" />
+          </div>
+        )}
+      />
     </DataTable>
   </List>
 );
 ```
 
+**This example includes:**
+- Custom title
+- Multiple filters
+- 25 items per page
+- Custom action buttons
+- Sortable columns
+- Custom cell rendering
+- Row actions (edit, delete)
+
+## How It Works
+
+The List component connects your data to the UI:
+
+```
+┌────────────────────────────────────────┐
+│         <List resource="posts">        │
+│                                         │
+│  1. Fetches posts from database        │
+│  2. Handles pagination                 │
+│  3. Manages loading/error states       │
+│  4. Provides data to children          │
+│                                         │
+│         ↓                               │
+│    <DataTable>                          │
+│  - Receives posts data                 │
+│  - Displays in table                   │
+│  - Adds sorting/filtering              │
+└────────────────────────────────────────┘
+```
+
+**Why this separation?**
+- List handles data fetching (the "what")
+- Child components handle display (the "how")
+- You can swap DataTable for cards, grids, or custom views
+
+## Data Integration
+
+The List component automatically:
+
+### Fetches Data
+
+Uses better-query to fetch records:
+
+```tsx
+// Behind the scenes, List does this:
+const { list } = useBetterQuery("posts", query);
+const { data, isLoading, error } = list.useQuery();
+```
+
+You don't need to write this code - List handles it automatically.
+
+### Handles Pagination
+
+Automatically adds pagination controls when you have many records:
+
+```tsx
+<List resource="posts" perPage={10}>
+  {/* Pagination controls added automatically */}
+</List>
+```
+
+### Manages State
+
+Shows appropriate UI for different states:
+- **Loading** - Shows loading spinner
+- **Error** - Shows error message
+- **Empty** - Shows "No records found"
+- **Success** - Shows your data
+
+### Provides Context
+
+Makes data available to all child components through React Context. Any component inside `<List>` can access the data using hooks.
+
+<Callout type="info">
+**Performance**: List uses React Query for caching. If you navigate away and come back, the data might load instantly from cache instead of fetching again.
+</Callout>
+
 ## Installation
+
+Install the List component using the CLI:
 
 ```bash
 npx better-admin add list
 ```
 
+<Callout type="info">
+**Already installed?** The List component is often included when you initialize Better Admin. Check your `src/components/admin/` directory.
+</Callout>
+
+## Troubleshooting
+
+### "Resource not found"
+
+**Problem**: The resource name doesn't match your configuration.
+
+**Solution**: Make sure you've defined the resource in your better-query setup:
+
+```typescript title="lib/query.ts"
+const postResource = createResource({
+  name: "post",  // ← This must match your List resource prop
+  schema: { /* ... */ }
+});
+
+export const query = betterQuery({
+  resources: [postResource],
+});
+```
+
+```tsx
+// Then use the same name:
+<List resource="post">  {/* ← Matches resource name */}
+```
+
+### No data showing
+
+**Problem**: List loads but shows "No records found".
+
+**Solution**: Check these common issues:
+1. Does your database have records?
+2. Do you have permission to read this resource?
+3. Check browser console for errors
+
+### Pagination not showing
+
+**Problem**: You have many records but no pagination controls.
+
+**Solution**: Pagination appears automatically when you have more than `perPage` records. The default is 10 items per page.
+
+```tsx
+// Show more items per page
+<List resource="posts" perPage={25}>
+```
+
+### Filters not working
+
+**Problem**: Filter inputs show but don't filter data.
+
+**Solution**: Make sure your filter fields match database fields:
+
+```tsx
+const filters = [
+  { source: 'status', type: 'select', choices: statusChoices },
+  //       ^^^^^^ Must match database field name
+];
+```
+
+<Callout type="tip">
+**Still having issues?** Check that your better-query resource has proper permissions. The `read` permission must return `true` for list queries to work.
+</Callout>
+
 ## Related
 
-- [DataTable](/docs/better-admin/components/data-table) - Display tabular data
-- [CreateButton](/docs/better-admin/components/create-button) - Create new records
-- [Resource](/docs/better-admin/components/resource) - Resource configuration
+Learn about related components and concepts:
+
+- **[DataTable](/docs/better-admin/components/data-table)** - Display data in tables
+- **[CreateButton](/docs/better-admin/components/create-button)** - Button to create new records
+- **[Resource](/docs/better-admin/components/resource)** - Configure resources
+- **[Data Provider](/docs/better-admin/data-provider)** - Set up data operations
