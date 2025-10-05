@@ -7,5 +7,15 @@
   "access": "public",
   "baseBranch": "master",
   "updateInternalDependencies": "patch",
-  "ignore": ["shared"]
+  "ignore": [
+    "@better-query/shared",
+    "@better-query/docs",
+    "bun",
+    "next-demo-relations",
+    "todo-express-better-query",
+    "todo-hono-better-query",
+    "todo-next-better-query",
+    "todo-react-better-query",
+    "todo-vanilla-better-query"
+  ]
 }
