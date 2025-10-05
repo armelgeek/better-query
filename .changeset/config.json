@@ -12,7 +12,6 @@
 		"@better-query/docs",
 		"bun",
 		"next-demo-relations",
-		"todo-express-better-query",
 		"todo-hono-better-query",
 		"todo-next-better-query",
 		"todo-react-better-query",

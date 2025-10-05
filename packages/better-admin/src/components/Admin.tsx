@@ -3,6 +3,7 @@
  * Provides context and manages resources declaratively
  */
 
+import React from "react";
 import type { ReactElement } from "react";
 import { useCallback, useMemo, useState } from "react";
 import { ResourceContext } from "./resource-context.js";
@@ -29,22 +30,18 @@ export function Admin({
 	authProvider,
 	dataProvider,
 	children,
-	dashboard,
-	layout,
-	loginPage,
-	title = "Admin",
 	basePath = "/admin",
 }: AdminProps) {
 	const [resources, setResources] = useState<ResourceConfig[]>([]);
 
 	// Register a new resource
 	const registerResource = useCallback((resource: ResourceConfig) => {
-		setResources((prev) => {
+		setResources((prev: ResourceConfig[]) => {
 			// Check if resource already exists
-			const exists = prev.some((r) => r.name === resource.name);
+			const exists = prev.some((r: ResourceConfig) => r.name === resource.name);
 			if (exists) {
 				// Update existing resource
-				return prev.map((r) => (r.name === resource.name ? resource : r));
+				return prev.map((r: ResourceConfig) => (r.name === resource.name ? resource : r));
 			}
 			// Add new resource
 			return [...prev, resource];
@@ -54,7 +51,7 @@ export function Admin({
 	// Get a resource by name
 	const getResource = useCallback(
 		(name: string) => {
-			return resources.find((r) => r.name === name);
+			return resources.find((r: ResourceConfig) => r.name === name);
 		},
 		[resources],
 	);
