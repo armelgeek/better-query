@@ -1,0 +1,428 @@
+---
+title: Auth Provider
+description: Integrate better-auth with better-admin for authentication
+---
+
+# Auth Provider
+
+The auth provider connects **better-auth** to your Better Admin interface, handling all authentication concerns. Think of it as the security guard for your admin panel - it checks who's trying to access your admin and whether they have permission.
+
+<Callout type="info">
+**What's the goal?** Set up authentication so only authorized users can access your admin panel, and different users can have different permissions (admin, editor, viewer, etc.).
+</Callout>
+
+## What It Does
+
+The auth provider handles:
+
+- **User Login** - Verifies credentials and creates sessions
+- **User Logout** - Ends sessions securely
+- **Session Management** - Keeps users logged in across page refreshes
+- **Permission Checking** - Controls who can do what
+- **User Identity** - Provides current user information to components
+
+## Why You Need It
+
+Without an auth provider, your admin would be:
+- ❌ Accessible to anyone
+- ❌ Unable to track who's making changes
+- ❌ Unable to enforce permissions
+- ❌ Missing user information in components
+
+With an auth provider:
+- ✅ Only logged-in users can access admin
+- ✅ Track who created/updated records
+- ✅ Control permissions by role
+- ✅ Access user info anywhere in your admin
+
+## Installation
+
+Install better-auth first:
+
+```bash title="Terminal"
+npm install better-auth
+```
+
+<Callout type="tip">
+**Already installed?** If you followed the Quick Start guide, you likely have better-auth already. You can check with `npm list better-auth`.
+</Callout>
+
+## Setup Guide
+
+Follow these steps to set up authentication for your admin:
+
+### Step 1: Configure Better Auth (Server)
+
+Create your auth configuration on the server side:
+
+```typescript title="lib/auth.ts"
+import { betterAuth } from "better-auth";
+import { db } from "./db";
+
+export const auth = betterAuth({
+  database: db,
+  emailAndPassword: {
+    enabled: true,  // Enable email/password login
+  },
+  // Optional: Add OAuth providers
+  // socialProviders: {
+  //   github: {
+  //     clientId: process.env.GITHUB_CLIENT_ID,
+  //     clientSecret: process.env.GITHUB_CLIENT_SECRET,
+  //   }
+  // }
+});
+```
+
+**What this does:**
+- Connects Better Auth to your database
+- Enables email/password authentication
+- Sets up session handling automatically
+- Creates necessary database tables (if using auto-migration)
+
+<Callout type="info">
+**Database tables**: Better Auth will create tables for users, sessions, and accounts. If you're using migrations, make sure to run them after this step.
+</Callout>
+
+### Step 2: Create Auth Client (Browser)
+
+Create a client for use in your React components:
+
+```typescript title="lib/auth-client.ts"
+import { createAuthClient } from "better-auth/react";
+
+export const authClient = createAuthClient({
+  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+});
+
+// Export convenient hooks
+export const { signIn, signUp, signOut, useSession } = authClient;
+```
+
+**What you get:**
+- `signIn` - Function to log users in
+- `signUp` - Function to register new users
+- `signOut` - Function to log users out
+- `useSession` - Hook to check if user is logged in
+
+<Callout type="warning">
+**Environment variables**: Make sure `NEXT_PUBLIC_APP_URL` is set in your `.env.local` file. In Next.js, variables starting with `NEXT_PUBLIC_` are available in the browser.
+</Callout>
+
+### Step 3: Create Auth Provider (Bridge)
+
+Create the provider that connects Better Auth to Better Admin:
+
+```typescript title="lib/admin-auth.ts"
+import { createBetterAuthProvider } from "better-admin";
+import { authClient } from "./auth-client";
+
+export const authProvider = createBetterAuthProvider({
+  authClient,
+  onError: (error) => {
+    console.error("Auth error:", error);
+    // Optional: Show a toast notification
+    // toast.error(error.message);
+  },
+});
+```
+
+**What this creates:**
+- A bridge between Better Auth and Better Admin
+- Automatic session checking
+- Error handling for auth failures
+- Identity provider for user information
+
+<Callout type="success">
+**That's it!** Your auth provider is now ready to use in your admin interface.
+</Callout>
+
+## API Reference
+
+### createBetterAuthProvider
+
+Creates an auth provider that integrates better-auth with better-admin.
+
+**Parameters:**
+
+- `options.authClient` - The better-auth client instance
+- `options.onError` - Optional error handler function
+
+**Returns:** `AuthProvider`
+
+### AuthProvider Interface
+
+The auth provider implements the following interface:
+
+```typescript
+interface AuthProvider {
+  login: (params: { email: string; password: string }) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  checkError: (error: any) => Promise<void>;
+  getIdentity: () => Promise<User | null>;
+  getPermissions?: () => Promise<any>;
+}
+```
+
+## Usage with Admin Components
+
+### Basic Setup
+
+```tsx title="app/admin/layout.tsx"
+import { Admin } from "better-admin/components";
+import { authProvider } from "@/lib/admin-auth";
+import { dataProvider } from "@/lib/admin-data";
+
+export default function AdminLayout({ children }) {
+  return (
+    <Admin authProvider={authProvider} dataProvider={dataProvider}>
+      {children}
+    </Admin>
+  );
+}
+```
+
+### Login Page
+
+Create a custom login page using better-auth:
+
+```tsx title="app/login/page.tsx"
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const result = await authClient.signIn.email({
+        email,
+        password,
+      });
+
+      if (result.error) {
+        setError(result.error.message);
+        return;
+      }
+
+      router.push("/admin");
+    } catch (err) {
+      setError("Login failed. Please try again.");
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
+        <h1 className="text-2xl font-bold">Sign In</h1>
+        
+        {error && (
+          <div className="p-3 bg-red-100 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+
+        <Input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+
+        <Input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        <Button type="submit" className="w-full">
+          Sign In
+        </Button>
+      </form>
+    </div>
+  );
+}
+```
+
+### Using Auth in Components
+
+Use the `useBetterAuth` hook to access auth state in your components:
+
+```tsx title="components/user-menu.tsx"
+import { useBetterAuth } from "better-admin";
+import { authClient } from "@/lib/auth-client";
+
+export function UserMenu() {
+  const { user, isLoading, signOut } = useBetterAuth(authClient);
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      <span>Welcome, {user?.name}!</span>
+      <button onClick={() => signOut()}>Sign Out</button>
+    </div>
+  );
+}
+```
+
+## Protected Routes
+
+Protect your admin routes with better-auth:
+
+```tsx title="app/admin/layout.tsx"
+"use client";
+
+import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+export default function AdminLayout({ children }) {
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.push("/login");
+    }
+  }, [session, isPending, router]);
+
+  if (isPending) return <div>Loading...</div>;
+  if (!session) return null;
+
+  return <div>{children}</div>;
+}
+```
+
+## Permissions
+
+The auth provider can return user permissions based on the user's role:
+
+```typescript title="lib/admin-auth.ts"
+export const authProvider = createBetterAuthProvider({
+  authClient,
+  onError: (error) => {
+    console.error("Auth error:", error);
+  },
+});
+
+// The provider automatically returns user.role from the session
+// You can check permissions in your components:
+
+function AdminOnlyButton() {
+  const { user } = useBetterAuth(authClient);
+  
+  if (user?.role !== "admin") {
+    return null;
+  }
+
+  return <button>Admin Action</button>;
+}
+```
+
+## Social Login
+
+Better Auth supports multiple OAuth providers. Configure them in your auth setup:
+
+```typescript title="lib/auth.ts"
+import { betterAuth } from "better-auth";
+
+export const auth = betterAuth({
+  database: db,
+  emailAndPassword: {
+    enabled: true,
+  },
+  socialProviders: {
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+    },
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    },
+  },
+});
+```
+
+Then use in your login page:
+
+```tsx
+<Button onClick={() => authClient.signIn.social({ provider: "github" })}>
+  Sign in with GitHub
+</Button>
+
+<Button onClick={() => authClient.signIn.social({ provider: "google" })}>
+  Sign in with Google
+</Button>
+```
+
+## Error Handling
+
+The auth provider includes built-in error handling. You can customize error behavior:
+
+```typescript
+export const authProvider = createBetterAuthProvider({
+  authClient,
+  onError: (error) => {
+    // Custom error handling
+    console.error("Auth error:", error);
+    
+    // Show notification
+    toast.error(error.message);
+    
+    // Track errors
+    analytics.track("auth_error", {
+      message: error.message,
+    });
+  },
+});
+```
+
+## Migration from react-admin
+
+If you're migrating from react-admin, the auth provider interface is compatible:
+
+```typescript
+// Before (react-admin)
+import { AuthProvider } from "ra-core";
+
+// After (better-admin)
+import { createBetterAuthProvider } from "better-admin";
+```
+
+The main differences:
+
+1. **Session Management**: Better Auth uses client-side session hooks instead of localStorage
+2. **Type Safety**: Full TypeScript support with inferred types
+3. **OAuth**: Built-in support for multiple providers
+4. **Permissions**: Role-based permissions from the session
+
+## Best Practices
+
+1. **Environment Variables**: Store auth secrets in environment variables
+2. **Error Handling**: Always provide an `onError` handler
+3. **Session Refresh**: Better Auth handles session refresh automatically
+4. **CSRF Protection**: Better Auth includes built-in CSRF protection
+5. **Type Safety**: Use TypeScript for full type inference
+
+## Next Steps
+
+- [Data Provider](/docs/better-admin/data-provider) - Set up data operations with better-query
+- [Components](/docs/better-admin/components) - Browse available admin components
+- [Better Auth Documentation](https://better-auth.dev) - Learn more about better-auth
