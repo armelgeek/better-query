@@ -1,0 +1,21 @@
+{
+	"$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
+	"changelog": "@changesets/cli/changelog",
+	"commit": false,
+	"fixed": [],
+	"linked": [],
+	"access": "public",
+	"baseBranch": "master",
+	"updateInternalDependencies": "patch",
+	"ignore": [
+		"@better-query/shared",
+		"@better-query/docs",
+		"bun",
+		"next-demo-relations",
+		"todo-express-better-query",
+		"todo-hono-better-query",
+		"todo-next-better-query",
+		"todo-react-better-query",
+		"todo-vanilla-better-query"
+	]
+}

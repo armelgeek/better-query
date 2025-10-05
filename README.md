@@ -119,25 +119,25 @@ pnpm test         # Run tests
 pnpm lint         # Lint code
 pnpm typecheck    # Type checking
 
+# Release Management
+pnpm changeset              # Create a changeset for version bump
+pnpm changeset:version      # Update versions and changelogs
+pnpm changeset:publish      # Publish packages to npm
+
 # Maintenance
 pnpm clean        # Clean build artifacts
-pnpm release      # Release new version
 ```
 
 ### Contributing
-```bash
-# Fork the repo and clone your fork
-git clone https://github.com/YOUR_USERNAME/better-kit.git
 
-# Create a branch for your changes
-git checkout -b feature/your-feature-name
+We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on:
+- Development setup
+- Creating changesets for version management
+- Commit message conventions
+- Testing guidelines
+- Pull request process
 
-# Make your changes and test them
-pnpm build
-pnpm test
-
-# Submit a pull request
-```
+For information about our release process, see [Release Documentation](./RELEASE.md).
 
 ## 🎯 Use Cases
 

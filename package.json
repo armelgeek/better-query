@@ -14,13 +14,17 @@
         "release": "turbo --filter \"./packages/*\" typecheck && build && bumpp -r",
         "test": "turbo --filter \"./packages/*\" test",
         "typecheck": "turbo --filter \"./packages/*\" typecheck",
-        "knip": "turbo --filter \"./packages/*\" knip"
+        "knip": "turbo --filter \"./packages/*\" knip",
+        "changeset": "changeset",
+        "changeset:version": "changeset version",
+        "changeset:publish": "pnpm build && changeset publish"
     },
     "dependencies": {
         "@biomejs/biome": "1.7.3",
         "bumpp": "^9.4.1"
     },
     "devDependencies": {
+        "@changesets/cli": "^2.29.7",
         "@types/node": "^20.12.12",
         "simple-git-hooks": "^2.11.1",
         "turbo": "^2.0.4",
@@ -29,7 +33,7 @@
     "pnpm": {
         "overrides": {
             "remark-mdx": "^3.0.0",
-            "unified": "^11.0.4", 
+            "unified": "^11.0.4",
             "remark-parse": "^11.0.0",
             "mdast-util-frontmatter": "^2.0.1"
         }

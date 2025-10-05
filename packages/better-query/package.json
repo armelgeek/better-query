@@ -2,6 +2,28 @@
 	"name": "better-query",
 	"version": "0.0.1",
 	"type": "module",
+	"description": "Type-safe CRUD generator with auto-generated REST APIs for Node.js applications",
+	"author": "armelgeek",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/armelgeek/better-kit.git",
+		"directory": "packages/better-query"
+	},
+	"keywords": [
+		"crud",
+		"api",
+		"rest",
+		"typescript",
+		"generator",
+		"kysely",
+		"zod",
+		"database",
+		"orm"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
 	"scripts": {
 		"build": "tsup --clean",
 		"dev": "tsup --watch",
@@ -45,7 +67,9 @@
 		"vitest": "^1.6.0"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"CHANGELOG.md",
+		"README.md"
 	],
 	"peerDependencies": {
 		"@types/react": "*",

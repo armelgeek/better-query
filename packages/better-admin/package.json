@@ -3,6 +3,24 @@
 	"version": "0.0.1",
 	"type": "module",
 	"description": "CLI for installing Better Admin components with automatic shadcn/ui dependency resolution",
+	"author": "armelgeek",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/armelgeek/better-kit.git",
+		"directory": "packages/better-admin"
+	},
+	"keywords": [
+		"admin",
+		"cli",
+		"components",
+		"shadcn",
+		"ui",
+		"react"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
 	"scripts": {
 		"build": "tsup --clean",
 		"dev": "tsup --watch",
@@ -41,6 +59,8 @@
 	},
 	"files": [
 		"dist",
-		"registry"
+		"registry",
+		"CHANGELOG.md",
+		"README.md"
 	]
 }
