@@ -1,0 +1,30 @@
+{
+	"title": "Components",
+	"pages": [
+		"index",
+		"admin",
+		"resource",
+		"layout",
+		"dashboard",
+		"list",
+		"data-table",
+		"create",
+		"edit",
+		"show",
+		"simple-form",
+		"array-input",
+		"text-input",
+		"number-input",
+		"select-input",
+		"boolean-input",
+		"reference-input",
+		"search-input",
+		"text-field",
+		"date-field",
+		"reference-field",
+		"create-button",
+		"edit-button",
+		"delete-button",
+		"show-button"
+	]
+}
