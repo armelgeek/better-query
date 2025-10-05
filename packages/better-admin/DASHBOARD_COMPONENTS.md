@@ -2,6 +2,8 @@
 
 Ready-to-use dashboard components for building beautiful admin interfaces that extend shadcn/ui components.
 
+![Dashboard Components Preview](./dashboard-components-preview.png)
+
 ## Overview
 
 The Better Admin dashboard components provide a complete set of pre-built components for creating professional admin dashboards. All components extend shadcn/ui components and integrate seamlessly with better-query for reactive data fetching.
