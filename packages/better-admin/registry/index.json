@@ -58,16 +58,11 @@
 			"description": "A powerful data table with sorting, filtering, pagination, and bulk actions",
 			"category": "data-display",
 			"dependencies": {
-				"shadcn": [
-					"table",
-					"card"
-				],
+				"shadcn": ["table", "card"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"list"
-				],
+				"operations": ["list"],
 				"hook": "useQuery(\"resource\").list()",
 				"example": "const { data } = useQuery(\"resource\").list();\n// Use in component"
 			}
@@ -77,16 +72,11 @@
 			"description": "List view component with filtering, pagination, and export",
 			"category": "data-display",
 			"dependencies": {
-				"shadcn": [
-					"table",
-					"card"
-				],
+				"shadcn": ["table", "card"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"list"
-				],
+				"operations": ["list"],
 				"hook": "useQuery(\"resource\").list()",
 				"example": "const { data } = useQuery(\"resource\").list();\n// Use in component"
 			}
@@ -96,16 +86,11 @@
 			"description": "Automatically generates list views based on data structure",
 			"category": "data-display",
 			"dependencies": {
-				"shadcn": [
-					"table",
-					"card"
-				],
+				"shadcn": ["table", "card"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"list"
-				],
+				"operations": ["list"],
 				"hook": "useQuery(\"resource\").list()",
 				"example": "const { data } = useQuery(\"resource\").list();\n// Use in component"
 			}
@@ -115,10 +100,7 @@
 			"description": "Display text data in a formatted way",
 			"category": "data-display",
 			"dependencies": {
-				"shadcn": [
-					"table",
-					"card"
-				],
+				"shadcn": ["table", "card"],
 				"npm": []
 			}
 		},
@@ -127,10 +109,7 @@
 			"description": "Display numeric data with formatting options",
 			"category": "data-display",
 			"dependencies": {
-				"shadcn": [
-					"table",
-					"card"
-				],
+				"shadcn": ["table", "card"],
 				"npm": []
 			}
 		},
@@ -139,10 +118,7 @@
 			"description": "Display dates with formatting and localization",
 			"category": "data-display",
 			"dependencies": {
-				"shadcn": [
-					"table",
-					"card"
-				],
+				"shadcn": ["table", "card"],
 				"npm": []
 			}
 		},
@@ -151,10 +127,7 @@
 			"description": "Display email addresses with mailto links",
 			"category": "data-display",
 			"dependencies": {
-				"shadcn": [
-					"table",
-					"card"
-				],
+				"shadcn": ["table", "card"],
 				"npm": []
 			}
 		},
@@ -163,10 +136,7 @@
 			"description": "Display URLs with clickable links",
 			"category": "data-display",
 			"dependencies": {
-				"shadcn": [
-					"table",
-					"card"
-				],
+				"shadcn": ["table", "card"],
 				"npm": []
 			}
 		},
@@ -175,10 +145,7 @@
 			"description": "Display status badges and tags",
 			"category": "data-display",
 			"dependencies": {
-				"shadcn": [
-					"table",
-					"card"
-				],
+				"shadcn": ["table", "card"],
 				"npm": []
 			}
 		},
@@ -187,10 +154,7 @@
 			"description": "Display file information with download links",
 			"category": "data-display",
 			"dependencies": {
-				"shadcn": [
-					"table",
-					"card"
-				],
+				"shadcn": ["table", "card"],
 				"npm": []
 			}
 		},
@@ -199,10 +163,7 @@
 			"description": "Display nested record data",
 			"category": "data-display",
 			"dependencies": {
-				"shadcn": [
-					"table",
-					"card"
-				],
+				"shadcn": ["table", "card"],
 				"npm": []
 			}
 		},
@@ -211,19 +172,11 @@
 			"description": "Base form component with validation and submission",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"create",
-					"update"
-				],
+				"operations": ["create", "update"],
 				"hook": "useQuery(\"resource\").create() / update()",
 				"example": "const { data } = useQuery(\"resource\").create() / update();\n// Use in component"
 			}
@@ -233,19 +186,11 @@
 			"description": "Simplified form layout for common use cases",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"create",
-					"update"
-				],
+				"operations": ["create", "update"],
 				"hook": "useQuery(\"resource\").create() / update()",
 				"example": "const { data } = useQuery(\"resource\").create() / update();\n// Use in component"
 			}
@@ -255,12 +200,7 @@
 			"description": "Text input field with validation",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			}
 		},
@@ -269,12 +209,7 @@
 			"description": "Number input field with formatting",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			}
 		},
@@ -283,12 +218,7 @@
 			"description": "Checkbox/toggle for boolean values",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			}
 		},
@@ -297,12 +227,7 @@
 			"description": "Dropdown select input",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			}
 		},
@@ -311,12 +236,7 @@
 			"description": "Radio button group for single selection",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			}
 		},
@@ -325,12 +245,7 @@
 			"description": "File upload input with preview",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			}
 		},
@@ -339,12 +254,7 @@
 			"description": "Input for array/list data",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			}
 		},
@@ -353,18 +263,11 @@
 			"description": "Autocomplete search input",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"list"
-				],
+				"operations": ["list"],
 				"hook": "useQuery(\"resource\").list()",
 				"example": "const { data } = useQuery(\"resource\").list();\n// Use in component"
 			}
@@ -374,18 +277,11 @@
 			"description": "Autocomplete for multiple selections",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"list"
-				],
+				"operations": ["list"],
 				"hook": "useQuery(\"resource\").list()",
 				"example": "const { data } = useQuery(\"resource\").list();\n// Use in component"
 			}
@@ -395,18 +291,11 @@
 			"description": "Input for selecting related records",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"list"
-				],
+				"operations": ["list"],
 				"hook": "useQuery(\"reference\").list()",
 				"example": "const { data } = useQuery(\"reference\").list();\n// Use in component"
 			}
@@ -416,18 +305,11 @@
 			"description": "Input for selecting multiple related records",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"list"
-				],
+				"operations": ["list"],
 				"hook": "useQuery(\"reference\").list()",
 				"example": "const { data } = useQuery(\"reference\").list();\n// Use in component"
 			}
@@ -437,12 +319,7 @@
 			"description": "Repeatable form fields for arrays",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			}
 		},
@@ -451,12 +328,7 @@
 			"description": "Form for filtering list data",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			}
 		},
@@ -465,12 +337,7 @@
 			"description": "Search input with debouncing",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			}
 		},
@@ -479,12 +346,7 @@
 			"description": "Toggle field visibility",
 			"category": "forms",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"label",
-					"button"
-				],
+				"shadcn": ["form", "input", "label", "button"],
 				"npm": []
 			}
 		},
@@ -493,10 +355,7 @@
 			"description": "Main admin application wrapper",
 			"category": "layout",
 			"dependencies": {
-				"shadcn": [
-					"card",
-					"separator"
-				],
+				"shadcn": ["card", "separator"],
 				"npm": []
 			}
 		},
@@ -505,10 +364,7 @@
 			"description": "Base layout component with sidebar and navigation",
 			"category": "layout",
 			"dependencies": {
-				"shadcn": [
-					"card",
-					"separator"
-				],
+				"shadcn": ["card", "separator"],
 				"npm": []
 			}
 		},
@@ -517,10 +373,7 @@
 			"description": "Collapsible sidebar navigation",
 			"category": "layout",
 			"dependencies": {
-				"shadcn": [
-					"card",
-					"separator"
-				],
+				"shadcn": ["card", "separator"],
 				"npm": []
 			}
 		},
@@ -529,10 +382,7 @@
 			"description": "Breadcrumb navigation trail",
 			"category": "layout",
 			"dependencies": {
-				"shadcn": [
-					"card",
-					"separator"
-				],
+				"shadcn": ["card", "separator"],
 				"npm": []
 			}
 		},
@@ -541,10 +391,7 @@
 			"description": "Pagination controls for lists",
 			"category": "layout",
 			"dependencies": {
-				"shadcn": [
-					"card",
-					"separator"
-				],
+				"shadcn": ["card", "separator"],
 				"npm": []
 			}
 		},
@@ -553,16 +400,11 @@
 			"description": "Show/detail view component",
 			"category": "layout",
 			"dependencies": {
-				"shadcn": [
-					"card",
-					"separator"
-				],
+				"shadcn": ["card", "separator"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"get"
-				],
+				"operations": ["get"],
 				"hook": "useQuery(\"resource\").read(id)",
 				"example": "const { data } = useQuery(\"resource\").read(id);\n// Use in component"
 			}
@@ -572,16 +414,11 @@
 			"description": "Simplified show layout",
 			"category": "layout",
 			"dependencies": {
-				"shadcn": [
-					"card",
-					"separator"
-				],
+				"shadcn": ["card", "separator"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"get"
-				],
+				"operations": ["get"],
 				"hook": "useQuery(\"resource\").read(id)",
 				"example": "const { data } = useQuery(\"resource\").read(id);\n// Use in component"
 			}
@@ -591,16 +428,11 @@
 			"description": "Create/new record view",
 			"category": "layout",
 			"dependencies": {
-				"shadcn": [
-					"card",
-					"separator"
-				],
+				"shadcn": ["card", "separator"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"create"
-				],
+				"operations": ["create"],
 				"hook": "useQuery(\"resource\").create()",
 				"example": "const { data } = useQuery(\"resource\").create();\n// Use in component"
 			}
@@ -610,17 +442,11 @@
 			"description": "Edit record view",
 			"category": "layout",
 			"dependencies": {
-				"shadcn": [
-					"card",
-					"separator"
-				],
+				"shadcn": ["card", "separator"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"get",
-					"update"
-				],
+				"operations": ["get", "update"],
 				"hook": "useQuery(\"resource\").read(id) / update()",
 				"example": "const { data } = useQuery(\"resource\").read(id) / update();\n// Use in component"
 			}
@@ -630,10 +456,7 @@
 			"description": "Loading spinner and states",
 			"category": "feedback",
 			"dependencies": {
-				"shadcn": [
-					"alert",
-					"toast"
-				],
+				"shadcn": ["alert", "toast"],
 				"npm": []
 			}
 		},
@@ -642,10 +465,7 @@
 			"description": "Error display component",
 			"category": "feedback",
 			"dependencies": {
-				"shadcn": [
-					"alert",
-					"toast"
-				],
+				"shadcn": ["alert", "toast"],
 				"npm": []
 			}
 		},
@@ -654,10 +474,7 @@
 			"description": "Toast notifications",
 			"category": "feedback",
 			"dependencies": {
-				"shadcn": [
-					"alert",
-					"toast"
-				],
+				"shadcn": ["alert", "toast"],
 				"npm": []
 			}
 		},
@@ -666,10 +483,7 @@
 			"description": "Loading spinner",
 			"category": "feedback",
 			"dependencies": {
-				"shadcn": [
-					"alert",
-					"toast"
-				],
+				"shadcn": ["alert", "toast"],
 				"npm": []
 			}
 		},
@@ -678,10 +492,7 @@
 			"description": "Confirmation dialog",
 			"category": "feedback",
 			"dependencies": {
-				"shadcn": [
-					"alert",
-					"toast"
-				],
+				"shadcn": ["alert", "toast"],
 				"npm": []
 			}
 		},
@@ -690,10 +501,7 @@
 			"description": "Button to navigate to create view",
 			"category": "buttons",
 			"dependencies": {
-				"shadcn": [
-					"button",
-					"tooltip"
-				],
+				"shadcn": ["button", "tooltip"],
 				"npm": []
 			}
 		},
@@ -702,10 +510,7 @@
 			"description": "Button to navigate to edit view",
 			"category": "buttons",
 			"dependencies": {
-				"shadcn": [
-					"button",
-					"tooltip"
-				],
+				"shadcn": ["button", "tooltip"],
 				"npm": []
 			}
 		},
@@ -714,10 +519,7 @@
 			"description": "Button to navigate to show view",
 			"category": "buttons",
 			"dependencies": {
-				"shadcn": [
-					"button",
-					"tooltip"
-				],
+				"shadcn": ["button", "tooltip"],
 				"npm": []
 			}
 		},
@@ -726,16 +528,11 @@
 			"description": "Button to delete records with confirmation",
 			"category": "buttons",
 			"dependencies": {
-				"shadcn": [
-					"button",
-					"tooltip"
-				],
+				"shadcn": ["button", "tooltip"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"delete"
-				],
+				"operations": ["delete"],
 				"hook": "useQuery(\"resource\").delete(id)",
 				"example": "const { data } = useQuery(\"resource\").delete(id);\n// Use in component"
 			}
@@ -745,10 +542,7 @@
 			"description": "Button to export data",
 			"category": "buttons",
 			"dependencies": {
-				"shadcn": [
-					"button",
-					"tooltip"
-				],
+				"shadcn": ["button", "tooltip"],
 				"npm": []
 			}
 		},
@@ -757,10 +551,7 @@
 			"description": "Button to refresh data",
 			"category": "buttons",
 			"dependencies": {
-				"shadcn": [
-					"button",
-					"tooltip"
-				],
+				"shadcn": ["button", "tooltip"],
 				"npm": []
 			}
 		},
@@ -769,10 +560,7 @@
 			"description": "Button to cancel forms",
 			"category": "buttons",
 			"dependencies": {
-				"shadcn": [
-					"button",
-					"tooltip"
-				],
+				"shadcn": ["button", "tooltip"],
 				"npm": []
 			}
 		},
@@ -781,16 +569,11 @@
 			"description": "Button for bulk delete operations",
 			"category": "buttons",
 			"dependencies": {
-				"shadcn": [
-					"button",
-					"tooltip"
-				],
+				"shadcn": ["button", "tooltip"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"delete"
-				],
+				"operations": ["delete"],
 				"hook": "useQuery(\"resource\").delete()",
 				"example": "const { data } = useQuery(\"resource\").delete();\n// Use in component"
 			}
@@ -800,10 +583,7 @@
 			"description": "Button for bulk export",
 			"category": "buttons",
 			"dependencies": {
-				"shadcn": [
-					"button",
-					"tooltip"
-				],
+				"shadcn": ["button", "tooltip"],
 				"npm": []
 			}
 		},
@@ -812,10 +592,7 @@
 			"description": "Button to sort columns",
 			"category": "buttons",
 			"dependencies": {
-				"shadcn": [
-					"button",
-					"tooltip"
-				],
+				"shadcn": ["button", "tooltip"],
 				"npm": []
 			}
 		},
@@ -824,10 +601,7 @@
 			"description": "Button to toggle filter visibility",
 			"category": "buttons",
 			"dependencies": {
-				"shadcn": [
-					"button",
-					"tooltip"
-				],
+				"shadcn": ["button", "tooltip"],
 				"npm": []
 			}
 		},
@@ -836,10 +610,7 @@
 			"description": "Button to toggle column visibility",
 			"category": "buttons",
 			"dependencies": {
-				"shadcn": [
-					"button",
-					"tooltip"
-				],
+				"shadcn": ["button", "tooltip"],
 				"npm": []
 			}
 		},
@@ -848,10 +619,7 @@
 			"description": "Icon button with tooltip",
 			"category": "buttons",
 			"dependencies": {
-				"shadcn": [
-					"button",
-					"tooltip"
-				],
+				"shadcn": ["button", "tooltip"],
 				"npm": []
 			}
 		},
@@ -860,10 +628,7 @@
 			"description": "Language selection menu",
 			"category": "buttons",
 			"dependencies": {
-				"shadcn": [
-					"button",
-					"tooltip"
-				],
+				"shadcn": ["button", "tooltip"],
 				"npm": []
 			}
 		},
@@ -872,9 +637,7 @@
 			"description": "Display related record data",
 			"category": "fields",
 			"dependencies": {
-				"shadcn": [
-					"card"
-				],
+				"shadcn": ["card"],
 				"npm": []
 			}
 		},
@@ -883,9 +646,7 @@
 			"description": "Display multiple related records",
 			"category": "fields",
 			"dependencies": {
-				"shadcn": [
-					"card"
-				],
+				"shadcn": ["card"],
 				"npm": []
 			}
 		},
@@ -894,9 +655,7 @@
 			"description": "Display many-to-many relationships",
 			"category": "fields",
 			"dependencies": {
-				"shadcn": [
-					"card"
-				],
+				"shadcn": ["card"],
 				"npm": []
 			}
 		},
@@ -905,15 +664,11 @@
 			"description": "Count of related records",
 			"category": "fields",
 			"dependencies": {
-				"shadcn": [
-					"card"
-				],
+				"shadcn": ["card"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"list"
-				],
+				"operations": ["list"],
 				"hook": "useQuery(\"reference\").list()",
 				"example": "const { data } = useQuery(\"reference\").list();\n// Use in component"
 			}
@@ -923,9 +678,7 @@
 			"description": "Display array data",
 			"category": "fields",
 			"dependencies": {
-				"shadcn": [
-					"card"
-				],
+				"shadcn": ["card"],
 				"npm": []
 			}
 		},
@@ -934,9 +687,7 @@
 			"description": "Display select/enum values",
 			"category": "fields",
 			"dependencies": {
-				"shadcn": [
-					"card"
-				],
+				"shadcn": ["card"],
 				"npm": []
 			}
 		},
@@ -945,9 +696,7 @@
 			"description": "List with single field display",
 			"category": "fields",
 			"dependencies": {
-				"shadcn": [
-					"card"
-				],
+				"shadcn": ["card"],
 				"npm": []
 			}
 		},
@@ -956,15 +705,11 @@
 			"description": "Display count of records",
 			"category": "fields",
 			"dependencies": {
-				"shadcn": [
-					"card"
-				],
+				"shadcn": ["card"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"list"
-				],
+				"operations": ["list"],
 				"hook": "useQuery(\"resource\").list()",
 				"example": "const { data } = useQuery(\"resource\").list();\n// Use in component"
 			}
@@ -974,9 +719,7 @@
 			"description": "Helper text for inputs",
 			"category": "fields",
 			"dependencies": {
-				"shadcn": [
-					"card"
-				],
+				"shadcn": ["card"],
 				"npm": []
 			}
 		},
@@ -985,17 +728,11 @@
 			"description": "Auto-generate edit views",
 			"category": "views",
 			"dependencies": {
-				"shadcn": [
-					"card",
-					"separator"
-				],
+				"shadcn": ["card", "separator"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"get",
-					"update"
-				],
+				"operations": ["get", "update"],
 				"hook": "useQuery(\"resource\").read(id) / update()",
 				"example": "const { data } = useQuery(\"resource\").read(id) / update();\n// Use in component"
 			}
@@ -1005,16 +742,11 @@
 			"description": "Automatically generates list views based on data structure",
 			"category": "views",
 			"dependencies": {
-				"shadcn": [
-					"card",
-					"separator"
-				],
+				"shadcn": ["card", "separator"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"list"
-				],
+				"operations": ["list"],
 				"hook": "useQuery(\"resource\").list()",
 				"example": "const { data } = useQuery(\"resource\").list();\n// Use in component"
 			}
@@ -1024,16 +756,11 @@
 			"description": "Auto-generate show views",
 			"category": "views",
 			"dependencies": {
-				"shadcn": [
-					"card",
-					"separator"
-				],
+				"shadcn": ["card", "separator"],
 				"npm": []
 			},
 			"betterQuery": {
-				"operations": [
-					"get"
-				],
+				"operations": ["get"],
 				"hook": "useQuery(\"resource\").read(id)",
 				"example": "const { data } = useQuery(\"resource\").read(id);\n// Use in component"
 			}
@@ -1043,12 +770,7 @@
 			"description": "Authentication provider",
 			"category": "auth",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"button",
-					"card"
-				],
+				"shadcn": ["form", "input", "button", "card"],
 				"npm": []
 			}
 		},
@@ -1057,12 +779,7 @@
 			"description": "Login page component",
 			"category": "auth",
 			"dependencies": {
-				"shadcn": [
-					"form",
-					"input",
-					"button",
-					"card"
-				],
+				"shadcn": ["form", "input", "button", "card"],
 				"npm": []
 			}
 		},
@@ -1071,10 +788,7 @@
 			"description": "Theme context provider",
 			"category": "ui",
 			"dependencies": {
-				"shadcn": [
-					"dropdown-menu",
-					"button"
-				],
+				"shadcn": ["dropdown-menu", "button"],
 				"npm": []
 			}
 		},
@@ -1083,10 +797,7 @@
 			"description": "Dark/light mode toggle",
 			"category": "ui",
 			"dependencies": {
-				"shadcn": [
-					"dropdown-menu",
-					"button"
-				],
+				"shadcn": ["dropdown-menu", "button"],
 				"npm": []
 			}
 		},
@@ -1095,10 +806,7 @@
 			"description": "User profile menu",
 			"category": "ui",
 			"dependencies": {
-				"shadcn": [
-					"dropdown-menu",
-					"button"
-				],
+				"shadcn": ["dropdown-menu", "button"],
 				"npm": []
 			}
 		},
@@ -1107,10 +815,7 @@
 			"description": "Saved query filters",
 			"category": "ui",
 			"dependencies": {
-				"shadcn": [
-					"dropdown-menu",
-					"button"
-				],
+				"shadcn": ["dropdown-menu", "button"],
 				"npm": []
 			}
 		},
@@ -1119,10 +824,7 @@
 			"description": "Toolbar for bulk actions",
 			"category": "toolbars",
 			"dependencies": {
-				"shadcn": [
-					"toolbar",
-					"button"
-				],
+				"shadcn": ["toolbar", "button"],
 				"npm": []
 			}
 		},
@@ -1131,10 +833,7 @@
 			"description": "Ready state indicator",
 			"category": "toolbars",
 			"dependencies": {
-				"shadcn": [
-					"toolbar",
-					"button"
-				],
+				"shadcn": ["toolbar", "button"],
 				"npm": []
 			}
 		}

@@ -5,6 +5,7 @@ A comprehensive admin interface solution with **78 production-ready components**
 **✨ Key Features:**
 - 🔐 **better-auth** for authentication (not ra-core)
 - 📊 **better-query** for data operations (not ra-data-simple-rest)
+- ⚡ **Declarative Resources** - Auto-generate admin pages
 - 🎯 Full TypeScript type safety
 - 📦 78 components across 10 categories
 - 🚀 Built on shadcn/ui
@@ -15,6 +16,7 @@ A comprehensive admin interface solution with **78 production-ready components**
 Unlike traditional admin frameworks like react-admin:
 - ✅ **Direct database access** via better-query (no REST API required)
 - ✅ **Full type safety** from database to UI
+- ✅ **Declarative resources** - Generate CRUD pages instantly
 - ✅ **Modern stack**: React Query, better-auth, better-query
 - ✅ **Smaller bundle**: No Material-UI, no Redux
 - ✅ **100% customizable**: Components copied to your project
@@ -77,6 +79,47 @@ export const dataProvider = createBetterQueryProvider({
 All components use **better-query hooks** directly, not ra-core data providers.
 
 ## Quick Start
+
+### Declarative Resource Management (NEW! ⚡)
+
+The fastest way to create an admin interface - just declare your resources:
+
+```tsx
+import { Admin, Resource } from 'better-admin';
+import { createBetterAuthProvider, createBetterQueryProvider } from 'better-admin';
+
+export default function App() {
+  return (
+    <Admin
+      authProvider={createBetterAuthProvider({ authClient })}
+      dataProvider={createBetterQueryProvider({ queryClient: query })}
+    >
+      <Resource name="users" />
+      <Resource name="posts" />
+      <Resource name="comments" />
+    </Admin>
+  );
+}
+```
+
+**That's it!** Each resource automatically gets:
+- 📋 List page with data table
+- ➕ Create page with form
+- ✏️ Edit page with form
+
+**Want to customize?** Just provide your own components:
+
+```tsx
+<Resource name="users" list={CustomUserList} />
+```
+
+📖 **[Learn more about Declarative Resources →](./DECLARATIVE_RESOURCES.md)**
+
+---
+
+### Manual Component Installation
+
+Prefer more control? Install components individually:
 
 ### 1. List Available Components
 

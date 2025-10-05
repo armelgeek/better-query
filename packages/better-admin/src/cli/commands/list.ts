@@ -67,7 +67,10 @@ export const listCommand = new Command("list")
 							if (component.betterQuery) {
 								console.log(
 									chalk.green(
-										`    ✓ Better Query: ${component.betterQuery.operations?.join(", ") || "integrated"}`,
+										`    ✓ Better Query: ${
+											component.betterQuery.operations?.join(", ") ||
+											"integrated"
+										}`,
 									),
 								);
 							}
@@ -77,7 +80,9 @@ export const listCommand = new Command("list")
 							) {
 								console.log(
 									chalk.dim(
-										`    Dependencies: ${component.dependencies.shadcn.join(", ")}`,
+										`    Dependencies: ${component.dependencies.shadcn.join(
+											", ",
+										)}`,
 									),
 								);
 							}
@@ -98,7 +103,9 @@ export const listCommand = new Command("list")
 						) {
 							console.log(
 								chalk.dim(
-									`    Dependencies: ${component.dependencies.shadcn.join(", ")}`,
+									`    Dependencies: ${component.dependencies.shadcn.join(
+										", ",
+									)}`,
 								),
 							);
 						}
@@ -111,9 +118,7 @@ export const listCommand = new Command("list")
 				console.log(
 					chalk.dim("   npx better-admin list --category data-display"),
 				);
-				console.log(
-					chalk.dim("   npx better-admin list --with-query\n"),
-				);
+				console.log(chalk.dim("   npx better-admin list --with-query\n"));
 			} catch (error) {
 				spinner.fail(chalk.red("Failed to fetch registry"));
 				throw error;

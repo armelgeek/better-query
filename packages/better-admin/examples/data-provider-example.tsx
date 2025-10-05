@@ -1,6 +1,6 @@
 /**
  * Example: Setting up Better Query with Better Admin
- * 
+ *
  * This example shows how to configure better-query and integrate it
  * with better-admin components for data operations.
  */

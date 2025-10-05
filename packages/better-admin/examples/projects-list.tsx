@@ -1,6 +1,6 @@
 /**
  * Example: Projects List with Resource List
- * 
+ *
  * Shows how to use ResourceList component with Better Query
  * for displaying projects in a card-based grid layout.
  */
@@ -46,9 +46,7 @@ export function ProjectsListPage() {
 			<div className="mb-6 flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold">Projects</h1>
-					<p className="text-muted-foreground">
-						Manage your projects
-					</p>
+					<p className="text-muted-foreground">Manage your projects</p>
 				</div>
 				<button
 					className="px-4 py-2 bg-primary text-primary-foreground rounded-md"

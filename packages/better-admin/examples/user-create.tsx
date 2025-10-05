@@ -1,6 +1,6 @@
 /**
  * Example: Create User Form
- * 
+ *
  * Shows how to use CrudForm component with Better Query
  * for creating new users with validation.
  */
@@ -21,7 +21,7 @@ interface CreateUserData {
 
 export function CreateUserPage() {
 	const router = useRouter();
-	
+
 	// Better Query integration - create operation
 	const { create } = useQuery("user");
 

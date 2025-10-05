@@ -1,6 +1,6 @@
 /**
  * Example: Setting up Better Auth with Better Admin
- * 
+ *
  * This example shows how to configure better-auth and integrate it
  * with better-admin components.
  */

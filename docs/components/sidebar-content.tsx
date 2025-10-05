@@ -832,7 +832,7 @@ export const contents: Content[] = [
 						/>
 					</svg>
 				),
-			}
+			},
 		],
-	}
+	},
 ];

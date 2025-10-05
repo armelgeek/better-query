@@ -4,6 +4,9 @@ export * from "./types.js";
 // Re-export providers
 export * from "./providers/index.js";
 
+// Re-export components
+export * from "./components/index.js";
+
 // Re-export registry utilities
 export {
 	COMPONENT_CATEGORIES,

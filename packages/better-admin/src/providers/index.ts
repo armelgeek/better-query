@@ -1,6 +1,6 @@
 /**
  * Better Admin Providers
- * 
+ *
  * Authentication and data providers for better-admin that integrate
  * with better-auth and better-query instead of ra-core.
  */

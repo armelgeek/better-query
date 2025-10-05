@@ -51,17 +51,14 @@ export function generateComponentMetadata(
 /**
  * Validate template structure
  */
-export function validateTemplate(template: unknown): template is ComponentTemplate {
+export function validateTemplate(
+	template: unknown,
+): template is ComponentTemplate {
 	if (!template || typeof template !== "object") return false;
 
 	const t = template as Partial<ComponentTemplate>;
 
-	return !!(
-		t.name &&
-		t.category &&
-		t.description &&
-		t.componentCode
-	);
+	return !!(t.name && t.category && t.description && t.componentCode);
 }
 
 /**
@@ -92,7 +89,7 @@ export function ComponentName<T>({ data, isLoading, error }: DataDisplayProps<T>
 }
 `,
 	},
-	"form": {
+	form: {
 		description: "Template for form components",
 		requiredProps: ["fields", "onSubmit", "defaultValues"],
 		betterQueryOps: ["create", "update"],
@@ -115,7 +112,7 @@ export function ComponentName({ fields, onSubmit, defaultValues, isLoading }: Fo
 }
 `,
 	},
-	"action": {
+	action: {
 		description: "Template for action components",
 		requiredProps: ["onClick", "label"],
 		betterQueryOps: ["delete", "update"],

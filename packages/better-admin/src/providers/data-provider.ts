@@ -1,6 +1,6 @@
 /**
  * Better Query Data Provider for Better Admin
- * 
+ *
  * Provides data operations using better-query instead of ra-core.
  * This adapter allows admin components to work seamlessly with better-query.
  */
@@ -102,12 +102,12 @@ export interface DataProvider {
 
 /**
  * Creates a data provider that integrates better-query with better-admin
- * 
+ *
  * @example
  * ```ts
  * import { query } from './query';
  * import { createBetterQueryProvider } from 'better-admin/providers/data';
- * 
+ *
  * const dataProvider = createBetterQueryProvider({
  *   queryClient: query,
  * });
@@ -267,17 +267,17 @@ export function createBetterQueryProvider(
 
 /**
  * Hook to use better-query in React components with simplified API
- * 
+ *
  * @example
  * ```tsx
  * import { useBetterQuery } from 'better-admin/providers/data';
- * 
+ *
  * function UsersList() {
  *   const { data, isLoading, error } = useBetterQuery('users').list();
- *   
+ *
  *   if (isLoading) return <div>Loading...</div>;
  *   if (error) return <div>Error: {error.message}</div>;
- *   
+ *
  *   return <DataTable data={data || []} />;
  * }
  * ```

@@ -1,6 +1,6 @@
 /**
  * Example: Edit User Form
- * 
+ *
  * Shows how to use CrudForm component with Better Query
  * for editing existing users (get + update operations).
  */
@@ -30,7 +30,11 @@ export function EditUserPage({ params }: EditUserPageProps) {
 
 	// Better Query integration - get and update operations
 	const { get, update } = useQuery("user");
-	const { data: user, isLoading, error } = get.useQuery({
+	const {
+		data: user,
+		isLoading,
+		error,
+	} = get.useQuery({
 		where: { id: userId },
 	});
 
@@ -113,9 +117,7 @@ export function EditUserPage({ params }: EditUserPageProps) {
 		<div className="container mx-auto py-8 max-w-2xl">
 			<div className="mb-6">
 				<h1 className="text-3xl font-bold">Edit User</h1>
-				<p className="text-muted-foreground">
-					Update user information
-				</p>
+				<p className="text-muted-foreground">Update user information</p>
 			</div>
 
 			<Card>

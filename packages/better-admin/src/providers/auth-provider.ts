@@ -1,6 +1,6 @@
 /**
  * Better Auth Provider for Better Admin
- * 
+ *
  * Provides authentication functionality using better-auth instead of ra-core.
  * This adapter allows admin components to work seamlessly with better-auth.
  */
@@ -53,12 +53,12 @@ export interface AuthProvider {
 
 /**
  * Creates an auth provider that integrates better-auth with better-admin
- * 
+ *
  * @example
  * ```ts
  * import { authClient } from './auth-client';
  * import { createBetterAuthProvider } from 'better-admin/providers/auth';
- * 
+ *
  * const authProvider = createBetterAuthProvider({
  *   authClient,
  * });
@@ -150,16 +150,16 @@ export function createBetterAuthProvider(
 
 /**
  * Hook to use the auth provider in React components
- * 
+ *
  * @example
  * ```tsx
  * import { useBetterAuth } from 'better-admin/providers/auth';
- * 
+ *
  * function MyComponent() {
  *   const { user, isLoading } = useBetterAuth();
- *   
+ *
  *   if (isLoading) return <div>Loading...</div>;
- *   
+ *
  *   return <div>Welcome {user?.name}</div>;
  * }
  * ```

@@ -74,7 +74,8 @@ export default function Hero() {
 							</div>
 
 							<p className="text-zinc-800 dark:text-zinc-300 mt-3 tracking-tight text-2xl md:text-3xl">
-								The most comprehensive toolkit for building type-safe web applications.
+								The most comprehensive toolkit for building type-safe web
+								applications.
 							</p>
 							<div className="relative mt-2 md:flex items-center gap-2 w-10/12 hidden border border-white/5">
 								<GradientBG className="w-full flex items-center justify-between">

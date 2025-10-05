@@ -1,6 +1,6 @@
 /**
  * Example: User Management with Data Table
- * 
+ *
  * Shows how to use DataTable component with Better Query
  * for a complete user listing with search and pagination.
  */
@@ -111,9 +111,7 @@ export function UsersListPage() {
 			<div className="mb-6 flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold">Users</h1>
-					<p className="text-muted-foreground">
-						Manage your application users
-					</p>
+					<p className="text-muted-foreground">Manage your application users</p>
 				</div>
 				<Button
 					onClick={() => {

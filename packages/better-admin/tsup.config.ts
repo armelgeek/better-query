@@ -11,5 +11,6 @@ export default defineConfig([
 		sourcemap: true,
 		clean: true,
 		splitting: true,
+		external: ["react", "react-dom"],
 	},
 ]);
