@@ -1,11 +1,11 @@
 ---
 title: Edit
-description: Page component for editing existing records
+description: Edit existing records with Better Admin
 ---
 
 # Edit
 
-The `<Edit>` component is the page component for the edit view. It renders a default layout (title, actions) and delegates the actual form rendering to its children (usually a `<SimpleForm>`).
+The `Edit` component provides a container for editing existing records. It handles data fetching, form submission, validation, and success/error states.
 
 ## Usage
 
@@ -13,80 +13,187 @@ The `<Edit>` component is the page component for the edit view. It renders a def
 import { Edit, SimpleForm, TextInput } from '@/components/admin';
 
 export const PostEdit = () => (
-  <Edit>
+  <Edit resource="posts">
     <SimpleForm>
       <TextInput source="title" required />
       <TextInput source="content" multiline />
-      <SelectInput
-        source="status"
-        choices={[
-          { id: 'draft', name: 'Draft' },
-          { id: 'published', name: 'Published' },
-        ]}
-      />
+      <SelectInput source="status" choices={['draft', 'published']} />
     </SimpleForm>
   </Edit>
 );
-```
-
-## Installation
-
-```bash title="Terminal"
-npx better-admin add edit
 ```
 
 ## Props
 
-| Prop | Required | Type | Default | Description |
-|------|----------|------|---------|-------------|
-| `children` | Required | `ReactNode` | - | Form component (e.g. `<SimpleForm>`) |
-| `title` | Optional | `string \| ReactNode` | 'Edit [Resource]' | Page title |
-| `actions` | Optional | `ReactNode` | default actions | Custom action buttons |
-| `redirect` | Optional | `string \| false` | 'list' | Where to redirect after save |
-| `resource` | Optional | `string` | inferred | Resource name |
-| `id` | Optional | `string \| number` | from URL | Record ID to edit |
-| `transform` | Optional | `(data) => data` | - | Transform data before submission |
-| `mutationMode` | Optional | `'pessimistic' \| 'optimistic' \| 'undoable'` | 'pessimistic' | Mutation mode |
+| Prop | Type | Description |
+|------|------|-------------|
+| `resource` | `string` | Resource name for API calls |
+| `id` | `string \| number` | Record ID (auto-detected from URL) |
+| `title` | `string` | Page title override |
+| `children` | `ReactNode` | Form content |
+| `redirect` | `string \| false` | Redirect path after successful update |
+| `mutationOptions` | `object` | Custom mutation options |
 
-## With better-query
+## Examples
 
-Edit automatically fetches and updates data using better-query:
+### Basic Edit Form
 
 ```tsx
-import { Edit, SimpleForm, TextInput } from '@/components/admin';
+import { Edit, SimpleForm, TextInput, SelectInput } from '@/components/admin';
 
-export const UserEdit = () => (
-  <Edit>
+export const PostEdit = () => (
+  <Edit resource="posts">
     <SimpleForm>
-      <TextInput source="name" required />
-      <TextInput source="email" type="email" required />
-      <SelectInput
-        source="role"
+      <TextInput source="title" required />
+      <TextInput source="content" multiline rows={5} />
+      <SelectInput 
+        source="status" 
         choices={[
-          { id: 'user', name: 'User' },
-          { id: 'admin', name: 'Admin' },
-        ]}
+          { id: 'draft', name: 'Draft' },
+          { id: 'published', name: 'Published' }
+        ]} 
       />
     </SimpleForm>
   </Edit>
 );
 ```
 
-## Custom Title
-
-Display the record in the title:
+### With Custom Title
 
 ```tsx
-import { Edit, SimpleForm, TextInput, useRecordContext } from '@/components/admin';
-
-const PostTitle = () => {
-  const record = useRecordContext();
-  return <span>Edit "{record?.title}"</span>;
-};
+import { Edit, SimpleForm, TextInput } from '@/components/admin';
 
 export const PostEdit = () => (
-  <Edit title={<PostTitle />}>
+  <Edit resource="posts" title="Edit Blog Post">
     <SimpleForm>
+      <TextInput source="title" />
+      <TextInput source="content" multiline />
+    </SimpleForm>
+  </Edit>
+);
+```
+
+### With Custom Redirect
+
+```tsx
+import { Edit, SimpleForm, TextInput } from '@/components/admin';
+
+export const PostEdit = () => (
+  <Edit resource="posts" redirect="/posts">
+    <SimpleForm>
+      <TextInput source="title" />
+      <TextInput source="content" multiline />
+    </SimpleForm>
+  </Edit>
+);
+```
+
+### With Actions
+
+```tsx
+import { Edit, SimpleForm, TextInput, DeleteButton } from '@/components/admin';
+
+export const PostEdit = () => (
+  <Edit 
+    resource="posts"
+    actions={
+      <div className="flex gap-2">
+        <DeleteButton />
+        <Button variant="outline">Preview</Button>
+      </div>
+    }
+  >
+    <SimpleForm>
+      <TextInput source="title" />
+      <TextInput source="content" multiline />
+    </SimpleForm>
+  </Edit>
+);
+```
+
+### With Validation
+
+```tsx
+import { Edit, SimpleForm, TextInput } from '@/components/admin';
+import { z } from 'zod';
+
+const schema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  content: z.string().min(10, 'Content must be at least 10 characters'),
+});
+
+export const PostEdit = () => (
+  <Edit resource="posts">
+    <SimpleForm schema={schema}>
+      <TextInput source="title" required />
+      <TextInput source="content" multiline required />
+    </SimpleForm>
+  </Edit>
+);
+```
+
+### With Related Data
+
+```tsx
+import { Edit, SimpleForm, TextInput, ReferenceInput, SelectInput } from '@/components/admin';
+
+export const PostEdit = () => (
+  <Edit resource="posts">
+    <SimpleForm>
+      <TextInput source="title" required />
+      <TextInput source="content" multiline />
+      <ReferenceInput source="author_id" reference="users">
+        <SelectInput optionText="name" />
+      </ReferenceInput>
+      <ReferenceInput source="category_id" reference="categories">
+        <SelectInput optionText="name" />
+      </ReferenceInput>
+    </SimpleForm>
+  </Edit>
+);
+```
+
+### With Optimistic Updates
+
+```tsx
+import { Edit, SimpleForm, TextInput } from '@/components/admin';
+
+export const PostEdit = () => (
+  <Edit 
+    resource="posts"
+    mutationOptions={{
+      onMutate: (variables) => {
+        // Optimistic update
+        return { previousData: queryClient.getQueryData(['posts', variables.id]) };
+      },
+      onError: (err, variables, context) => {
+        // Rollback on error
+        queryClient.setQueryData(['posts', variables.id], context.previousData);
+      },
+    }}
+  >
+    <SimpleForm>
+      <TextInput source="title" />
+      <TextInput source="content" multiline />
+    </SimpleForm>
+  </Edit>
+);
+```
+
+## Data Loading
+
+The Edit component automatically:
+- Fetches the record data using the ID from the URL
+- Provides loading states while fetching
+- Handles errors if the record is not found
+- Pre-fills form fields with existing data
+
+```tsx
+// Data is automatically fetched and provided to form inputs
+export const PostEdit = () => (
+  <Edit resource="posts">
+    <SimpleForm>
+      {/* These inputs are automatically filled with existing data */}
       <TextInput source="title" />
       <TextInput source="content" />
     </SimpleForm>
@@ -94,362 +201,44 @@ export const PostEdit = () => (
 );
 ```
 
-## Custom Actions
+## Form Submission
 
-Override the default action buttons:
-
-```tsx
-import { Edit, SaveButton, DeleteButton, ShowButton } from '@/components/admin';
-
-<Edit
-  actions={
-    <div className="flex gap-2">
-      <ShowButton />
-      <DeleteButton />
-      <SaveButton />
-    </div>
-  }
->
-  <SimpleForm>
-    {/* inputs */}
-  </SimpleForm>
-</Edit>
-```
-
-## Redirect After Save
-
-Control where users go after saving:
-
-```tsx
-// Redirect to the show page
-<Edit redirect="show">
-  <SimpleForm>{/* inputs */}</SimpleForm>
-</Edit>
-
-// Stay on the edit page
-<Edit redirect={false}>
-  <SimpleForm>{/* inputs */}</SimpleForm>
-</Edit>
-
-// Custom redirect
-<Edit redirect={(resource, id) => `/custom/${resource}/${id}`}>
-  <SimpleForm>{/* inputs */}</SimpleForm>
-</Edit>
-```
-
-## Transform Data Before Save
-
-Modify the data before sending it to the server:
-
-```tsx
-<Edit
-  transform={(data) => ({
-    ...data,
-    updated_at: new Date().toISOString(),
-    updated_by: getCurrentUserId(),
-  })}
->
-  <SimpleForm>
-    <TextInput source="title" />
-    <TextInput source="content" />
-  </SimpleForm>
-</Edit>
-```
-
-## Mutation Modes
-
-Control how updates are handled:
-
-```tsx
-// Pessimistic: Wait for server response before updating UI
-<Edit mutationMode="pessimistic">
-  <SimpleForm>{/* inputs */}</SimpleForm>
-</Edit>
-
-// Optimistic: Update UI immediately, rollback on error
-<Edit mutationMode="optimistic">
-  <SimpleForm>{/* inputs */}</SimpleForm>
-</Edit>
-
-// Undoable: Update UI immediately, allow undo within timeout
-<Edit mutationMode="undoable">
-  <SimpleForm>{/* inputs */}</SimpleForm>
-</Edit>
-```
-
-## Validation
-
-Add validation to inputs:
-
-```tsx
-import { Edit, SimpleForm, TextInput, required, email, minLength } from '@/components/admin';
-
-export const UserEdit = () => (
-  <Edit>
-    <SimpleForm>
-      <TextInput source="name" validate={[required(), minLength(3)]} />
-      <TextInput source="email" validate={[required(), email()]} />
-      <TextInput
-        source="age"
-        validate={(value) => {
-          if (value < 18) return 'Must be 18 or older';
-        }}
-      />
-    </SimpleForm>
-  </Edit>
-);
-```
-
-## Disable Inputs
-
-Conditionally disable inputs:
-
-```tsx
-import { Edit, SimpleForm, TextInput, useRecordContext } from '@/components/admin';
-
-export const PostEdit = () => {
-  const record = useRecordContext();
-  
-  return (
-    <Edit>
-      <SimpleForm>
-        <TextInput source="title" />
-        <TextInput 
-          source="slug" 
-          disabled={record?.published}
-          helperText="Cannot edit slug after publishing"
-        />
-        <SelectInput source="status" />
-      </SimpleForm>
-    </Edit>
-  );
-};
-```
-
-## File Uploads
-
-Handle file uploads in edit forms:
-
-```tsx
-import { Edit, SimpleForm, TextInput, FileInput, ImageField } from '@/components/admin';
-
-export const PostEdit = () => (
-  <Edit>
-    <SimpleForm>
-      <TextInput source="title" required />
-      <FileInput source="image" accept="image/*">
-        <ImageField source="src" title="title" />
-      </FileInput>
-    </SimpleForm>
-  </Edit>
-);
-```
-
-## Related Fields
-
-Edit records with relationships:
-
-```tsx
-import { 
-  Edit, 
-  SimpleForm, 
-  TextInput, 
-  ReferenceInput,
-  AutocompleteInput,
-  ReferenceArrayInput,
-  AutocompleteArrayInput
-} from '@/components/admin';
-
-export const PostEdit = () => (
-  <Edit>
-    <SimpleForm>
-      <TextInput source="title" required />
-      <ReferenceInput source="author_id" reference="users">
-        <AutocompleteInput optionText="name" />
-      </ReferenceInput>
-      <ReferenceArrayInput source="category_ids" reference="categories">
-        <AutocompleteArrayInput optionText="name" />
-      </ReferenceArrayInput>
-    </SimpleForm>
-  </Edit>
-);
-```
-
-## Dependent Inputs
-
-Make inputs depend on other input values:
-
-```tsx
-import { Edit, SimpleForm, TextInput, SelectInput, FormDataConsumer } from '@/components/admin';
-
-export const ProductEdit = () => (
-  <Edit>
-    <SimpleForm>
-      <SelectInput
-        source="type"
-        choices={[
-          { id: 'physical', name: 'Physical' },
-          { id: 'digital', name: 'Digital' },
-        ]}
-      />
-      <FormDataConsumer>
-        {({ formData }) =>
-          formData.type === 'physical' && (
-            <>
-              <TextInput source="weight" />
-              <TextInput source="dimensions" />
-            </>
-          )
-        }
-      </FormDataConsumer>
-    </SimpleForm>
-  </Edit>
-);
-```
-
-## Complete Example
-
-```tsx
-import {
-  Edit,
-  SimpleForm,
-  TextInput,
-  ReferenceInput,
-  AutocompleteInput,
-  SelectInput,
-  BooleanInput,
-  DateInput,
-  FileInput,
-  ImageField,
-  DeleteButton,
-  SaveButton,
-  required,
-  minLength,
-  useRecordContext,
-} from '@/components/admin';
-
-const PostTitle = () => {
-  const record = useRecordContext();
-  return <span>Edit "{record?.title}"</span>;
-};
-
-export const PostEdit = () => (
-  <Edit
-    title={<PostTitle />}
-    redirect="show"
-    mutationMode="optimistic"
-    transform={(data) => ({
-      ...data,
-      updated_at: new Date().toISOString(),
-    })}
-    actions={
-      <div className="flex gap-2">
-        <DeleteButton />
-        <SaveButton />
-      </div>
-    }
-  >
-    <SimpleForm>
-      <TextInput 
-        source="title" 
-        validate={[required(), minLength(5)]}
-        fullWidth
-      />
-      <TextInput 
-        source="content" 
-        multiline
-        rows={10}
-        fullWidth
-      />
-      <ReferenceInput source="author_id" reference="users">
-        <AutocompleteInput optionText="name" />
-      </ReferenceInput>
-      <SelectInput
-        source="status"
-        choices={[
-          { id: 'draft', name: 'Draft' },
-          { id: 'published', name: 'Published' },
-        ]}
-      />
-      <BooleanInput source="featured" />
-      <DateInput source="publish_date" />
-      <FileInput source="cover_image" accept="image/*">
-        <ImageField source="src" title="title" />
-      </FileInput>
-    </SimpleForm>
-  </Edit>
-);
-```
-
-## Integration with better-auth
-
-Track who updated records:
-
-```tsx
-import { Edit, SimpleForm, TextInput } from '@/components/admin';
-import { useBetterAuth } from 'better-admin';
-import { authClient } from '@/lib/auth-client';
-
-export const PostEdit = () => {
-  const { user } = useBetterAuth(authClient);
-
-  return (
-    <Edit
-      transform={(data) => ({
-        ...data,
-        updated_by: user?.id,
-      })}
-    >
-      <SimpleForm>
-        <TextInput source="title" />
-        <TextInput source="content" />
-      </SimpleForm>
-    </Edit>
-  );
-};
-```
-
-## Loading State
-
-The Edit component handles loading automatically:
-
-```tsx
-export const PostEdit = () => (
-  <Edit>
-    <SimpleForm>
-      {/* Form inputs are disabled while loading */}
-      <TextInput source="title" />
-    </SimpleForm>
-  </Edit>
-);
-```
+The Edit component handles form submission:
+- Updates the record via better-query
+- Shows loading states during submission
+- Displays success/error notifications
+- Handles redirects after successful updates
 
 ## Error Handling
 
-Errors are displayed automatically:
+Automatic error handling for:
+- Network errors
+- Validation errors
+- Server errors
+- Not found errors
 
 ```tsx
 export const PostEdit = () => (
-  <Edit>
+  <Edit resource="posts">
     <SimpleForm>
-      {/* Validation errors are shown on inputs */}
-      {/* Server errors are shown in a notification */}
       <TextInput source="title" />
+      {/* Field-level errors are shown automatically */}
+      <TextInput source="email" type="email" />
     </SimpleForm>
   </Edit>
 );
 ```
 
-## Related Components
+## Installation
 
-- [Create](/docs/better-admin/components/create) - Create new records
-- [Show](/docs/better-admin/components/show) - Display record details
+```bash
+npx better-admin add edit
+```
+
+## Related
+
 - [SimpleForm](/docs/better-admin/components/simple-form) - Form container
-- [DeleteButton](/docs/better-admin/components/delete-button) - Delete action
-
-## Next Steps
-
-- [Learn about Form Inputs](/docs/better-admin/components/inputs)
-- [Add Validation](/docs/better-admin/components/validation)
-- [Handle File Uploads](/docs/better-admin/components/file-input)
-- [Configure Relationships](/docs/better-admin/components/reference-input)
+- [TextInput](/docs/better-admin/components/text-input) - Text input field
+- [SelectInput](/docs/better-admin/components/select-input) - Select dropdown
+- [Create](/docs/better-admin/components/create) - Create new records
+- [Show](/docs/better-admin/components/show) - Display records

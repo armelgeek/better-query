@@ -1,145 +1,96 @@
 ---
 title: Admin
-description: The root component of a Better Admin application
+description: Root application component for Better Admin
 ---
 
 # Admin
 
-`<Admin>` is the root component of a Better Admin application. It creates context providers to allow its children to access the app configuration. It renders the main routes and layout using better-auth and better-query.
+The `Admin` component is the root wrapper for your Better Admin application. It provides context for authentication, data providers, and global configuration.
 
 ## Usage
 
-`<Admin>` requires a dataProvider and authProvider props, and at least one child `<Resource>` to work. Here is a basic example:
-
 ```tsx
-import { Admin } from "@/components/admin";
-import { Resource } from "@/components/admin/resource";
-import { createBetterQueryProvider } from "better-admin";
-import { createBetterAuthProvider } from "better-admin";
-import { query } from "@/lib/query";
-import { authClient } from "@/lib/auth-client";
+import { Admin } from '@/components/admin';
+import { createBetterAuthProvider } from 'better-admin';
+import { authClient } from '@/lib/auth-client';
 
-import { PostList } from './posts';
-
-const dataProvider = createBetterQueryProvider({ 
-  query 
-});
-
-const authProvider = createBetterAuthProvider({ 
-  authClient 
-});
-
-const App = () => (
-  <Admin 
-    dataProvider={dataProvider}
-    authProvider={authProvider}
-  >
-    <Resource name="posts" list={PostList} />
-  </Admin>
-);
-
-export default App;
-```
-
-`<Admin>` children can be `<Resource>` and `<CustomRoutes>` elements.
-
-## Props
-
-Here are all the props accepted by the component:
-
-| Prop | Required | Type | Default | Description |
-|------|----------|------|---------|-------------|
-| `dataProvider` | Required | `DataProvider` | - | The data provider for fetching resources (better-query) |
-| `authProvider` | Required | `AuthProvider` | - | The authentication provider (better-auth) |
-| `children` | Required | `ReactNode` | - | The routes to render |
-| `dashboard` | Optional | `Component` | - | The content of the dashboard page |
-| `layout` | Optional | `Component` | `Layout` | The content of the layout |
-| `loginPage` | Optional | `Component` | `LoginPage` | The content of the login page |
-| `title` | Optional | `string` | - | The application title |
-| `theme` | Optional | `object` | default theme | The theme configuration |
-| `basename` | Optional | `string` | - | The base path for all URLs |
-| `requireAuth` | Optional | `boolean` | `false` | Flag to require authentication for all routes |
-
-## Installation
-
-```bash title="Terminal"
-npx better-admin add admin
-```
-
-## Example with Multiple Resources
-
-```tsx
-import { Admin, Resource } from "@/components/admin";
-import { createBetterQueryProvider, createBetterAuthProvider } from "better-admin";
-import { query } from "@/lib/query";
-import { authClient } from "@/lib/auth-client";
-
-import { PostList, PostEdit, PostCreate } from './posts';
-import { UserList, UserEdit } from './users';
-import { Dashboard } from './dashboard';
-
-const dataProvider = createBetterQueryProvider({ query });
 const authProvider = createBetterAuthProvider({ authClient });
 
-const App = () => (
-  <Admin 
-    dataProvider={dataProvider}
-    authProvider={authProvider}
-    dashboard={Dashboard}
-  >
-    <Resource 
-      name="posts" 
-      list={PostList} 
-      edit={PostEdit} 
-      create={PostCreate} 
-    />
-    <Resource 
-      name="users" 
-      list={UserList} 
-      edit={UserEdit} 
-    />
-  </Admin>
-);
-
-export default App;
-```
-
-## Authentication Integration
-
-Better Admin uses better-auth for authentication:
-
-```tsx
-// lib/auth-client.ts
-import { createAuthClient } from "better-auth/react";
-
-export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL,
-});
-
-// app/admin/page.tsx
-import { Admin } from "@/components/admin";
-import { createBetterAuthProvider } from "better-admin";
-import { authClient } from "@/lib/auth-client";
-
-const authProvider = createBetterAuthProvider({
-  authClient,
-  onError: (error) => {
-    console.error('Auth error:', error);
-  },
-});
-
-export default function AdminApp() {
+export default function App() {
   return (
     <Admin authProvider={authProvider}>
-      {/* Resources */}
+      <Resource name="posts" list={PostList} edit={PostEdit} create={PostCreate} />
+      <Resource name="users" list={UserList} edit={UserEdit} />
     </Admin>
   );
 }
 ```
 
-## Next Steps
+## Props
 
-- [Learn about Resources](/docs/better-admin/components/resource)
-- [Configure the Layout](/docs/better-admin/components/layout)
-- [Set up Authentication](/docs/better-admin/auth-provider)
-- [Configure Data Provider](/docs/better-admin/data-provider)
+| Prop | Type | Description |
+|------|------|-------------|
+| `authProvider` | `AuthProvider` | Authentication provider instance |
+| `dataProvider` | `DataProvider` | Data provider for API calls |
+| `theme` | `'light' \| 'dark' \| 'system'` | Theme configuration |
+| `children` | `ReactNode` | Resource components and other content |
+
+## Examples
+
+### Basic Setup
+
+```tsx
+import { Admin, Resource } from '@/components/admin';
+
+export default function App() {
+  return (
+    <Admin>
+      <Resource name="posts" list={PostList} />
+    </Admin>
+  );
+}
+```
+
+### With Authentication
+
+```tsx
+import { Admin } from '@/components/admin';
+import { createBetterAuthProvider } from 'better-admin';
+import { authClient } from '@/lib/auth-client';
+
+const authProvider = createBetterAuthProvider({ authClient });
+
+export default function App() {
+  return (
+    <Admin authProvider={authProvider}>
+      <Resource name="posts" list={PostList} edit={PostEdit} />
+    </Admin>
+  );
+}
+```
+
+### With Custom Theme
+
+```tsx
+import { Admin } from '@/components/admin';
+
+export default function App() {
+  return (
+    <Admin theme="dark">
+      <Resource name="posts" list={PostList} />
+    </Admin>
+  );
+}
+```
+
+## Installation
+
+```bash
+npx better-admin add admin
+```
+
+## Related
+
+- [Resource](/docs/better-admin/components/resource) - Define resources
+- [Layout](/docs/better-admin/components/layout) - Application layout
+- [Auth Provider](/docs/better-admin/auth-provider) - Authentication setup

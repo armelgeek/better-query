@@ -1,375 +1,202 @@
 ---
 title: DataTable
-description: Feature-rich table component with sorting, filtering, and pagination
+description: Feature-rich table component for Better Admin
 ---
 
 # DataTable
 
-The DataTable component is a feature-rich table for displaying lists of records. It includes:
-
-- Sortable headers with tooltips
-- Support for custom renderers and field components
-- Row click navigation (show/edit)
-- Expandable rows
-- Row selection & bulk actions toolbar
-- Column visibility & reordering
-- Pagination
-- Conditional row and cell classes
-- Sticky headers
-
-It leverages shadcn/ui's [Table](https://ui.shadcn.com/docs/components/table) component for the base markup and styling.
+The `DataTable` component provides a powerful table with sorting, filtering, pagination, and selection capabilities. It's designed to work seamlessly with the List component and better-query.
 
 ## Usage
 
-Use `<DataTable>` inside a `<List>` component or with better-query directly:
-
 ```tsx
-import { List, DataTable, ReferenceField, EditButton } from '@/components/admin';
+import { List, DataTable } from '@/components/admin';
 
 export const PostList = () => (
-  <List>
+  <List resource="posts">
     <DataTable>
       <DataTable.Col source="id" />
-      <DataTable.Col label="User">
-        <ReferenceField source="user_id" reference="users" />
-      </DataTable.Col>
       <DataTable.Col source="title" />
-      <DataTable.Col source="published_at" />
-      <DataTable.Col>
-        <EditButton />
-      </DataTable.Col>
+      <DataTable.Col source="status" />
+      <DataTable.Col source="created_at" />
     </DataTable>
   </List>
 );
 ```
 
-## Installation
+## Components
 
-```bash title="Terminal"
-npx better-admin add data-table
-```
+### DataTable.Col
 
-## With better-query
-
-Use DataTable directly with better-query hooks:
+Defines a column in the table.
 
 ```tsx
-import { useBetterQuery } from "better-admin";
-import { query } from "@/lib/query";
-import { DataTable } from "@/components/admin/data-table";
+<DataTable.Col 
+  source="title" 
+  label="Post Title"
+  sortable
+  render={(value, record) => (
+    <Link to={`/posts/${record.id}`}>{value}</Link>
+  )}
+/>
+```
 
-export function UsersTable() {
-  const { data, isLoading } = useBetterQuery({
-    resource: "users",
-    queryClient: query,
-  });
+#### Props
 
-  if (isLoading) return <div>Loading...</div>;
+| Prop | Type | Description |
+|------|------|-------------|
+| `source` | `string` | Field name from the data |
+| `label` | `string` | Column header text |
+| `sortable` | `boolean` | Enable sorting |
+| `render` | `(value, record) => ReactNode` | Custom cell renderer |
+| `width` | `string \| number` | Column width |
 
-  return (
-    <DataTable data={data}>
-      <DataTable.Col source="id" />
-      <DataTable.Col source="name" />
-      <DataTable.Col source="email" />
-      <DataTable.Col source="role" />
+## Examples
+
+### Basic Table
+
+```tsx
+import { List, DataTable } from '@/components/admin';
+
+export const PostList = () => (
+  <List resource="posts">
+    <DataTable>
+      <DataTable.Col source="id" label="ID" />
+      <DataTable.Col source="title" label="Title" />
+      <DataTable.Col source="status" label="Status" />
+      <DataTable.Col source="created_at" label="Created" />
     </DataTable>
-  );
-}
+  </List>
+);
 ```
 
-## Columns
-
-Each `<DataTable.Col>` child defines a column. You can specify:
-
-- `source`: The field name from your data
-- `label`: Column header label
-- `sortable`: Whether the column can be sorted
-- `render`: Custom render function
+### With Custom Renderers
 
 ```tsx
-<DataTable>
-  <DataTable.Col 
-    source="name" 
-    label="Full Name"
-    sortable 
-  />
-  <DataTable.Col 
-    source="status"
-    render={(value) => (
-      <Badge variant={value === 'active' ? 'success' : 'secondary'}>
-        {value}
-      </Badge>
-    )}
-  />
-  <DataTable.Col source="created_at">
-    <DateField />
-  </DataTable.Col>
+import { List, DataTable, EditButton } from '@/components/admin';
+import { Badge } from '@/components/ui/badge';
+
+export const PostList = () => (
+  <List resource="posts">
+    <DataTable>
+      <DataTable.Col source="title" />
+      <DataTable.Col 
+        source="status"
+        render={(status) => (
+          <Badge variant={status === 'published' ? 'default' : 'secondary'}>
+            {status}
+          </Badge>
+        )}
+      />
+      <DataTable.Col 
+        source="author"
+        render={(author) => (
+          <div className="flex items-center gap-2">
+            <Avatar src={author.avatar} />
+            <span>{author.name}</span>
+          </div>
+        )}
+      />
+      <DataTable.Col 
+        label="Actions"
+        render={(_, record) => (
+          <div className="flex gap-2">
+            <EditButton record={record} />
+            <Button variant="outline" size="sm">View</Button>
+          </div>
+        )}
+      />
+    </DataTable>
+  </List>
+);
+```
+
+### With Sorting
+
+```tsx
+import { List, DataTable } from '@/components/admin';
+
+export const PostList = () => (
+  <List resource="posts">
+    <DataTable>
+      <DataTable.Col source="title" sortable />
+      <DataTable.Col source="created_at" sortable />
+      <DataTable.Col source="view_count" sortable />
+    </DataTable>
+  </List>
+);
+```
+
+### With Selection
+
+```tsx
+import { List, DataTable } from '@/components/admin';
+
+export const PostList = () => (
+  <List resource="posts">
+    <DataTable selectable>
+      <DataTable.Col source="title" />
+      <DataTable.Col source="status" />
+    </DataTable>
+  </List>
+);
+```
+
+## Features
+
+### Sorting
+
+Columns can be made sortable by adding the `sortable` prop:
+
+```tsx
+<DataTable.Col source="title" sortable />
+```
+
+### Pagination
+
+Pagination is automatically handled based on the data from the List component.
+
+### Selection
+
+Enable row selection with the `selectable` prop:
+
+```tsx
+<DataTable selectable>
+  {/* columns */}
+</DataTable>
+```
+
+### Loading States
+
+The DataTable automatically shows loading states when data is being fetched.
+
+### Empty States
+
+Custom empty state when no data is available:
+
+```tsx
+<DataTable emptyState={<div>No posts found</div>}>
+  {/* columns */}
 </DataTable>
 ```
 
 ## Props
 
-### DataTable Props
+| Prop | Type | Description |
+|------|------|-------------|
+| `children` | `ReactNode` | DataTable.Col components |
+| `selectable` | `boolean` | Enable row selection |
+| `onSelectionChange` | `(selection) => void` | Selection change handler |
+| `emptyState` | `ReactNode` | Custom empty state |
 
-| Prop | Required | Type | Default | Description |
-|------|----------|------|---------|-------------|
-| `data` | Optional | `Record[]` | from context | Array of records to display |
-| `bulkActionButtons` | Optional | `ReactNode` | default buttons | Custom bulk action buttons |
-| `expand` | Optional | `ReactNode` | - | Content for expandable rows |
-| `rowClick` | Optional | `string \| false \| function` | `'edit'` | Action on row click: 'edit', 'show', false, or custom function |
-| `rowSx` | Optional | `(record) => object` | - | Function returning conditional styles for rows |
-| `size` | Optional | `'sm' \| 'md' \| 'lg'` | `'md'` | Table size |
-| `empty` | Optional | `ReactNode` | default message | Content when no records |
+## Installation
 
-### DataTable.Col Props
-
-| Prop | Required | Type | Default | Description |
-|------|----------|------|---------|-------------|
-| `source` | Optional | `string` | - | Field name to display |
-| `label` | Optional | `string` | humanized source | Column header label |
-| `sortable` | Optional | `boolean` | `true` | Whether column is sortable |
-| `render` | Optional | `(value, record) => ReactNode` | - | Custom render function |
-| `children` | Optional | `ReactNode` | - | Field component to render |
-| `cellClassName` | Optional | `string \| function` | - | CSS class for cells |
-| `headerClassName` | Optional | `string` | - | CSS class for header |
-
-## Sorting
-
-Columns are sortable by default. Click on a column header to sort:
-
-```tsx
-<DataTable defaultSort={{ field: 'created_at', order: 'DESC' }}>
-  <DataTable.Col source="name" sortable />
-  <DataTable.Col source="email" sortable />
-  <DataTable.Col source="created_at" sortable />
-</DataTable>
+```bash
+npx better-admin add data-table
 ```
 
-Disable sorting on specific columns:
+## Related
 
-```tsx
-<DataTable.Col source="actions" sortable={false}>
-  <EditButton />
-</DataTable.Col>
-```
-
-## Row Selection & Bulk Actions
-
-Enable row selection for bulk operations:
-
-```tsx
-import { DataTable, BulkDeleteButton } from '@/components/admin';
-
-<DataTable
-  bulkActionButtons={
-    <>
-      <BulkDeleteButton />
-      <BulkExportButton />
-    </>
-  }
->
-  <DataTable.Col source="id" />
-  <DataTable.Col source="name" />
-  <DataTable.Col source="email" />
-</DataTable>
-```
-
-Custom bulk actions:
-
-```tsx
-const CustomBulkActions = () => {
-  const { selectedIds } = useListContext();
-  
-  const handleBulkAction = () => {
-    // Process selectedIds
-  };
-
-  return (
-    <Button onClick={handleBulkAction}>
-      Process {selectedIds.length} items
-    </Button>
-  );
-};
-```
-
-## Expandable Rows
-
-Add expandable content to rows:
-
-```tsx
-<DataTable
-  expand={
-    <div className="p-4">
-      <SimpleShowLayout>
-        <TextField source="description" />
-        <TextField source="notes" />
-      </SimpleShowLayout>
-    </div>
-  }
->
-  <DataTable.Col source="id" />
-  <DataTable.Col source="title" />
-</DataTable>
-```
-
-## Column Visibility
-
-Users can toggle column visibility with the ColumnsButton:
-
-```tsx
-import { DataTable, ColumnsButton } from '@/components/admin';
-
-<List actions={<ColumnsButton />}>
-  <DataTable>
-    <DataTable.Col source="id" />
-    <DataTable.Col source="name" />
-    <DataTable.Col source="email" />
-  </DataTable>
-</List>
-```
-
-## Conditional Styling
-
-Apply conditional styles to rows and cells:
-
-```tsx
-<DataTable
-  rowSx={(record) => ({
-    backgroundColor: record.status === 'inactive' ? '#f5f5f5' : 'white',
-  })}
->
-  <DataTable.Col 
-    source="status"
-    cellClassName={(value) => 
-      value === 'active' ? 'text-green-600' : 'text-gray-400'
-    }
-  />
-</DataTable>
-```
-
-## Custom Cell Renderers
-
-### With render prop
-
-```tsx
-<DataTable.Col
-  source="price"
-  render={(value) => `$${value.toFixed(2)}`}
-/>
-```
-
-### With Field components
-
-```tsx
-import { TextField, DateField, BooleanField } from '@/components/admin';
-
-<DataTable>
-  <DataTable.Col source="name">
-    <TextField />
-  </DataTable.Col>
-  <DataTable.Col source="created_at">
-    <DateField />
-  </DataTable.Col>
-  <DataTable.Col source="is_active">
-    <BooleanField />
-  </DataTable.Col>
-</DataTable>
-```
-
-## Reference Fields
-
-Display related data from other resources:
-
-```tsx
-import { ReferenceField, ReferenceArrayField } from '@/components/admin';
-
-<DataTable>
-  <DataTable.Col source="title" />
-  <DataTable.Col label="Author">
-    <ReferenceField source="author_id" reference="users">
-      <TextField source="name" />
-    </ReferenceField>
-  </DataTable.Col>
-  <DataTable.Col label="Categories">
-    <ReferenceArrayField source="category_ids" reference="categories">
-      <SingleFieldList>
-        <BadgeField source="name" />
-      </SingleFieldList>
-    </ReferenceArrayField>
-  </DataTable.Col>
-</DataTable>
-```
-
-## Empty State
-
-Customize the empty state when no records are found:
-
-```tsx
-<DataTable
-  empty={
-    <div className="text-center py-8">
-      <p className="text-muted-foreground">No posts found</p>
-      <CreateButton />
-    </div>
-  }
->
-  {/* columns */}
-</DataTable>
-```
-
-## Sticky Headers
-
-Headers are sticky by default for better scrolling:
-
-```tsx
-<DataTable className="max-h-[600px] overflow-auto">
-  {/* Long list of columns */}
-</DataTable>
-```
-
-## Integration with better-query
-
-DataTable works seamlessly with better-query:
-
-```tsx
-import { useBetterQuery } from "better-admin";
-import { query } from "@/lib/query";
-
-export function ProductsTable() {
-  const { data, isLoading, pagination, setPagination, sorting, setSorting } = 
-    useBetterQuery({
-      resource: "products",
-      queryClient: query,
-      pagination: { page: 1, perPage: 10 },
-      sort: { field: 'name', order: 'ASC' },
-    });
-
-  return (
-    <DataTable
-      data={data}
-      isLoading={isLoading}
-      pagination={pagination}
-      onPaginationChange={setPagination}
-      sorting={sorting}
-      onSortingChange={setSorting}
-    >
-      <DataTable.Col source="name" />
-      <DataTable.Col source="price" />
-      <DataTable.Col source="stock" />
-    </DataTable>
-  );
-}
-```
-
-## Related Components
-
-- [List](/docs/better-admin/components/list) - Container for DataTable
-- [ColumnsButton](/docs/better-admin/components/columns-button) - Column visibility toggle
-- [BulkDeleteButton](/docs/better-admin/components/bulk-delete-button) - Bulk delete action
-- [ListPagination](/docs/better-admin/components/list-pagination) - Pagination controls
-
-## Next Steps
-
-- [Learn about Field Components](/docs/better-admin/components/fields)
-- [Configure Pagination](/docs/better-admin/components/list-pagination)
-- [Add Bulk Actions](/docs/better-admin/components/bulk-actions)
+- [List](/docs/better-admin/components/list) - List container
+- [EditButton](/docs/better-admin/components/edit-button) - Edit record button
+- [CreateButton](/docs/better-admin/components/create-button) - Create record button
