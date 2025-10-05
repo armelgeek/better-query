@@ -1,0 +1,157 @@
+---
+title: Component Reference
+description: Complete reference for all Better Admin components
+---
+
+# Better Admin Component Reference
+
+Better Admin provides a comprehensive set of production-ready components designed to work seamlessly with **better-query** and **better-auth**. All components follow the patterns from shadcn-admin-kit and are fully customizable.
+
+## Quick Links
+
+- [Admin](/docs/better-admin/components/admin) - Root application component
+- [Layout](/docs/better-admin/components/layout) - Application shell and navigation
+- [Dashboard](/docs/better-admin/components/dashboard) - Build custom dashboards with stats
+- [List](/docs/better-admin/components/list) - Display lists of records
+- [DataTable](/docs/better-admin/components/data-table) - Feature-rich table component
+- [Create](/docs/better-admin/components/create) - Create new records
+- [Edit](/docs/better-admin/components/edit) - Edit existing records
+- [Show](/docs/better-admin/components/show) - Display single records
+
+## Installation
+
+Install any component using the Better Admin CLI:
+
+```bash title="Terminal"
+npx better-admin add [component-name]
+```
+
+The CLI automatically:
+- Installs required shadcn/ui components
+- Installs npm dependencies
+- Copies the component to your project
+
+## Component Categories
+
+### Core Components
+- [Admin](/docs/better-admin/components/admin) - Root application wrapper
+- [Resource](/docs/better-admin/components/resource) - Resource configuration
+- [Layout](/docs/better-admin/components/layout) - Application layout
+
+### List & Display
+- [Dashboard](/docs/better-admin/components/dashboard) - Dashboard page with stats and metrics
+- [List](/docs/better-admin/components/list) - List page container
+- [DataTable](/docs/better-admin/components/data-table) - Data table with sorting and filtering
+- [Show](/docs/better-admin/components/show) - Show page container
+
+### Forms & Inputs
+- [Create](/docs/better-admin/components/create) - Create page container
+- [Edit](/docs/better-admin/components/edit) - Edit page container
+- [SimpleForm](/docs/better-admin/components/simple-form) - Form container
+- [TextInput](/docs/better-admin/components/text-input) - Text input field
+- [SelectInput](/docs/better-admin/components/select-input) - Select dropdown
+- [BooleanInput](/docs/better-admin/components/boolean-input) - Checkbox input
+
+### Navigation
+- [AppSidebar](/docs/better-admin/components/app-sidebar) - Sidebar navigation
+- [Breadcrumb](/docs/better-admin/components/breadcrumb) - Breadcrumb trail
+- [CreateButton](/docs/better-admin/components/create-button) - Navigate to create page
+- [EditButton](/docs/better-admin/components/edit-button) - Navigate to edit page
+
+### Authentication
+- [LoginPage](/docs/better-admin/components/login-page) - Login page
+- [UserMenu](/docs/better-admin/components/user-menu) - User profile menu
+
+## Usage with better-query
+
+Components automatically integrate with better-query:
+
+```tsx
+import { List, DataTable } from '@/components/admin';
+import { query } from '@/lib/query';
+
+export const PostList = () => (
+  <List resource="posts">
+    <DataTable>
+      <DataTable.Col source="title" />
+      <DataTable.Col source="author" />
+      <DataTable.Col source="created_at" />
+    </DataTable>
+  </List>
+);
+```
+
+## Usage with better-auth
+
+Components integrate with better-auth for authentication:
+
+```tsx
+import { Admin } from '@/components/admin';
+import { createBetterAuthProvider } from 'better-admin';
+import { authClient } from '@/lib/auth-client';
+
+const authProvider = createBetterAuthProvider({ authClient });
+
+export default function App() {
+  return (
+    <Admin authProvider={authProvider}>
+      {/* Resources */}
+    </Admin>
+  );
+}
+```
+
+## Component Patterns
+
+### List-Detail Pattern
+
+```tsx
+// List view
+export const PostList = () => (
+  <List>
+    <DataTable>
+      <DataTable.Col source="title" />
+      <DataTable.Col>
+        <EditButton />
+      </DataTable.Col>
+    </DataTable>
+  </List>
+);
+
+// Detail view
+export const PostEdit = () => (
+  <Edit>
+    <SimpleForm>
+      <TextInput source="title" />
+      <TextInput source="content" />
+    </SimpleForm>
+  </Edit>
+);
+```
+
+### Master-Detail Pattern
+
+```tsx
+export const OrderShow = () => (
+  <Show>
+    <SimpleShowLayout>
+      <TextField source="order_number" />
+      <DateField source="order_date" />
+      <ReferenceManyField reference="order_items" target="order_id">
+        <DataTable>
+          <DataTable.Col source="product_name" />
+          <DataTable.Col source="quantity" />
+          <DataTable.Col source="price" />
+        </DataTable>
+      </ReferenceManyField>
+    </SimpleShowLayout>
+  </Show>
+);
+```
+
+## Next Steps
+
+- [Quick Start Guide](/docs/better-admin/quick-start)
+- [Data Provider Setup](/docs/better-admin/data-provider)
+- [Auth Provider Setup](/docs/better-admin/auth-provider)
+- [Browse Examples](/docs/better-admin/examples)
