@@ -5,6 +5,9 @@
 
 export { Admin } from "./Admin.js";
 export { Resource } from "./Resource.js";
+export { AutoList } from "./AutoList.js";
+export { AutoCreate } from "./AutoCreate.js";
+export { AutoEdit } from "./AutoEdit.js";
 export {
 	ResourceContext,
 	useResourceContext,
