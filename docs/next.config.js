@@ -1,4 +1,9 @@
 import { createMDX } from "fumadocs-mdx/next";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const withMDX = createMDX();
 
@@ -10,7 +15,7 @@ const config = {
 	trailingSlash: true,
 
 	// Set output file tracing root for monorepo
-	outputFileTracingRoot: "..",
+	outputFileTracingRoot: join(__dirname, ".."),
 
 	// Skip dynamic routes that won't work with static export
 	generateBuildId: async () => {

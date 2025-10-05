@@ -129,16 +129,6 @@ export const query = betterQuery({
 <Callout type="info">
 **Understanding permissions**: The `read` permission returns `true` if the user is logged in. The `create`, `update`, and `delete` permissions only return `true` for admin users. This means regular users can view the list but can't make changes.
 </Callout>
-      return user?.role === "admin";
-    },
-  },
-});
-
-export const query = betterQuery({
-  database: db,
-  resources: [userResource],
-});
-```
 
 ### 3. Create Providers
 
