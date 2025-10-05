@@ -1,0 +1,350 @@
+---
+title: BooleanInput
+description: Checkbox input for boolean values in forms
+---
+
+# BooleanInput
+
+The `<BooleanInput>` component renders a checkbox for boolean (true/false) values. It integrates with react-hook-form for form state management.
+
+## Usage
+
+Use BooleanInput for checkbox inputs:
+
+```tsx
+import { Edit, SimpleForm, TextInput, BooleanInput } from '@/components/admin';
+
+const PostEdit = () => (
+  <Edit>
+    <SimpleForm>
+      <TextInput source="title" />
+      <BooleanInput source="published" />
+      <BooleanInput source="featured" />
+      <BooleanInput source="allow_comments" />
+    </SimpleForm>
+  </Edit>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add boolean-input
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `source` | Required | `string` | - | Field name |
+| `label` | Optional | `string` | Inferred | Checkbox label |
+| `helperText` | Optional | `string` | - | Help text below checkbox |
+| `disabled` | Optional | `boolean` | `false` | Disable checkbox |
+| `readOnly` | Optional | `boolean` | `false` | Read-only mode |
+| `validate` | Optional | `Validator[]` | - | Validation rules |
+| `defaultValue` | Optional | `boolean` | `false` | Default value |
+
+## With Labels
+
+Customize the checkbox label:
+
+```tsx
+<BooleanInput source="published" label="Publish this post" />
+<BooleanInput source="featured" label="Feature on homepage" />
+<BooleanInput source="notify" label="Send email notifications" />
+```
+
+## Helper Text
+
+Add context below the checkbox:
+
+```tsx
+<BooleanInput 
+  source="terms" 
+  label="I agree to the terms and conditions"
+  helperText="Please read our terms before agreeing"
+/>
+<BooleanInput 
+  source="newsletter" 
+  label="Subscribe to newsletter"
+  helperText="We'll send you updates once a week"
+/>
+```
+
+## Default Values
+
+Set default checked state:
+
+```tsx
+<BooleanInput source="active" defaultValue={true} />
+<BooleanInput source="notify" defaultValue={false} />
+```
+
+## Disabled State
+
+Disable the checkbox:
+
+```tsx
+<BooleanInput source="verified" disabled />
+<BooleanInput source="system_admin" disabled helperText="Contact support to enable" />
+```
+
+## With Validation
+
+Add validation rules:
+
+```tsx
+import { required } from '@/lib/validators';
+
+<BooleanInput 
+  source="terms" 
+  label="Accept terms and conditions"
+  validate={required('You must accept the terms')}
+/>
+```
+
+## With better-query
+
+BooleanInput works with better-query:
+
+```tsx
+import { Edit, SimpleForm, TextInput, BooleanInput } from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+
+export function PostEdit({ id }: { id: string }) {
+  const { data, update } = useBetterQuery("post", query);
+
+  return (
+    <Edit
+      resource="post"
+      id={id}
+      onSubmit={(values) => {
+        update.mutate({
+          where: { id },
+          data: values,
+        });
+      }}
+    >
+      <SimpleForm>
+        <TextInput source="title" required />
+        <TextInput source="content" multiline />
+        
+        <BooleanInput 
+          source="published" 
+          label="Publish immediately"
+        />
+        
+        <BooleanInput 
+          source="featured" 
+          label="Feature on homepage"
+          helperText="Featured posts appear at the top"
+        />
+        
+        <BooleanInput 
+          source="allow_comments" 
+          label="Allow comments"
+          defaultValue={true}
+        />
+      </SimpleForm>
+    </Edit>
+  );
+}
+```
+
+## Multiple Checkboxes
+
+Group related checkboxes:
+
+```tsx
+<SimpleForm>
+  <div className="space-y-4">
+    <h3 className="text-sm font-medium">Permissions</h3>
+    <BooleanInput source="can_read" label="Can read" />
+    <BooleanInput source="can_write" label="Can write" />
+    <BooleanInput source="can_delete" label="Can delete" />
+    <BooleanInput source="can_admin" label="Admin access" />
+  </div>
+</SimpleForm>
+```
+
+## Conditional Logic
+
+Show/hide fields based on checkbox:
+
+```tsx
+import { BooleanInput, TextInput } from '@/components/admin';
+import { useWatch } from 'react-hook-form';
+
+export function ConditionalForm() {
+  const useCustomPrice = useWatch({ name: 'use_custom_price' });
+  
+  return (
+    <>
+      <BooleanInput 
+        source="use_custom_price" 
+        label="Use custom pricing"
+      />
+      
+      {useCustomPrice && (
+        <NumberInput 
+          source="custom_price" 
+          label="Custom price"
+          required
+        />
+      )}
+    </>
+  );
+}
+```
+
+## Complete Example
+
+```tsx
+import {
+  Create,
+  SimpleForm,
+  TextInput,
+  NumberInput,
+  SelectInput,
+  BooleanInput,
+} from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+import { required } from '@/lib/validators';
+
+export function ProductCreate() {
+  const { create } = useBetterQuery("product", query);
+
+  return (
+    <Create
+      resource="product"
+      onSubmit={(values) => {
+        create.mutate({ data: values });
+      }}
+    >
+      <SimpleForm
+        defaultValues={{
+          active: true,
+          featured: false,
+          taxable: true,
+          track_inventory: true,
+        }}
+      >
+        <TextInput source="name" validate={required()} required />
+        <TextInput source="description" multiline rows={4} />
+        <NumberInput source="price" step={0.01} min={0} required />
+        
+        <div className="space-y-4 border-t pt-4 mt-4">
+          <h3 className="text-sm font-medium">Product Settings</h3>
+          
+          <BooleanInput 
+            source="active" 
+            label="Active"
+            helperText="Show product in store"
+          />
+          
+          <BooleanInput 
+            source="featured" 
+            label="Featured"
+            helperText="Display on homepage"
+          />
+          
+          <BooleanInput 
+            source="taxable" 
+            label="Taxable"
+            helperText="Apply sales tax"
+          />
+          
+          <BooleanInput 
+            source="track_inventory" 
+            label="Track inventory"
+            helperText="Enable stock management"
+          />
+          
+          <BooleanInput 
+            source="allow_backorders" 
+            label="Allow backorders"
+            helperText="Sell when out of stock"
+          />
+        </div>
+        
+        <div className="space-y-4 border-t pt-4 mt-4">
+          <h3 className="text-sm font-medium">Shipping</h3>
+          
+          <BooleanInput 
+            source="requires_shipping" 
+            label="Requires shipping"
+          />
+          
+          <BooleanInput 
+            source="free_shipping" 
+            label="Free shipping"
+          />
+        </div>
+        
+        <SelectInput
+          source="status"
+          choices={[
+            { id: 'draft', name: 'Draft' },
+            { id: 'active', name: 'Active' },
+          ]}
+          required
+        />
+      </SimpleForm>
+    </Create>
+  );
+}
+```
+
+## Switch Style
+
+Create a switch-style toggle:
+
+```tsx
+import { BooleanInput } from '@/components/admin';
+import { Switch } from '@/components/ui/switch';
+
+export function SwitchInput({ source, label }: any) {
+  return (
+    <div className="flex items-center justify-between">
+      <label className="text-sm font-medium">{label}</label>
+      <BooleanInput source={source} renderAs={Switch} />
+    </div>
+  );
+}
+```
+
+## Indeterminate State
+
+Create a tri-state checkbox (checked, unchecked, indeterminate):
+
+```tsx
+import { Checkbox } from '@/components/ui/checkbox';
+import { useController } from 'react-hook-form';
+
+export function IndeterminateCheckbox({ source }: { source: string }) {
+  const { field } = useController({ name: source });
+  
+  return (
+    <Checkbox
+      checked={field.value === true ? true : field.value === false ? false : 'indeterminate'}
+      onCheckedChange={(checked) => {
+        field.onChange(checked === 'indeterminate' ? null : checked);
+      }}
+    />
+  );
+}
+```
+
+## Related Components
+
+- [SelectInput](/docs/better-admin/components/select-input) - Dropdown select
+- [RadioButtonGroupInput](/docs/better-admin/components/radio-button-group-input) - Radio buttons
+- [TextInput](/docs/better-admin/components/text-input) - Text input
+
+## Next Steps
+
+- [Learn about form validation](/docs/better-admin/validation)
+- [Explore other Input components](/docs/better-admin/components)
+- [Work with conditional fields](/docs/better-admin/conditional-fields)
