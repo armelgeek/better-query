@@ -74,7 +74,7 @@ export default function Hero() {
 							</div>
 
 							<p className="text-zinc-800 dark:text-zinc-300 mt-3 tracking-tight text-2xl md:text-3xl">
-								The most comprehensive query framework for TypeScript.
+								The most comprehensive toolkit for building type-safe web applications.
 							</p>
 							<div className="relative mt-2 md:flex items-center gap-2 w-10/12 hidden border border-white/5">
 								<GradientBG className="w-full flex items-center justify-between">
@@ -89,7 +89,7 @@ export default function Hero() {
 										<p className=" relative inline tracking-tight opacity-90 md:text-sm text-xs dark:text-white font-mono text-black">
 											npm add{" "}
 											<span className="relative dark:text-fuchsia-100 text-fuchsia-950">
-												better-query
+												better-query better-admin
 												<span className="absolute h-2 bg-gradient-to-tr from-white via-stone-200 to-stone-300 blur-3xl w-full top-0 left-2"></span>
 											</span>
 										</p>

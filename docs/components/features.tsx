@@ -35,19 +35,19 @@ const features = [
 	},
 	{
 		id: 3,
+		label: "Admin Components",
+		title: "<strong>Admin interface</strong> with 78+ components.",
+		description:
+			"Production-ready admin components with better-auth and better-query integration. Install via CLI with automatic dependency resolution.",
+		icon: ShieldCheckIcon,
+	},
+	{
+		id: 4,
 		label: "Database Support",
 		title: "Multiple <strong>database adapters</strong>.",
 		description:
 			"Built-in support for PostgreSQL, MySQL, SQLite with Kysely query builder for type-safe database operations.",
 		icon: Webhook,
-	},
-	{
-		id: 4,
-		label: "Client Libraries",
-		title: "<strong>Client libraries</strong> for React and Vanilla JS.",
-		description:
-			"Type-safe client libraries with hooks for React and vanilla JavaScript for seamless frontend integration.",
-		icon: RabbitIcon,
 	},
 	{
 		id: 5,
@@ -110,12 +110,12 @@ export default function Features({ stars }: { stars: string | null }) {
 							<div className="flex items-center gap-2">
 								<Globe2Icon className="w-4 h-4" />
 								<p className="text-gray-600 dark:text-gray-400">
-									Type-safe CRUD APIs
+									Better Query + Better Admin
 								</p>
 							</div>
 							<p className="max-w-md mx-auto mt-4 text-4xl font-normal tracking-tighter text-center md:text-4xl">
 								<strong>
-									Build powerful APIs with type safety in minutes!
+									Build powerful apps with type-safe CRUD and admin interfaces!
 								</strong>
 							</p>
 							<div className="flex mt-[10px] z-20 justify-center items-start">
