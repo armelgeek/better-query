@@ -21,7 +21,7 @@ type ScalarTheme =
 const getHTML = (apiReference: Record<string, any>, theme?: ScalarTheme) => `<!doctype html>
 <html>
   <head>
-    <title>Better CRUD API Reference</title>
+    <title>Better Query API Reference</title>
     <meta charset="utf-8" />
     <meta
       name="viewport"
@@ -38,8 +38,8 @@ const getHTML = (apiReference: Record<string, any>, theme?: ScalarTheme) => `<!d
 	  	favicon: "data:image/svg+xml;utf8,${encodeURIComponent(logo)}",
 	   	theme: "${theme || "default"}",
         metaData: {
-			title: "Better CRUD API",
-			description: "API Reference for your Better CRUD Instance",
+			title: "Better Query API",
+			description: "API Reference for your Better Query Instance",
 		}
       }
 

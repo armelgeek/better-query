@@ -21,5 +21,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - React hooks for client-side integration
 - Kysely-based query builder
 
-[Unreleased]: https://github.com/armelgeek/better-kit/compare/better-query@0.0.1...HEAD
-[0.0.1]: https://github.com/armelgeek/better-kit/releases/tag/better-query@0.0.1
+[Unreleased]: https://github.com/armelgeek/better-query/compare/better-query@0.0.1...HEAD
+[0.0.1]: https://github.com/armelgeek/better-query/releases/tag/better-query@0.0.1

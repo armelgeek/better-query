@@ -22,7 +22,7 @@ This guide will help you configure the repository for automated npm publishing.
 3. **Generate New Token**
    - Click "Generate New Token"
    - Select "Automation" token type (recommended for CI/CD)
-   - Give it a descriptive name like "GitHub Actions - better-kit"
+   - Give it a descriptive name like "GitHub Actions - better-query"
    - Click "Generate Token"
 
 4. **Copy the Token**
@@ -32,7 +32,7 @@ This guide will help you configure the repository for automated npm publishing.
 ## Step 2: Add Token to GitHub Secrets
 
 1. **Navigate to Repository Settings**
-   - Go to your GitHub repository: https://github.com/armelgeek/better-kit
+   - Go to your GitHub repository: https://github.com/armelgeek/better-query
    - Click "Settings" tab
 
 2. **Access Secrets**

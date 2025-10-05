@@ -11,7 +11,7 @@ const withMDX = createMDX();
 const config = {
 	// Enable static export for GitHub Pages
 	output: "export",
-	basePath: process.env.NODE_ENV === "production" ? "/better-kit" : "",
+	basePath: process.env.NODE_ENV === "production" ? "/better-query" : "",
 	trailingSlash: true,
 
 	// Set output file tracing root for monorepo

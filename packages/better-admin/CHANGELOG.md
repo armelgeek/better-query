@@ -20,5 +20,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Interactive prompts for component installation
 - Automatic dependency installation
 
-[Unreleased]: https://github.com/armelgeek/better-kit/compare/better-admin@0.0.1...HEAD
-[0.0.1]: https://github.com/armelgeek/better-kit/releases/tag/better-admin@0.0.1
+[Unreleased]: https://github.com/armelgeek/better-query/compare/better-admin@0.0.1...HEAD
+[0.0.1]: https://github.com/armelgeek/better-query/releases/tag/better-admin@0.0.1

@@ -81,7 +81,7 @@ export const Navbar = () => {
 							</NavLink>
 						))}
 						<NavLink
-							href="https://github.com/armelgeek/better-kit"
+							href="https://github.com/armelgeek/better-query"
 							className=" bg-muted/20"
 							external
 						>

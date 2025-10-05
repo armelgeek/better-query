@@ -1,13 +1,13 @@
-# Contributing to Better Kit
+# Contributing to Better Query
 
-Thank you for your interest in contributing to Better Kit! This guide will help you understand our development and release process.
+Thank you for your interest in contributing to Better Query! This guide will help you understand our development and release process.
 
 ## Development Setup
 
 1. **Fork and clone the repository**
    ```bash
-   git clone https://github.com/armelgeek/better-kit.git
-   cd better-kit
+   git clone https://github.com/armelgeek/better-query.git
+   cd better-query
    ```
 
 2. **Install dependencies**
@@ -235,8 +235,8 @@ Please be respectful and constructive in all interactions. We're building a welc
 
 ## License
 
-By contributing to Better Kit, you agree that your contributions will be licensed under the MIT License.
+By contributing to Better Query, you agree that your contributions will be licensed under the MIT License.
 
 ---
 
-Thank you for contributing to Better Kit! 🚀
+Thank you for contributing to Better Query! 🚀

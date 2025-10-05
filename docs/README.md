@@ -1,6 +1,6 @@
-# Better Kit Docs
+# Better Query Docs
 
-This is the documentation site for Better Kit.
+This is the documentation site for Better Query.
 
 ## Contributing
 

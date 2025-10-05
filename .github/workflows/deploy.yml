@@ -54,8 +54,8 @@ jobs:
           # Disable telemetry during build
           NEXT_TELEMETRY_DISABLED: 1
           # Set base path for GitHub Pages
-          NEXT_PUBLIC_URL: https://armelgeek.github.io/better-kit
-          NEXT_PUBLIC_APP_URL: https://armelgeek.github.io/better-kit
+          NEXT_PUBLIC_URL: https://armelgeek.github.io/better-query
+          NEXT_PUBLIC_APP_URL: https://armelgeek.github.io/better-query
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

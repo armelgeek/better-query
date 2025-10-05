@@ -42,7 +42,7 @@ This creates a `better-admin.json` configuration file:
     "utils": "@/lib/utils",
     "ui": "@/components/ui"
   },
-  "registry": "https://raw.githubusercontent.com/armelgeek/better-kit/master/packages/better-admin/registry"
+  "registry": "https://raw.githubusercontent.com/armelgeek/better-query/master/packages/better-admin/registry"
 }
 ```
 
@@ -748,4 +748,4 @@ export function UserList() {
 4. **Extend**: Create your own components following the same patterns
 5. **Contribute**: Share your components with the community
 
-For more information, visit the [Better Admin Documentation](https://github.com/armelgeek/better-kit/tree/master/packages/better-admin).
+For more information, visit the [Better Admin Documentation](https://github.com/armelgeek/better-query/tree/master/packages/better-admin).

@@ -274,7 +274,7 @@ The `better-admin.json` file in your project root:
     "utils": "@/lib/utils",
     "ui": "@/components/ui"
   },
-  "registry": "https://raw.githubusercontent.com/armelgeek/better-kit/master/packages/better-admin/registry"
+  "registry": "https://raw.githubusercontent.com/armelgeek/better-query/master/packages/better-admin/registry"
 }
 ```
 
@@ -432,5 +432,5 @@ Each component in the registry has this structure:
 
 ## Support
 
-- Report issues: [GitHub Issues](https://github.com/armelgeek/better-kit/issues)
-- Discussions: [GitHub Discussions](https://github.com/armelgeek/better-kit/discussions)
+- Report issues: [GitHub Issues](https://github.com/armelgeek/better-query/issues)
+- Discussions: [GitHub Discussions](https://github.com/armelgeek/better-query/discussions)

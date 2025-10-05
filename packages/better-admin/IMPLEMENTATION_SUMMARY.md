@@ -312,7 +312,7 @@ While the base system is complete, future iterations could add:
 ### Registry Hosting
 Currently configured to use GitHub raw files:
 ```
-https://raw.githubusercontent.com/armelgeek/better-kit/master/packages/better-admin/registry
+https://raw.githubusercontent.com/armelgeek/better-query/master/packages/better-admin/registry
 ```
 
 This can be changed to:
@@ -341,4 +341,4 @@ All requirements from the original issue have been met:
 - ✅ Complete documentation
 - ✅ Working examples
 
-The implementation is minimal, focused, and follows the existing patterns in the Better Kit monorepo.
+The implementation is minimal, focused, and follows the existing patterns in the Better Query monorepo.

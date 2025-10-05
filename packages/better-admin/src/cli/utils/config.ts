@@ -55,6 +55,6 @@ export function getDefaultConfig(): BetterAdminConfig {
 			ui: "@/components/ui",
 		},
 		registry:
-			"https://raw.githubusercontent.com/armelgeek/better-kit/master/packages/better-admin/registry",
+			"https://raw.githubusercontent.com/armelgeek/better-query/master/packages/better-admin/registry",
 	};
 }

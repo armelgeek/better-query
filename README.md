@@ -1,8 +1,8 @@
-# Better Kit 🚀
+# Better Query 🚀
 
 > **A powerful, type-safe toolkit for building modern web applications**
 
-Better Kit is a comprehensive TypeScript monorepo containing production-ready libraries for CRUD operations, admin interfaces, and more. Built with developer experience and type safety in mind.
+Better Query is a comprehensive TypeScript monorepo containing production-ready libraries for CRUD operations, admin interfaces, and more. Built with developer experience and type safety in mind.
 
 ## 📦 Packages
 
@@ -67,8 +67,8 @@ npx better-admin list
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/armelgeek/better-kit.git
-cd better-kit
+git clone https://github.com/armelgeek/better-query.git
+cd better-query
 
 # Install dependencies
 pnpm install
@@ -97,7 +97,7 @@ pnpm dev
 
 ### Project Structure
 ```
-better-kit/
+better-query/
 ├── packages/
 │   ├── better-query/     # CRUD generator core
 │   ├── better-admin/     # Component CLI tool
@@ -203,14 +203,14 @@ For information about our release process, see [Release Documentation](./RELEASE
 
 ## 🤝 Community
 
-- **💬 Discussions** - [GitHub Discussions](https://github.com/armelgeek/better-kit/discussions)
-- **🐛 Issues** - [Bug Reports](https://github.com/armelgeek/better-kit/issues)
+- **💬 Discussions** - [GitHub Discussions](https://github.com/armelgeek/better-query/discussions)
+- **🐛 Issues** - [Bug Reports](https://github.com/armelgeek/better-query/issues)
 - **📝 Contributing** - [Contribution Guide](./CONTRIBUTING.md)
 - **📄 License** - [MIT License](./LICENSE)
 
 ## ⚠️ Current Status
 
-**⚠️ ALPHA SOFTWARE**: Better Kit is in active development. APIs may change. Use in production with caution.
+**⚠️ ALPHA SOFTWARE**: Better Query is in active development. APIs may change. Use in production with caution.
 
 ### Known Issues
 - [ ] Build system needs dependency fixes

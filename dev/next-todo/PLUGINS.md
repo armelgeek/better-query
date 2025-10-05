@@ -318,4 +318,4 @@ You can test that plugins are working by:
 
 - `createPlugin(config)` - Create a custom plugin
 
-For more information about the plugin system, see the [Better Query documentation](https://armelgeek.github.io/better-kit).
+For more information about the plugin system, see the [Better Query documentation](https://armelgeek.github.io/better-query).

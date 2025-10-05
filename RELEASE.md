@@ -1,6 +1,6 @@
 # Release Process
 
-This document describes the automated release and publishing process for the Better Kit packages.
+This document describes the automated release and publishing process for the Better Query packages.
 
 ## Overview
 

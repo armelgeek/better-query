@@ -34,8 +34,8 @@ describe("OpenAPI Generator", () => {
 
 		expect(result.openapi).toBe("3.1.0");
 		expect(result.info).toEqual({
-			title: "Better CRUD API",
-			description: "Auto-generated API documentation for Better CRUD resources",
+			title: "Better Query API",
+			description: "Auto-generated API documentation for Better Query resources",
 			version: "1.0.0",
 		});
 	});

@@ -69,7 +69,7 @@
 ## File Structure
 
 ```
-better-kit/
+better-query/
 ├── .changeset/
 │   ├── config.json              # Changesets configuration
 │   ├── example-*.md             # Example changeset (demo)

@@ -17,7 +17,7 @@ export const listCommand = new Command("list")
 
 			// Read config if exists
 			let registryUrl =
-				"https://raw.githubusercontent.com/armelgeek/better-kit/master/packages/better-admin/registry";
+				"https://raw.githubusercontent.com/armelgeek/better-query/master/packages/better-admin/registry";
 
 			if (await configExists(cwd)) {
 				const config = await readConfig(cwd);

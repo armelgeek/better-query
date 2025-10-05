@@ -46,7 +46,7 @@ export const addCommand = new Command("add")
 			try {
 				const registryUrl =
 					config.registry ||
-					"https://raw.githubusercontent.com/armelgeek/better-kit/master/packages/better-admin/registry";
+					"https://raw.githubusercontent.com/armelgeek/better-query/master/packages/better-admin/registry";
 				component = await fetchComponent(registryUrl, componentName);
 				spinner.succeed(chalk.green("Component metadata fetched"));
 			} catch (error) {

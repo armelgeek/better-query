@@ -226,7 +226,7 @@ export function AIChatModal({ isOpen, onClose }: AIChatModalProps) {
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<Bot className="h-5 w-5 text-primary" />
-						Ask AI About Better Kit
+						Ask AI About Better Query
 					</DialogTitle>
 					<DialogDescription>
 						Ask questions about Better-Auth and get AI-powered answers
@@ -258,10 +258,10 @@ export function AIChatModal({ isOpen, onClose }: AIChatModalProps) {
 
 								<div className="mb-8 max-w-md">
 									<h3 className="text-xl font-semibold text-foreground mb-2">
-										Ask About Better Kit
+										Ask About Better Query
 									</h3>
 									<p className="text-muted-foreground text-sm leading-relaxed">
-										I'm here to help you with Better Kit questions, setup
+										I'm here to help you with Better Query questions, setup
 										guides, and implementation tips. Ask me anything!
 									</p>
 								</div>

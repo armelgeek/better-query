@@ -69,7 +69,7 @@ Created file: **better-admin.json**
     "utils": "@/lib/utils",
     "ui": "@/components/ui"
   },
-  "registry": "https://raw.githubusercontent.com/armelgeek/better-kit/master/packages/better-admin/registry"
+  "registry": "https://raw.githubusercontent.com/armelgeek/better-query/master/packages/better-admin/registry"
 }
 \`\`\`
 

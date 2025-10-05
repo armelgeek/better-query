@@ -571,14 +571,14 @@ export async function generator(context: CrudContext): Promise<any> {
 	return {
 		openapi: "3.1.0",
 		info: {
-			title: "Better CRUD API",
-			description: "Auto-generated API documentation for Better CRUD resources",
+			title: "Better Query API",
+			description: "Auto-generated API documentation for Better Query resources",
 			version: "1.0.0",
 		},
 		servers: [
 			{
 				url: basePath,
-				description: "Better CRUD API Server",
+				description: "Better Query API Server",
 			},
 		],
 		components,
