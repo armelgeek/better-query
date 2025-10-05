@@ -1,0 +1,271 @@
+---
+title: ArrayInput
+description: Edit arrays of data embedded inside a record with repeating sub-forms
+---
+
+# ArrayInput
+
+The `<ArrayInput>` component creates a list of sub-forms to edit arrays of data embedded inside a record. It works with react-hook-form's `useFieldArray` and integrates seamlessly with better-query.
+
+## Usage
+
+`<ArrayInput>` allows editing of embedded arrays, like the `items` field in an order record:
+
+```tsx
+import { 
+  Edit,
+  SimpleForm,
+  TextInput,
+  ArrayInput,
+  NumberInput,
+  SimpleFormIterator
+} from '@/components/admin';
+
+const OrderEdit = () => (
+  <Edit>
+    <SimpleForm>
+      <TextInput source="customer" />
+      <TextInput source="date" type="date" />
+      <ArrayInput source="items">
+        <SimpleFormIterator inline>
+          <TextInput source="name" />
+          <NumberInput source="price" />
+          <NumberInput source="quantity" />
+        </SimpleFormIterator>
+      </ArrayInput>
+    </SimpleForm>
+  </Edit>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add array-input
+```
+
+This will also install the required dependencies including `simple-form-iterator`.
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `source` | Required | `string` | - | Array field name |
+| `children` | Required | `ReactNode` | - | Iterator component (usually SimpleFormIterator) |
+| `className` | Optional | `string` | - | CSS classes |
+| `defaultValue` | Optional | `any[]` | `[]` | Initial array value |
+| `helperText` | Optional | `ReactNode` | - | Help text below the input |
+| `label` | Optional | `string` | Inferred | Label text |
+| `validate` | Optional | `Validator \| Validator[]` | - | Array-level validation |
+
+## SimpleFormIterator
+
+The `<SimpleFormIterator>` component is the most common child of `<ArrayInput>`. It displays array items with controls for adding, removing, and reordering.
+
+### Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `addButton` | Optional | `ReactElement` | Default | Custom add button |
+| `className` | Optional | `string` | - | Wrapper classes |
+| `disableAdd` | Optional | `boolean` | `false` | Hide add button |
+| `disableClear` | Optional | `boolean` | `false` | Hide clear-all button |
+| `disableRemove` | Optional | `boolean \| (record)=>boolean` | `false` | Disable remove per item |
+| `disableReordering` | Optional | `boolean` | `false` | Hide move up/down buttons |
+| `getItemLabel` | Optional | `boolean \| (index)=>string\|ReactElement` | `false` | Per-item label |
+| `inline` | Optional | `boolean` | `false` | Arrange inputs horizontally |
+| `removeButton` | Optional | `ReactElement` | Default | Custom remove button |
+| `reOrderButtons` | Optional | `ReactElement` | Default | Custom reorder buttons |
+
+## With better-query
+
+Use ArrayInput with better-query's nested data structures:
+
+```tsx
+import { useBetterQuery } from "better-admin";
+import { Edit, SimpleForm, ArrayInput, SimpleFormIterator, TextInput, NumberInput } from '@/components/admin';
+
+export function ProductEdit({ id }: { id: string }) {
+  const { data, update } = useBetterQuery("product", query);
+
+  return (
+    <Edit
+      resource="product"
+      id={id}
+      onSubmit={(values) => {
+        update.mutate({
+          where: { id },
+          data: values,
+        });
+      }}
+    >
+      <SimpleForm>
+        <TextInput source="name" />
+        <TextInput source="description" />
+        <ArrayInput source="variants">
+          <SimpleFormIterator>
+            <TextInput source="name" label="Variant Name" />
+            <NumberInput source="price" />
+            <NumberInput source="stock" />
+          </SimpleFormIterator>
+        </ArrayInput>
+      </SimpleForm>
+    </Edit>
+  );
+}
+```
+
+## Inline Layout
+
+Use the `inline` prop to display inputs horizontally:
+
+```tsx
+<ArrayInput source="items">
+  <SimpleFormIterator inline>
+    <TextInput source="name" />
+    <NumberInput source="quantity" />
+    <NumberInput source="price" />
+  </SimpleFormIterator>
+</ArrayInput>
+```
+
+## Custom Labels
+
+Add labels to each array item:
+
+```tsx
+<ArrayInput source="addresses">
+  <SimpleFormIterator getItemLabel={(index) => `Address #${index + 1}`}>
+    <TextInput source="street" />
+    <TextInput source="city" />
+    <TextInput source="zipCode" />
+  </SimpleFormIterator>
+</ArrayInput>
+```
+
+## Validation
+
+Add validation at the array level or field level:
+
+```tsx
+import { required, minLength } from '@/lib/validators';
+
+<ArrayInput 
+  source="items"
+  validate={[required(), minLength(1, 'At least one item is required')]}
+>
+  <SimpleFormIterator>
+    <TextInput source="name" validate={required()} />
+    <NumberInput source="quantity" validate={[required(), min(1)]} />
+  </SimpleFormIterator>
+</ArrayInput>
+```
+
+## Disable Input
+
+To disable the entire array input, set the `disabled` prop on SimpleFormIterator and make child inputs readonly:
+
+```tsx
+<ArrayInput source="items">
+  <SimpleFormIterator disabled>
+    <TextInput source="name" readOnly />
+    <NumberInput source="price" readOnly />
+  </SimpleFormIterator>
+</ArrayInput>
+```
+
+## Custom Buttons
+
+Customize the add, remove, and reorder buttons:
+
+```tsx
+import { Button } from '@/components/ui/button';
+import { Plus, Trash } from 'lucide-react';
+
+<ArrayInput source="items">
+  <SimpleFormIterator
+    addButton={
+      <Button type="button" variant="outline">
+        <Plus className="w-4 h-4 mr-2" />
+        Add Item
+      </Button>
+    }
+    removeButton={
+      <Button type="button" variant="destructive" size="sm">
+        <Trash className="w-4 h-4" />
+      </Button>
+    }
+  >
+    <TextInput source="name" />
+    <NumberInput source="price" />
+  </SimpleFormIterator>
+</ArrayInput>
+```
+
+## Complete Example
+
+```tsx
+import {
+  Edit,
+  SimpleForm,
+  TextInput,
+  NumberInput,
+  ArrayInput,
+  SimpleFormIterator,
+  SelectInput,
+} from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+
+export function OrderEdit({ id }: { id: string }) {
+  const { data, update } = useBetterQuery("order", query);
+
+  return (
+    <Edit
+      resource="order"
+      id={id}
+      onSubmit={(values) => {
+        update.mutate({
+          where: { id },
+          data: values,
+        });
+      }}
+    >
+      <SimpleForm>
+        <TextInput source="customer" />
+        <TextInput source="date" type="date" />
+        <SelectInput
+          source="status"
+          choices={[
+            { id: 'pending', name: 'Pending' },
+            { id: 'processing', name: 'Processing' },
+            { id: 'completed', name: 'Completed' },
+          ]}
+        />
+        <ArrayInput source="items">
+          <SimpleFormIterator
+            inline
+            getItemLabel={(index) => `Item #${index + 1}`}
+          >
+            <TextInput source="name" />
+            <NumberInput source="quantity" min={1} />
+            <NumberInput source="price" step={0.01} />
+          </SimpleFormIterator>
+        </ArrayInput>
+      </SimpleForm>
+    </Edit>
+  );
+}
+```
+
+## Related Components
+
+- [SimpleFormIterator](/docs/better-admin/components/simple-form-iterator) - Array item iterator
+- [SimpleForm](/docs/better-admin/components/simple-form) - Form container
+- [Edit](/docs/better-admin/components/edit) - Edit page layout
+
+## Next Steps
+
+- [Learn about Form Validation](/docs/better-admin/validation)
+- [Explore other Input Components](/docs/better-admin/components/inputs)
+- [Work with Nested Data](/docs/better-admin/nested-data)

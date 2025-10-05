@@ -1,0 +1,226 @@
+---
+title: EditButton
+description: Link button to the edit page of a record
+---
+
+# EditButton
+
+The `<EditButton>` component is a link button that navigates to the edit page of the current record. It must be used inside a RecordContext.
+
+## Usage
+
+Use it in a DataTable row or in a Show page:
+
+```tsx
+import { DataTable, EditButton } from '@/components/admin';
+
+const PostList = () => (
+  <DataTable>
+    <DataTable.Col source="title" />
+    <DataTable.Col source="author" />
+    <DataTable.Col source="published_at" />
+    <DataTable.Col label="Actions">
+      <EditButton />
+    </DataTable.Col>
+  </DataTable>
+);
+```
+
+On click, the button navigates to the edit route (e.g., `/posts/123/edit`).
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add edit-button
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `label` | Optional | `string` | "Edit" | Button label text |
+| `record` | Optional | `object` | From context | Record object with id |
+| `resource` | Optional | `string` | From context | Resource name |
+| `icon` | Optional | `ReactNode` | Edit icon | Custom button icon |
+| `variant` | Optional | `string` | "ghost" | Button variant |
+
+## Row Click Alternative
+
+In a DataTable, you can make entire rows clickable instead of using a button:
+
+```tsx
+<DataTable rowClick="edit">
+  <DataTable.Col source="title" />
+  <DataTable.Col source="author" />
+  <DataTable.Col source="published_at" />
+</DataTable>
+```
+
+## Custom Label
+
+Customize the button label:
+
+```tsx
+<EditButton label="Modify" />
+<EditButton label="Update" />
+```
+
+## Custom Icon
+
+Use a custom icon:
+
+```tsx
+import { Pencil } from 'lucide-react';
+
+<EditButton icon={<Pencil />} />
+```
+
+## Different Variants
+
+```tsx
+<EditButton variant="default" />
+<EditButton variant="outline" />
+<EditButton variant="ghost" />
+```
+
+## In Show Pages
+
+Use EditButton in show page actions:
+
+```tsx
+import { Show, EditButton, DeleteButton } from '@/components/admin';
+
+export const PostShow = () => (
+  <Show
+    actions={
+      <>
+        <EditButton />
+        <DeleteButton />
+      </>
+    }
+  >
+    {/* show content */}
+  </Show>
+);
+```
+
+## With better-auth Permissions
+
+Control visibility based on user permissions:
+
+```tsx
+import { EditButton } from '@/components/admin';
+import { useBetterAuth } from 'better-admin';
+import { useRecordContext } from '@/lib/hooks';
+
+export function PostEditButton() {
+  const { user } = useBetterAuth();
+  const record = useRecordContext();
+  
+  // Only show edit button for own posts or admins
+  const canEdit = user?.id === record?.author_id || user?.role === 'admin';
+
+  if (!canEdit) return null;
+  
+  return <EditButton />;
+}
+```
+
+## With better-query
+
+EditButton works seamlessly with better-query data:
+
+```tsx
+import { List, DataTable, EditButton, DeleteButton } from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+
+export function PostList() {
+  const { data } = useBetterQuery("post", query);
+
+  return (
+    <List>
+      <DataTable data={data}>
+        <DataTable.Col source="title" />
+        <DataTable.Col source="status" />
+        <DataTable.Col label="Actions">
+          <div className="flex gap-2">
+            <EditButton />
+            <DeleteButton />
+          </div>
+        </DataTable.Col>
+      </DataTable>
+    </List>
+  );
+}
+```
+
+## Complete Example
+
+```tsx
+import {
+  DataTable,
+  EditButton,
+  DeleteButton,
+  ShowButton,
+  TextField,
+  DateField,
+  ReferenceField,
+} from '@/components/admin';
+
+export const OrderList = () => (
+  <DataTable>
+    <DataTable.Col source="id" />
+    <DataTable.Col source="order_number">
+      <TextField />
+    </DataTable.Col>
+    <DataTable.Col label="Customer">
+      <ReferenceField source="customer_id" reference="customers">
+        <TextField source="name" />
+      </ReferenceField>
+    </DataTable.Col>
+    <DataTable.Col source="created_at">
+      <DateField />
+    </DataTable.Col>
+    <DataTable.Col source="status" />
+    <DataTable.Col label="Actions">
+      <div className="flex gap-2">
+        <ShowButton variant="ghost" />
+        <EditButton />
+        <DeleteButton variant="destructive" />
+      </div>
+    </DataTable.Col>
+  </DataTable>
+);
+```
+
+## Conditional Rendering
+
+Show EditButton conditionally based on record data:
+
+```tsx
+import { EditButton } from '@/components/admin';
+import { useRecordContext } from '@/lib/hooks';
+
+export function ConditionalEditButton() {
+  const record = useRecordContext();
+  
+  // Only show edit for draft posts
+  if (record?.status !== 'draft') return null;
+  
+  return <EditButton />;
+}
+```
+
+## Related Components
+
+- [CreateButton](/docs/better-admin/components/create-button) - Navigate to create page
+- [DeleteButton](/docs/better-admin/components/delete-button) - Delete record
+- [ShowButton](/docs/better-admin/components/show-button) - Navigate to show page
+- [Edit](/docs/better-admin/components/edit) - Edit page container
+
+## Next Steps
+
+- [Learn about the Edit page](/docs/better-admin/components/edit)
+- [Configure button permissions](/docs/better-admin/auth-provider)
+- [Customize DataTable actions](/docs/better-admin/components/data-table)

@@ -1,0 +1,431 @@
+---
+title: SimpleForm
+description: Basic form container for create and edit pages
+---
+
+# SimpleForm
+
+The `<SimpleForm>` component is a form container that handles form submission, validation, and integration with better-query. It uses react-hook-form under the hood.
+
+## Usage
+
+Use SimpleForm in Create and Edit pages:
+
+```tsx
+import { Edit, SimpleForm, TextInput, NumberInput } from '@/components/admin';
+
+const ProductEdit = () => (
+  <Edit>
+    <SimpleForm>
+      <TextInput source="name" />
+      <TextInput source="description" multiline />
+      <NumberInput source="price" />
+      <NumberInput source="stock" />
+    </SimpleForm>
+  </Edit>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add simple-form
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `children` | Required | `ReactNode` | - | Form input components |
+| `defaultValues` | Optional | `object` | - | Default form values |
+| `validate` | Optional | `function` | - | Global form validation |
+| `onSubmit` | Optional | `function` | - | Custom submit handler |
+| `toolbar` | Optional | `ReactNode` | Default toolbar | Custom form toolbar |
+| `className` | Optional | `string` | - | CSS classes |
+
+## With better-query
+
+SimpleForm integrates with better-query for data operations:
+
+```tsx
+import { Edit, SimpleForm, TextInput, NumberInput } from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+
+export function ProductEdit({ id }: { id: string }) {
+  const { data, update } = useBetterQuery("product", query);
+
+  return (
+    <Edit
+      resource="product"
+      id={id}
+      onSubmit={(values) => {
+        update.mutate({
+          where: { id },
+          data: values,
+        });
+      }}
+    >
+      <SimpleForm>
+        <TextInput source="name" required />
+        <TextInput source="description" multiline rows={4} />
+        <NumberInput source="price" step={0.01} min={0} required />
+        <NumberInput source="stock" min={0} required />
+      </SimpleForm>
+    </Edit>
+  );
+}
+```
+
+## Default Values
+
+Set default values for new records:
+
+```tsx
+<Create>
+  <SimpleForm
+    defaultValues={{
+      status: 'draft',
+      published: false,
+      views: 0
+    }}
+  >
+    <TextInput source="title" />
+    <SelectInput source="status" choices={statusChoices} />
+    <BooleanInput source="published" />
+  </SimpleForm>
+</Create>
+```
+
+## Global Validation
+
+Add form-level validation:
+
+```tsx
+<SimpleForm
+  validate={(values) => {
+    const errors: any = {};
+    
+    if (values.price < values.cost) {
+      errors.price = 'Price must be higher than cost';
+    }
+    
+    if (values.start_date > values.end_date) {
+      errors.end_date = 'End date must be after start date';
+    }
+    
+    return errors;
+  }}
+>
+  <NumberInput source="cost" />
+  <NumberInput source="price" />
+  <TextInput source="start_date" type="date" />
+  <TextInput source="end_date" type="date" />
+</SimpleForm>
+```
+
+## Custom Toolbar
+
+Customize the form toolbar:
+
+```tsx
+import { SimpleForm, SaveButton, DeleteButton } from '@/components/admin';
+import { Button } from '@/components/ui/button';
+
+<SimpleForm
+  toolbar={
+    <div className="flex gap-2 justify-between">
+      <div className="flex gap-2">
+        <SaveButton />
+        <SaveButton label="Save and Continue" redirect={false} />
+      </div>
+      <DeleteButton />
+    </div>
+  }
+>
+  {/* form inputs */}
+</SimpleForm>
+```
+
+## No Toolbar
+
+Remove the toolbar completely:
+
+```tsx
+<SimpleForm toolbar={false}>
+  <TextInput source="name" />
+  <TextInput source="email" type="email" />
+  
+  {/* Add your own submit button */}
+  <Button type="submit">Submit</Button>
+</SimpleForm>
+```
+
+## Custom Submit Handler
+
+Override the default submit behavior:
+
+```tsx
+<SimpleForm
+  onSubmit={async (values) => {
+    try {
+      // Custom API call
+      await fetch('/api/products', {
+        method: 'POST',
+        body: JSON.stringify(values),
+      });
+      
+      // Show success message
+      console.log('Saved!');
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }}
+>
+  <TextInput source="name" />
+  <NumberInput source="price" />
+</SimpleForm>
+```
+
+## Form Sections
+
+Organize form into sections:
+
+```tsx
+<SimpleForm>
+  <div className="space-y-4">
+    <div className="border-b pb-4">
+      <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
+      <TextInput source="name" />
+      <TextInput source="description" multiline />
+    </div>
+    
+    <div className="border-b pb-4">
+      <h3 className="text-lg font-semibold mb-4">Pricing</h3>
+      <NumberInput source="price" />
+      <NumberInput source="cost" />
+      <NumberInput source="discount" />
+    </div>
+    
+    <div>
+      <h3 className="text-lg font-semibold mb-4">Inventory</h3>
+      <NumberInput source="stock" />
+      <TextInput source="sku" />
+    </div>
+  </div>
+</SimpleForm>
+```
+
+## Conditional Fields
+
+Show/hide fields based on values:
+
+```tsx
+import { SimpleForm, SelectInput, TextInput } from '@/components/admin';
+import { useWatch } from 'react-hook-form';
+
+function ConditionalFields() {
+  const type = useWatch({ name: 'type' });
+  
+  return (
+    <SimpleForm>
+      <SelectInput
+        source="type"
+        choices={[
+          { id: 'physical', name: 'Physical Product' },
+          { id: 'digital', name: 'Digital Product' },
+        ]}
+      />
+      
+      <TextInput source="name" />
+      
+      {type === 'physical' && (
+        <>
+          <NumberInput source="weight" />
+          <TextInput source="dimensions" />
+        </>
+      )}
+      
+      {type === 'digital' && (
+        <>
+          <TextInput source="download_url" type="url" />
+          <NumberInput source="file_size" />
+        </>
+      )}
+    </SimpleForm>
+  );
+}
+```
+
+## Complete Example
+
+```tsx
+import {
+  Create,
+  SimpleForm,
+  TextInput,
+  NumberInput,
+  SelectInput,
+  BooleanInput,
+  ReferenceInput,
+  ArrayInput,
+  SimpleFormIterator,
+  SaveButton,
+} from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+import { required, min, email } from '@/lib/validators';
+
+export function ProductCreate() {
+  const { create } = useBetterQuery("product", query);
+
+  return (
+    <Create
+      resource="product"
+      onSubmit={(values) => {
+        create.mutate({ 
+          data: {
+            ...values,
+            created_at: new Date().toISOString()
+          }
+        });
+      }}
+    >
+      <SimpleForm
+        defaultValues={{
+          status: 'draft',
+          published: false,
+          stock: 0,
+        }}
+        validate={(values) => {
+          const errors: any = {};
+          if (values.price && values.cost && values.price < values.cost) {
+            errors.price = 'Price must be higher than cost';
+          }
+          return errors;
+        }}
+        toolbar={
+          <div className="flex gap-2">
+            <SaveButton label="Save as Draft" />
+            <SaveButton 
+              label="Save and Publish" 
+              transform={(data) => ({ ...data, status: 'published' })}
+            />
+          </div>
+        }
+      >
+        {/* Basic Info */}
+        <div className="space-y-4 border-b pb-6 mb-6">
+          <h3 className="text-lg font-semibold">Basic Information</h3>
+          
+          <TextInput 
+            source="name" 
+            validate={required()}
+            required 
+          />
+          
+          <TextInput 
+            source="slug" 
+            helperText="URL-friendly name"
+          />
+          
+          <TextInput 
+            source="description" 
+            multiline 
+            rows={4}
+          />
+          
+          <ReferenceInput source="category_id" reference="categories">
+            <SelectInput validate={required()} required />
+          </ReferenceInput>
+        </div>
+        
+        {/* Pricing */}
+        <div className="space-y-4 border-b pb-6 mb-6">
+          <h3 className="text-lg font-semibold">Pricing</h3>
+          
+          <NumberInput 
+            source="cost" 
+            step={0.01}
+            min={0}
+            helperText="Cost per unit"
+          />
+          
+          <NumberInput 
+            source="price" 
+            step={0.01}
+            min={0}
+            validate={[required(), min(0.01)]}
+            required
+          />
+          
+          <NumberInput 
+            source="discount_percent" 
+            min={0}
+            max={100}
+          />
+        </div>
+        
+        {/* Inventory */}
+        <div className="space-y-4 border-b pb-6 mb-6">
+          <h3 className="text-lg font-semibold">Inventory</h3>
+          
+          <TextInput source="sku" />
+          
+          <NumberInput 
+            source="stock" 
+            min={0}
+            required
+          />
+          
+          <NumberInput source="reorder_level" min={0} />
+        </div>
+        
+        {/* Variants */}
+        <div className="space-y-4 border-b pb-6 mb-6">
+          <h3 className="text-lg font-semibold">Variants</h3>
+          
+          <ArrayInput source="variants">
+            <SimpleFormIterator>
+              <TextInput source="name" />
+              <NumberInput source="price" step={0.01} />
+              <NumberInput source="stock" />
+            </SimpleFormIterator>
+          </ArrayInput>
+        </div>
+        
+        {/* Status */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Status</h3>
+          
+          <SelectInput
+            source="status"
+            choices={[
+              { id: 'draft', name: 'Draft' },
+              { id: 'published', name: 'Published' },
+              { id: 'archived', name: 'Archived' },
+            ]}
+            required
+          />
+          
+          <BooleanInput source="featured" />
+          <BooleanInput source="available" />
+        </div>
+      </SimpleForm>
+    </Create>
+  );
+}
+```
+
+## Related Components
+
+- [Edit](/docs/better-admin/components/edit) - Edit page container
+- [Create](/docs/better-admin/components/create) - Create page container
+- [SaveButton](/docs/better-admin/components/save-button) - Form submit button
+- [ArrayInput](/docs/better-admin/components/array-input) - Array field input
+
+## Next Steps
+
+- [Learn about form validation](/docs/better-admin/validation)
+- [Explore Input components](/docs/better-admin/components)
+- [Work with better-query](/docs/better-admin/data-provider)

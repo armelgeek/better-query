@@ -1,0 +1,377 @@
+---
+title: ReferenceInput
+description: Select input for choosing related records
+---
+
+# ReferenceInput
+
+The `<ReferenceInput>` component is a select input that fetches and displays options from a related resource. It's used for creating relationships between resources in forms.
+
+## Usage
+
+Select a related record in a form:
+
+```tsx
+import { Edit, SimpleForm, TextInput, ReferenceInput, SelectInput } from '@/components/admin';
+
+const PostEdit = () => (
+  <Edit>
+    <SimpleForm>
+      <TextInput source="title" />
+      <ReferenceInput source="author_id" reference="users">
+        <SelectInput />
+      </ReferenceInput>
+      <ReferenceInput source="category_id" reference="categories">
+        <SelectInput />
+      </ReferenceInput>
+    </SimpleForm>
+  </Edit>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add reference-input
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `source` | Required | `string` | - | Field for the foreign key |
+| `reference` | Required | `string` | - | Name of the related resource |
+| `children` | Required | `ReactNode` | - | Input component (usually SelectInput or AutocompleteInput) |
+| `filter` | Optional | `object` | - | Permanent filter for choices |
+| `sort` | Optional | `{ field: string; order: 'ASC'\|'DESC' }` | - | Sort order for choices |
+| `perPage` | Optional | `number` | `25` | Number of choices to fetch |
+
+## With AutocompleteInput
+
+Use AutocompleteInput for searchable selections:
+
+```tsx
+import { ReferenceInput, AutocompleteInput } from '@/components/admin';
+
+<ReferenceInput source="author_id" reference="users">
+  <AutocompleteInput optionText="name" />
+</ReferenceInput>
+```
+
+## Filter Choices
+
+Filter the available choices:
+
+```tsx
+<ReferenceInput 
+  source="author_id" 
+  reference="users"
+  filter={{ role: 'author', active: true }}
+>
+  <SelectInput />
+</ReferenceInput>
+```
+
+## Sort Choices
+
+Sort the choices list:
+
+```tsx
+<ReferenceInput 
+  source="category_id" 
+  reference="categories"
+  sort={{ field: 'name', order: 'ASC' }}
+>
+  <SelectInput />
+</ReferenceInput>
+```
+
+## Custom Option Display
+
+Customize how options are displayed:
+
+```tsx
+<ReferenceInput source="user_id" reference="users">
+  <SelectInput optionText={(user) => `${user.name} (${user.email})`} />
+</ReferenceInput>
+```
+
+## With better-query
+
+ReferenceInput integrates with better-query:
+
+```tsx
+import { Edit, SimpleForm, TextInput, ReferenceInput, SelectInput } from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+
+export function PostEdit({ id }: { id: string }) {
+  const { data, update } = useBetterQuery("post", query);
+
+  return (
+    <Edit
+      resource="post"
+      id={id}
+      onSubmit={(values) => {
+        update.mutate({
+          where: { id },
+          data: values,
+        });
+      }}
+    >
+      <SimpleForm>
+        <TextInput source="title" required />
+        <TextInput source="content" multiline rows={6} />
+        
+        <ReferenceInput 
+          source="author_id" 
+          reference="users"
+          filter={{ role: 'author' }}
+          sort={{ field: 'name', order: 'ASC' }}
+        >
+          <SelectInput optionText="name" required />
+        </ReferenceInput>
+        
+        <ReferenceInput 
+          source="category_id" 
+          reference="categories"
+        >
+          <SelectInput optionText="name" />
+        </ReferenceInput>
+      </SimpleForm>
+    </Edit>
+  );
+}
+```
+
+## Multiple References
+
+Select multiple related records:
+
+```tsx
+import { ReferenceInput, AutocompleteArrayInput } from '@/components/admin';
+
+<ReferenceInput source="tag_ids" reference="tags">
+  <AutocompleteArrayInput />
+</ReferenceInput>
+```
+
+## Dependent References
+
+Create dependent reference inputs:
+
+```tsx
+import { ReferenceInput, SelectInput } from '@/components/admin';
+import { useWatch } from 'react-hook-form';
+
+export function DependentReferences() {
+  const countryId = useWatch({ name: 'country_id' });
+  
+  return (
+    <>
+      <ReferenceInput source="country_id" reference="countries">
+        <SelectInput optionText="name" />
+      </ReferenceInput>
+      
+      <ReferenceInput 
+        source="city_id" 
+        reference="cities"
+        filter={{ country_id: countryId }}
+        disabled={!countryId}
+      >
+        <SelectInput optionText="name" />
+      </ReferenceInput>
+    </>
+  );
+}
+```
+
+## With Validation
+
+Add validation rules:
+
+```tsx
+import { required } from '@/lib/validators';
+
+<ReferenceInput source="category_id" reference="categories">
+  <SelectInput validate={required('Category is required')} required />
+</ReferenceInput>
+```
+
+## Pagination
+
+Control how many options to fetch:
+
+```tsx
+<ReferenceInput 
+  source="product_id" 
+  reference="products"
+  perPage={50}
+>
+  <AutocompleteInput />
+</ReferenceInput>
+```
+
+## Complete Example
+
+```tsx
+import {
+  Create,
+  SimpleForm,
+  TextInput,
+  NumberInput,
+  ReferenceInput,
+  SelectInput,
+  AutocompleteInput,
+  BooleanInput,
+} from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+import { required, min } from '@/lib/validators';
+
+export function OrderCreate() {
+  const { create } = useBetterQuery("order", query);
+
+  return (
+    <Create
+      resource="order"
+      onSubmit={(values) => {
+        create.mutate({ 
+          data: {
+            ...values,
+            created_at: new Date().toISOString(),
+          }
+        });
+      }}
+    >
+      <SimpleForm>
+        {/* Customer Selection */}
+        <ReferenceInput 
+          source="customer_id" 
+          reference="customers"
+          sort={{ field: 'name', order: 'ASC' }}
+        >
+          <AutocompleteInput 
+            optionText={(customer) => `${customer.name} (${customer.email})`}
+            validate={required()}
+            required
+          />
+        </ReferenceInput>
+        
+        {/* Product Selection */}
+        <ReferenceInput 
+          source="product_id" 
+          reference="products"
+          filter={{ status: 'active' }}
+          sort={{ field: 'name', order: 'ASC' }}
+        >
+          <AutocompleteInput 
+            optionText="name"
+            validate={required()}
+            required
+          />
+        </ReferenceInput>
+        
+        <NumberInput 
+          source="quantity" 
+          min={1}
+          validate={[required(), min(1)]}
+          required
+        />
+        
+        {/* Shipping Address */}
+        <ReferenceInput 
+          source="shipping_address_id" 
+          reference="addresses"
+          filter={{ customer_id: '${customer_id}' }} // Dynamic filter
+        >
+          <SelectInput 
+            optionText={(address) => 
+              `${address.street}, ${address.city}, ${address.country}`
+            }
+          />
+        </ReferenceInput>
+        
+        {/* Shipping Method */}
+        <ReferenceInput 
+          source="shipping_method_id" 
+          reference="shipping_methods"
+          filter={{ active: true }}
+        >
+          <SelectInput 
+            optionText="name"
+            required
+          />
+        </ReferenceInput>
+        
+        {/* Payment Method */}
+        <ReferenceInput 
+          source="payment_method_id" 
+          reference="payment_methods"
+          filter={{ enabled: true }}
+        >
+          <SelectInput 
+            optionText="name"
+            required
+          />
+        </ReferenceInput>
+        
+        <TextInput source="notes" multiline rows={3} />
+        
+        <BooleanInput 
+          source="gift_wrap" 
+          label="Gift wrap"
+        />
+      </SimpleForm>
+    </Create>
+  );
+}
+```
+
+## Performance Optimization
+
+ReferenceInput automatically batches requests and caches results:
+
+```tsx
+{/* These will share the same request cache */}
+<ReferenceInput source="author_id" reference="users">
+  <SelectInput />
+</ReferenceInput>
+
+<ReferenceInput source="reviewer_id" reference="users">
+  <SelectInput />
+</ReferenceInput>
+```
+
+## Custom Empty Text
+
+Customize message when no options available:
+
+```tsx
+<ReferenceInput source="category_id" reference="categories">
+  <SelectInput emptyText="No categories available" />
+</ReferenceInput>
+```
+
+## Allow Empty Selection
+
+Enable clearing the selection:
+
+```tsx
+<ReferenceInput source="optional_field" reference="options">
+  <SelectInput allowEmpty />
+</ReferenceInput>
+```
+
+## Related Components
+
+- [ReferenceField](/docs/better-admin/components/reference-field) - Display related record
+- [ReferenceArrayInput](/docs/better-admin/components/reference-array-input) - Select multiple related records
+- [AutocompleteInput](/docs/better-admin/components/autocomplete-input) - Autocomplete with search
+- [SelectInput](/docs/better-admin/components/select-input) - Dropdown select
+
+## Next Steps
+
+- [Learn about ReferenceField](/docs/better-admin/components/reference-field)
+- [Work with relationships](/docs/better-admin/relationships)
+- [Optimize queries](/docs/better-admin/performance)

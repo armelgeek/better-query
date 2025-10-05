@@ -1,0 +1,361 @@
+---
+title: SearchInput
+description: Search input for filtering lists
+---
+
+# SearchInput
+
+The `<SearchInput>` component provides a search field for filtering list data. It supports debouncing and can be used as a standalone filter or within a filter set.
+
+## Usage
+
+Add search functionality to a list:
+
+```tsx
+import { List, DataTable, SearchInput } from '@/components/admin';
+
+const filters = [
+  <SearchInput source="q" alwaysOn />
+];
+
+const PostList = () => (
+  <List filters={filters}>
+    <DataTable>
+      <DataTable.Col source="title" />
+      <DataTable.Col source="author" />
+    </DataTable>
+  </List>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add search-input
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `source` | Required | `string` | - | Query parameter name |
+| `placeholder` | Optional | `string` | "Search..." | Placeholder text |
+| `alwaysOn` | Optional | `boolean` | `false` | Always visible (not collapsible) |
+| `resettable` | Optional | `boolean` | `true` | Show clear button |
+| `debounce` | Optional | `number` | `500` | Debounce delay in ms |
+
+## Always Visible
+
+Keep search input always visible:
+
+```tsx
+const filters = [
+  <SearchInput source="q" alwaysOn placeholder="Search posts..." />
+];
+```
+
+## Custom Placeholder
+
+Customize the placeholder text:
+
+```tsx
+<SearchInput source="q" placeholder="Search by name or email..." />
+<SearchInput source="q" placeholder="Type to search..." />
+```
+
+## Debounce Delay
+
+Control how long to wait before filtering:
+
+```tsx
+<SearchInput source="q" debounce={300} /> {/* 300ms delay */}
+<SearchInput source="q" debounce={1000} /> {/* 1s delay */}
+```
+
+## With Other Filters
+
+Combine with other filter inputs:
+
+```tsx
+import { 
+  List, 
+  DataTable, 
+  SearchInput, 
+  SelectInput,
+  DateInput 
+} from '@/components/admin';
+
+const filters = [
+  <SearchInput source="q" alwaysOn />,
+  <SelectInput 
+    source="status" 
+    choices={[
+      { id: 'published', name: 'Published' },
+      { id: 'draft', name: 'Draft' },
+    ]} 
+  />,
+  <DateInput source="published_after" />,
+];
+
+export const PostList = () => (
+  <List filters={filters}>
+    <DataTable>
+      {/* columns */}
+    </DataTable>
+  </List>
+);
+```
+
+## With better-query
+
+SearchInput automatically integrates with better-query:
+
+```tsx
+import { List, DataTable, SearchInput, TextField } from '@/components/admin';
+import { query } from '@/lib/query';
+
+const filters = [
+  <SearchInput source="q" alwaysOn placeholder="Search users..." />
+];
+
+export function UserList() {
+  return (
+    <List 
+      resource="users"
+      filters={filters}
+    >
+      <DataTable>
+        <DataTable.Col source="name">
+          <TextField />
+        </DataTable.Col>
+        <DataTable.Col source="email">
+          <TextField />
+        </DataTable.Col>
+        <DataTable.Col source="role">
+          <TextField />
+        </DataTable.Col>
+      </DataTable>
+    </List>
+  );
+}
+```
+
+## Multiple Search Fields
+
+Create specific search inputs for different fields:
+
+```tsx
+const filters = [
+  <SearchInput source="name" placeholder="Search by name..." />,
+  <SearchInput source="email" placeholder="Search by email..." />,
+  <SearchInput source="company" placeholder="Search by company..." />,
+];
+```
+
+## Full-Text Search
+
+Configure for full-text search:
+
+```tsx
+import { List, DataTable, SearchInput } from '@/components/admin';
+
+const filters = [
+  <SearchInput 
+    source="q" 
+    alwaysOn 
+    placeholder="Search in title, content, and tags..."
+  />
+];
+
+export const PostList = () => (
+  <List 
+    filters={filters}
+    // Configure the resource to handle full-text search
+    filter={{ searchFields: ['title', 'content', 'tags'] }}
+  >
+    <DataTable>
+      {/* columns */}
+    </DataTable>
+  </List>
+);
+```
+
+## Custom Search Icon
+
+Customize the search icon:
+
+```tsx
+import { SearchInput } from '@/components/admin';
+import { Search } from 'lucide-react';
+
+<SearchInput 
+  source="q" 
+  icon={<Search className="w-4 h-4" />}
+  placeholder="Search..."
+/>
+```
+
+## Complete Example
+
+```tsx
+import {
+  List,
+  DataTable,
+  SearchInput,
+  SelectInput,
+  DateInput,
+  TextField,
+  DateField,
+  ReferenceField,
+  EditButton,
+} from '@/components/admin';
+
+const postFilters = [
+  <SearchInput 
+    source="q" 
+    alwaysOn 
+    placeholder="Search posts by title or content..."
+    debounce={300}
+  />,
+  <SelectInput
+    source="status"
+    choices={[
+      { id: 'published', name: 'Published' },
+      { id: 'draft', name: 'Draft' },
+      { id: 'archived', name: 'Archived' },
+    ]}
+  />,
+  <ReferenceInput source="author_id" reference="users">
+    <SelectInput optionText="name" />
+  </ReferenceInput>,
+  <DateInput source="published_after" label="Published After" />,
+];
+
+export const PostList = () => (
+  <List 
+    filters={postFilters}
+    sort={{ field: 'created_at', order: 'DESC' }}
+    perPage={20}
+  >
+    <DataTable>
+      <DataTable.Col source="title">
+        <TextField className="font-semibold" />
+      </DataTable.Col>
+      
+      <DataTable.Col label="Author">
+        <ReferenceField source="author_id" reference="users">
+          <TextField source="name" />
+        </ReferenceField>
+      </DataTable.Col>
+      
+      <DataTable.Col source="status">
+        <TextField />
+      </DataTable.Col>
+      
+      <DataTable.Col source="published_at">
+        <DateField showTime />
+      </DataTable.Col>
+      
+      <DataTable.Col source="views">
+        <TextField />
+      </DataTable.Col>
+      
+      <DataTable.Col label="Actions">
+        <EditButton />
+      </DataTable.Col>
+    </DataTable>
+  </List>
+);
+```
+
+## Clear Button
+
+Control the clear button visibility:
+
+```tsx
+<SearchInput source="q" resettable={true} /> {/* Show clear button */}
+<SearchInput source="q" resettable={false} /> {/* Hide clear button */}
+```
+
+## Keyboard Shortcuts
+
+Add keyboard shortcut for focus:
+
+```tsx
+import { SearchInput } from '@/components/admin';
+import { useEffect, useRef } from 'react';
+
+export function SearchWithShortcut() {
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+  
+  return (
+    <SearchInput 
+      source="q" 
+      placeholder="Search (⌘K)"
+      ref={inputRef}
+    />
+  );
+}
+```
+
+## Search Suggestions
+
+Add search suggestions:
+
+```tsx
+import { SearchInput } from '@/components/admin';
+import { useState } from 'react';
+import { Command } from '@/components/ui/command';
+
+export function SearchWithSuggestions() {
+  const [suggestions, setSuggestions] = useState([]);
+  
+  return (
+    <div className="relative">
+      <SearchInput 
+        source="q"
+        onChange={(value) => {
+          // Fetch suggestions based on value
+          fetchSuggestions(value).then(setSuggestions);
+        }}
+      />
+      
+      {suggestions.length > 0 && (
+        <div className="absolute top-full mt-1 w-full">
+          <Command>
+            {suggestions.map((suggestion) => (
+              <Command.Item key={suggestion.id}>
+                {suggestion.text}
+              </Command.Item>
+            ))}
+          </Command>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Related Components
+
+- [List](/docs/better-admin/components/list) - List page container
+- [SelectInput](/docs/better-admin/components/select-input) - Dropdown filter
+- [DateInput](/docs/better-admin/components/date-input) - Date filter
+
+## Next Steps
+
+- [Learn about filters](/docs/better-admin/filters)
+- [Configure list pagination](/docs/better-admin/components/list-pagination)
+- [Work with better-query](/docs/better-admin/data-provider)

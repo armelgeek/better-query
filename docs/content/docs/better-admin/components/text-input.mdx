@@ -1,0 +1,305 @@
+---
+title: TextInput
+description: Input component for text values in forms
+---
+
+# TextInput
+
+The `<TextInput>` component is a form input for entering text values. It integrates with react-hook-form and better-query for seamless form handling.
+
+## Usage
+
+Use TextInput in forms:
+
+```tsx
+import { Edit, SimpleForm, TextInput } from '@/components/admin';
+
+const PostEdit = () => (
+  <Edit>
+    <SimpleForm>
+      <TextInput source="title" />
+      <TextInput source="author" />
+      <TextInput source="content" multiline rows={4} />
+    </SimpleForm>
+  </Edit>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add text-input
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `source` | Required | `string` | - | Field name |
+| `label` | Optional | `string` | Inferred | Input label |
+| `placeholder` | Optional | `string` | - | Placeholder text |
+| `helperText` | Optional | `string` | - | Help text below input |
+| `multiline` | Optional | `boolean` | `false` | Render as textarea |
+| `rows` | Optional | `number` | `3` | Textarea rows (when multiline) |
+| `type` | Optional | `string` | "text" | HTML input type |
+| `required` | Optional | `boolean` | `false` | Mark as required |
+| `disabled` | Optional | `boolean` | `false` | Disable input |
+| `readOnly` | Optional | `boolean` | `false` | Read-only mode |
+| `validate` | Optional | `Validator[]` | - | Validation rules |
+| `className` | Optional | `string` | - | CSS classes |
+
+## Multiline Text
+
+Use multiline for longer text content:
+
+```tsx
+<TextInput 
+  source="description" 
+  multiline 
+  rows={5} 
+  placeholder="Enter description..."
+/>
+```
+
+## Input Types
+
+Use different HTML input types:
+
+```tsx
+<TextInput source="email" type="email" />
+<TextInput source="url" type="url" />
+<TextInput source="tel" type="tel" />
+<TextInput source="password" type="password" />
+```
+
+## With Validation
+
+Add validation rules:
+
+```tsx
+import { required, minLength, maxLength, email } from '@/lib/validators';
+
+<TextInput 
+  source="title" 
+  validate={[
+    required('Title is required'),
+    minLength(3, 'Must be at least 3 characters'),
+    maxLength(100, 'Must be less than 100 characters')
+  ]} 
+/>
+
+<TextInput 
+  source="email" 
+  type="email"
+  validate={[required(), email('Invalid email')]} 
+/>
+```
+
+## Helper Text
+
+Add helpful information below the input:
+
+```tsx
+<TextInput 
+  source="username" 
+  helperText="Username must be unique"
+/>
+<TextInput 
+  source="slug" 
+  helperText="Used in the URL. Only lowercase letters, numbers, and hyphens."
+/>
+```
+
+## Placeholders
+
+```tsx
+<TextInput source="name" placeholder="Enter your name" />
+<TextInput source="bio" multiline placeholder="Tell us about yourself..." />
+```
+
+## Required Fields
+
+Mark fields as required:
+
+```tsx
+<TextInput source="name" required />
+<TextInput source="email" type="email" required />
+```
+
+## Read-only
+
+Make fields read-only:
+
+```tsx
+<TextInput source="id" readOnly />
+<TextInput source="created_at" readOnly />
+```
+
+## With better-query
+
+TextInput works seamlessly with better-query forms:
+
+```tsx
+import { Edit, SimpleForm, TextInput } from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+
+export function PostEdit({ id }: { id: string }) {
+  const { data, update } = useBetterQuery("post", query);
+
+  return (
+    <Edit
+      resource="post"
+      id={id}
+      onSubmit={(values) => {
+        update.mutate({
+          where: { id },
+          data: values,
+        });
+      }}
+    >
+      <SimpleForm>
+        <TextInput source="title" required />
+        <TextInput source="slug" helperText="URL-friendly version" />
+        <TextInput 
+          source="description" 
+          multiline 
+          rows={4}
+          placeholder="Brief description..."
+        />
+      </SimpleForm>
+    </Edit>
+  );
+}
+```
+
+## Custom Labels
+
+Customize field labels:
+
+```tsx
+<TextInput source="firstName" label="First Name" />
+<TextInput source="lastName" label="Last Name" />
+```
+
+## Styling
+
+Apply custom styles:
+
+```tsx
+<TextInput 
+  source="code" 
+  className="font-mono" 
+  placeholder="ABC-123"
+/>
+```
+
+## Complete Example
+
+```tsx
+import {
+  Create,
+  SimpleForm,
+  TextInput,
+  NumberInput,
+  SelectInput,
+} from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+import { required, email, minLength } from '@/lib/validators';
+
+export function UserCreate() {
+  const { create } = useBetterQuery("user", query);
+
+  return (
+    <Create
+      resource="user"
+      onSubmit={(values) => {
+        create.mutate({ data: values });
+      }}
+    >
+      <SimpleForm>
+        <TextInput 
+          source="name" 
+          validate={required()}
+          required 
+        />
+        <TextInput 
+          source="email" 
+          type="email"
+          validate={[required(), email()]}
+          required 
+        />
+        <TextInput 
+          source="phone" 
+          type="tel"
+          placeholder="+1 (555) 123-4567"
+        />
+        <TextInput 
+          source="bio" 
+          multiline 
+          rows={4}
+          validate={maxLength(500)}
+          helperText="Maximum 500 characters"
+        />
+        <SelectInput
+          source="role"
+          choices={[
+            { id: 'user', name: 'User' },
+            { id: 'admin', name: 'Admin' },
+          ]}
+          required
+        />
+      </SimpleForm>
+    </Create>
+  );
+}
+```
+
+## Format on Blur
+
+Format input value when user leaves the field:
+
+```tsx
+import { TextInput } from '@/components/admin';
+
+<TextInput 
+  source="slug"
+  parse={(value) => value?.toLowerCase().replace(/\s+/g, '-')}
+/>
+```
+
+## With Debouncing
+
+Debounce input changes:
+
+```tsx
+import { TextInput } from '@/components/admin';
+import { useFormContext } from 'react-hook-form';
+import { useDebounce } from '@/lib/hooks';
+
+export function DebouncedTextInput({ source }: { source: string }) {
+  const { setValue, watch } = useFormContext();
+  const value = watch(source);
+  const debouncedValue = useDebounce(value, 500);
+
+  useEffect(() => {
+    // Trigger validation or API call with debounced value
+  }, [debouncedValue]);
+
+  return <TextInput source={source} />;
+}
+```
+
+## Related Components
+
+- [NumberInput](/docs/better-admin/components/number-input) - Input for numbers
+- [SelectInput](/docs/better-admin/components/select-input) - Select dropdown
+- [AutocompleteInput](/docs/better-admin/components/autocomplete-input) - Autocomplete input
+- [SearchInput](/docs/better-admin/components/search-input) - Search field
+
+## Next Steps
+
+- [Learn about form validation](/docs/better-admin/validation)
+- [Explore other Input components](/docs/better-admin/components)
+- [Use forms with better-query](/docs/better-admin/data-provider)

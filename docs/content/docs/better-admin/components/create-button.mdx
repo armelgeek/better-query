@@ -1,0 +1,176 @@
+---
+title: CreateButton
+description: Navigation button to the create page for a resource
+---
+
+# CreateButton
+
+The `<CreateButton>` component is a navigation button that takes users to the create page for a resource. It automatically determines the resource from context or accepts it as a prop.
+
+## Usage
+
+Use the button inside a List or any component with ResourceContext:
+
+```tsx
+import { CreateButton, List, ExportButton } from '@/components/admin';
+
+const PostList = () => (
+  <List
+    actions={
+      <>
+        <CreateButton />
+        <ExportButton />
+      </>
+    }
+  >
+    {/* list content */}
+  </List>
+);
+```
+
+Clicking the button navigates to the create route (e.g., `/posts/create`).
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add create-button
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `label` | Optional | `string` | "Create" | Button label text |
+| `resource` | Optional | `string` | From context | Target resource for create route |
+| `icon` | Optional | `ReactNode` | Plus icon | Custom button icon |
+| `variant` | Optional | `string` | "default" | Button variant (default, outline, ghost) |
+
+## With Specific Resource
+
+Specify a resource explicitly:
+
+```tsx
+<CreateButton resource="posts" label="New Post" />
+```
+
+## Custom Label
+
+Customize the button label:
+
+```tsx
+<CreateButton label="Add New" />
+<CreateButton label="Create Post" />
+```
+
+## Custom Icon
+
+Use a custom icon:
+
+```tsx
+import { PlusCircle } from 'lucide-react';
+
+<CreateButton icon={<PlusCircle />} label="New Item" />
+```
+
+## Different Variants
+
+Use different button styles:
+
+```tsx
+<CreateButton variant="outline" />
+<CreateButton variant="ghost" />
+<CreateButton variant="default" />
+```
+
+## In Toolbars
+
+CreateButton is commonly used in action toolbars:
+
+```tsx
+import { List, CreateButton, ExportButton, RefreshButton } from '@/components/admin';
+
+const PostList = () => (
+  <List
+    actions={
+      <div className="flex gap-2">
+        <RefreshButton />
+        <CreateButton />
+        <ExportButton />
+      </div>
+    }
+  >
+    {/* list content */}
+  </List>
+);
+```
+
+## With better-auth Permissions
+
+Control visibility based on user permissions:
+
+```tsx
+import { CreateButton } from '@/components/admin';
+import { useBetterAuth } from 'better-admin';
+
+export function PostListActions() {
+  const { user } = useBetterAuth();
+  const canCreate = user?.permissions?.includes('posts.create');
+
+  return (
+    <>
+      {canCreate && <CreateButton />}
+      <ExportButton />
+    </>
+  );
+}
+```
+
+## Complete Example
+
+```tsx
+import {
+  List,
+  DataTable,
+  CreateButton,
+  ExportButton,
+  EditButton,
+  DeleteButton,
+} from '@/components/admin';
+
+export const UserList = () => (
+  <List
+    title="Users"
+    actions={
+      <>
+        <CreateButton label="New User" />
+        <ExportButton />
+      </>
+    }
+  >
+    <DataTable>
+      <DataTable.Col source="name" />
+      <DataTable.Col source="email" />
+      <DataTable.Col source="role" />
+      <DataTable.Col label="Actions">
+        <div className="flex gap-2">
+          <EditButton />
+          <DeleteButton />
+        </div>
+      </DataTable.Col>
+    </DataTable>
+  </List>
+);
+```
+
+## Related Components
+
+- [EditButton](/docs/better-admin/components/edit-button) - Navigate to edit page
+- [DeleteButton](/docs/better-admin/components/delete-button) - Delete record
+- [List](/docs/better-admin/components/list) - List page container
+- [Create](/docs/better-admin/components/create) - Create page container
+
+## Next Steps
+
+- [Learn about the Create page](/docs/better-admin/components/create)
+- [Configure button permissions](/docs/better-admin/auth-provider)
+- [Customize button styles](/docs/better-admin/theming)

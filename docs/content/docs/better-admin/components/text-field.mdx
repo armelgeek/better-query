@@ -1,0 +1,245 @@
+---
+title: TextField
+description: Display text values in list and show pages
+---
+
+# TextField
+
+The `<TextField>` component displays a text value from a record. It's the most basic field component for displaying string data.
+
+## Usage
+
+Use TextField in DataTable columns or show layouts:
+
+```tsx
+import { DataTable, TextField } from '@/components/admin';
+
+const PostList = () => (
+  <DataTable>
+    <DataTable.Col source="title">
+      <TextField />
+    </DataTable.Col>
+    <DataTable.Col source="author">
+      <TextField />
+    </DataTable.Col>
+  </DataTable>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add text-field
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `source` | Optional* | `string` | From col | Field name to display |
+| `record` | Optional | `object` | From context | Record object |
+| `className` | Optional | `string` | - | CSS classes |
+| `emptyText` | Optional | `string` | "-" | Text when value is empty |
+
+*source is required unless provided by DataTable.Col
+
+## In Show Pages
+
+Display text fields in show layouts:
+
+```tsx
+import { Show, SimpleShowLayout, TextField } from '@/components/admin';
+
+export const PostShow = () => (
+  <Show>
+    <SimpleShowLayout>
+      <TextField source="title" />
+      <TextField source="author" />
+      <TextField source="content" />
+    </SimpleShowLayout>
+  </Show>
+);
+```
+
+## With better-query
+
+TextField automatically displays data from better-query:
+
+```tsx
+import { useBetterQuery } from 'better-admin';
+import { Show, SimpleShowLayout, TextField } from '@/components/admin';
+import { query } from '@/lib/query';
+
+export function PostShow({ id }: { id: string }) {
+  const { data } = useBetterQuery("post", query);
+
+  return (
+    <Show resource="post" id={id}>
+      <SimpleShowLayout>
+        <TextField source="title" />
+        <TextField source="description" />
+      </SimpleShowLayout>
+    </Show>
+  );
+}
+```
+
+## Empty Values
+
+Customize text displayed for empty values:
+
+```tsx
+<TextField source="description" emptyText="No description" />
+<TextField source="notes" emptyText="N/A" />
+```
+
+## Truncate Long Text
+
+Truncate long text with CSS:
+
+```tsx
+<TextField 
+  source="description" 
+  className="max-w-md truncate" 
+/>
+```
+
+## Nested Fields
+
+Access nested object properties:
+
+```tsx
+<TextField source="author.name" />
+<TextField source="address.city" />
+<TextField source="metadata.tags.0" />
+```
+
+## Custom Formatting
+
+Apply custom formatting by wrapping TextField:
+
+```tsx
+import { TextField } from '@/components/admin';
+import { useRecordContext } from '@/lib/hooks';
+
+export function UpperCaseTextField({ source }: { source: string }) {
+  const record = useRecordContext();
+  const value = record?.[source];
+  
+  return (
+    <span className="uppercase font-semibold">
+      {value || '-'}
+    </span>
+  );
+}
+```
+
+## With Icons
+
+Combine TextField with icons:
+
+```tsx
+import { TextField } from '@/components/admin';
+import { User } from 'lucide-react';
+
+<DataTable.Col source="author">
+  <div className="flex items-center gap-2">
+    <User className="w-4 h-4" />
+    <TextField />
+  </div>
+</DataTable.Col>
+```
+
+## Complete Example
+
+```tsx
+import {
+  DataTable,
+  TextField,
+  DateField,
+  EmailField,
+  UrlField,
+  EditButton,
+} from '@/components/admin';
+
+export const UserList = () => (
+  <DataTable>
+    <DataTable.Col source="id" />
+    <DataTable.Col source="name">
+      <TextField className="font-semibold" />
+    </DataTable.Col>
+    <DataTable.Col source="email">
+      <EmailField />
+    </DataTable.Col>
+    <DataTable.Col source="website">
+      <UrlField />
+    </DataTable.Col>
+    <DataTable.Col source="bio">
+      <TextField className="max-w-xs truncate" emptyText="No bio" />
+    </DataTable.Col>
+    <DataTable.Col source="created_at">
+      <DateField />
+    </DataTable.Col>
+    <DataTable.Col>
+      <EditButton />
+    </DataTable.Col>
+  </DataTable>
+);
+```
+
+## Styling
+
+Apply custom styles:
+
+```tsx
+<TextField 
+  source="title" 
+  className="text-lg font-bold text-primary" 
+/>
+<TextField 
+  source="status" 
+  className="uppercase text-xs font-mono" 
+/>
+```
+
+## With Conditional Styling
+
+Apply conditional styles based on value:
+
+```tsx
+import { TextField } from '@/components/admin';
+import { useRecordContext } from '@/lib/hooks';
+import { cn } from '@/lib/utils';
+
+export function StatusTextField() {
+  const record = useRecordContext();
+  const status = record?.status;
+  
+  return (
+    <span
+      className={cn(
+        'px-2 py-1 rounded',
+        status === 'active' && 'bg-green-100 text-green-800',
+        status === 'inactive' && 'bg-gray-100 text-gray-800',
+        status === 'pending' && 'bg-yellow-100 text-yellow-800'
+      )}
+    >
+      {status}
+    </span>
+  );
+}
+```
+
+## Related Components
+
+- [NumberField](/docs/better-admin/components/number-field) - Display numbers
+- [DateField](/docs/better-admin/components/date-field) - Display dates
+- [EmailField](/docs/better-admin/components/email-field) - Display emails
+- [UrlField](/docs/better-admin/components/url-field) - Display URLs
+- [ReferenceField](/docs/better-admin/components/reference-field) - Display related records
+
+## Next Steps
+
+- [Learn about other Field components](/docs/better-admin/components)
+- [Customize field display](/docs/better-admin/customization)
+- [Use fields in Show pages](/docs/better-admin/components/show)

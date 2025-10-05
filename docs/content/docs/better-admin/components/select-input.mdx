@@ -1,0 +1,358 @@
+---
+title: SelectInput
+description: Dropdown select input for forms
+---
+
+# SelectInput
+
+The `<SelectInput>` component is a dropdown select input for choosing from a list of options. It integrates with react-hook-form and supports both static and dynamic choices.
+
+## Usage
+
+Use SelectInput with static choices:
+
+```tsx
+import { Edit, SimpleForm, TextInput, SelectInput } from '@/components/admin';
+
+const UserEdit = () => (
+  <Edit>
+    <SimpleForm>
+      <TextInput source="name" />
+      <SelectInput
+        source="role"
+        choices={[
+          { id: 'user', name: 'User' },
+          { id: 'admin', name: 'Admin' },
+          { id: 'moderator', name: 'Moderator' },
+        ]}
+      />
+    </SimpleForm>
+  </Edit>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add select-input
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `source` | Required | `string` | - | Field name |
+| `choices` | Required | `array` | - | List of options |
+| `label` | Optional | `string` | Inferred | Input label |
+| `placeholder` | Optional | `string` | "Select..." | Placeholder text |
+| `helperText` | Optional | `string` | - | Help text below input |
+| `optionText` | Optional | `string \| function` | "name" | Field to display for each choice |
+| `optionValue` | Optional | `string` | "id" | Field to use as value |
+| `required` | Optional | `boolean` | `false` | Mark as required |
+| `disabled` | Optional | `boolean` | `false` | Disable input |
+| `validate` | Optional | `Validator[]` | - | Validation rules |
+| `allowEmpty` | Optional | `boolean` | `false` | Allow clearing selection |
+
+## Choice Format
+
+Choices must have `id` and `name` properties by default:
+
+```tsx
+<SelectInput
+  source="status"
+  choices={[
+    { id: 'draft', name: 'Draft' },
+    { id: 'published', name: 'Published' },
+    { id: 'archived', name: 'Archived' },
+  ]}
+/>
+```
+
+## Custom Option Properties
+
+Use different properties for value and display:
+
+```tsx
+<SelectInput
+  source="category_id"
+  choices={[
+    { value: 1, label: 'Electronics' },
+    { value: 2, label: 'Clothing' },
+    { value: 3, label: 'Books' },
+  ]}
+  optionValue="value"
+  optionText="label"
+/>
+```
+
+## Option Text as Function
+
+Customize how options are displayed:
+
+```tsx
+<SelectInput
+  source="user_id"
+  choices={users}
+  optionText={(user) => `${user.name} (${user.email})`}
+/>
+```
+
+## Allow Empty Selection
+
+Enable clearing the selection:
+
+```tsx
+<SelectInput
+  source="category"
+  choices={categories}
+  allowEmpty
+  placeholder="Select a category..."
+/>
+```
+
+## With Validation
+
+Add validation rules:
+
+```tsx
+import { required } from '@/lib/validators';
+
+<SelectInput
+  source="status"
+  choices={statusChoices}
+  validate={required('Status is required')}
+  required
+/>
+```
+
+## Helper Text
+
+Add helpful information:
+
+```tsx
+<SelectInput
+  source="priority"
+  choices={[
+    { id: 'low', name: 'Low' },
+    { id: 'medium', name: 'Medium' },
+    { id: 'high', name: 'High' },
+  ]}
+  helperText="Choose task priority level"
+/>
+```
+
+## With better-query
+
+Use with better-query for dynamic choices:
+
+```tsx
+import { Edit, SimpleForm, TextInput, SelectInput } from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+
+export function PostEdit({ id }: { id: string }) {
+  const { data: post, update } = useBetterQuery("post", query);
+  const { data: categories } = useBetterQuery("category", query);
+
+  return (
+    <Edit
+      resource="post"
+      id={id}
+      onSubmit={(values) => {
+        update.mutate({
+          where: { id },
+          data: values,
+        });
+      }}
+    >
+      <SimpleForm>
+        <TextInput source="title" required />
+        <SelectInput
+          source="category_id"
+          choices={categories || []}
+          required
+        />
+        <SelectInput
+          source="status"
+          choices={[
+            { id: 'draft', name: 'Draft' },
+            { id: 'published', name: 'Published' },
+            { id: 'archived', name: 'Archived' },
+          ]}
+          required
+        />
+      </SimpleForm>
+    </Edit>
+  );
+}
+```
+
+## Grouped Options
+
+Create option groups:
+
+```tsx
+<SelectInput
+  source="fruit"
+  choices={[
+    { id: 'citrus', name: 'Citrus', group: 'Category' },
+    { id: 'orange', name: 'Orange', group: 'Citrus' },
+    { id: 'lemon', name: 'Lemon', group: 'Citrus' },
+    { id: 'berry', name: 'Berries', group: 'Category' },
+    { id: 'strawberry', name: 'Strawberry', group: 'Berries' },
+  ]}
+/>
+```
+
+## Disabled Options
+
+Disable specific options:
+
+```tsx
+<SelectInput
+  source="plan"
+  choices={[
+    { id: 'free', name: 'Free', disabled: false },
+    { id: 'pro', name: 'Pro', disabled: false },
+    { id: 'enterprise', name: 'Enterprise', disabled: true }, // Coming soon
+  ]}
+/>
+```
+
+## Complete Example
+
+```tsx
+import {
+  Create,
+  SimpleForm,
+  TextInput,
+  NumberInput,
+  SelectInput,
+} from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+import { required, min } from '@/lib/validators';
+
+export function ProductCreate() {
+  const { create } = useBetterQuery("product", query);
+  const { data: categories } = useBetterQuery("category", query);
+  const { data: suppliers } = useBetterQuery("supplier", query);
+
+  return (
+    <Create
+      resource="product"
+      onSubmit={(values) => {
+        create.mutate({ data: values });
+      }}
+    >
+      <SimpleForm>
+        <TextInput 
+          source="name" 
+          validate={required()}
+          required 
+        />
+        
+        <SelectInput
+          source="category_id"
+          choices={categories || []}
+          validate={required()}
+          required
+          helperText="Product category"
+        />
+        
+        <SelectInput
+          source="supplier_id"
+          choices={suppliers || []}
+          optionText={(supplier) => `${supplier.name} (${supplier.country})`}
+          allowEmpty
+          helperText="Optional supplier"
+        />
+        
+        <NumberInput 
+          source="price" 
+          step={0.01}
+          min={0}
+          validate={[required(), min(0.01)]}
+          required
+        />
+        
+        <SelectInput
+          source="status"
+          choices={[
+            { id: 'active', name: 'Active' },
+            { id: 'inactive', name: 'Inactive' },
+            { id: 'discontinued', name: 'Discontinued' },
+          ]}
+          required
+          helperText="Product availability status"
+        />
+        
+        <SelectInput
+          source="unit"
+          choices={[
+            { id: 'piece', name: 'Piece' },
+            { id: 'kg', name: 'Kilogram' },
+            { id: 'liter', name: 'Liter' },
+            { id: 'box', name: 'Box' },
+          ]}
+          required
+        />
+      </SimpleForm>
+    </Create>
+  );
+}
+```
+
+## With Dependencies
+
+Create dependent selects:
+
+```tsx
+import { SelectInput } from '@/components/admin';
+import { useWatch } from 'react-hook-form';
+
+export function DependentSelects() {
+  const country = useWatch({ name: 'country' });
+  
+  const getCities = (country: string) => {
+    // Return cities based on selected country
+    if (country === 'us') {
+      return [
+        { id: 'ny', name: 'New York' },
+        { id: 'la', name: 'Los Angeles' },
+      ];
+    }
+    return [];
+  };
+
+  return (
+    <>
+      <SelectInput
+        source="country"
+        choices={[
+          { id: 'us', name: 'United States' },
+          { id: 'ca', name: 'Canada' },
+        ]}
+      />
+      
+      <SelectInput
+        source="city"
+        choices={getCities(country)}
+        disabled={!country}
+      />
+    </>
+  );
+}
+```
+
+## Related Components
+
+- [AutocompleteInput](/docs/better-admin/components/autocomplete-input) - Autocomplete with search
+- [RadioButtonGroupInput](/docs/better-admin/components/radio-button-group-input) - Radio buttons
+- [ReferenceInput](/docs/better-admin/components/reference-input) - Select from related resource
+
+## Next Steps
+
+- [Learn about AutocompleteInput](/docs/better-admin/components/autocomplete-input)
+- [Work with ReferenceInput](/docs/better-admin/components/reference-input)
+- [Form validation](/docs/better-admin/validation)

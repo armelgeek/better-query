@@ -1,0 +1,333 @@
+---
+title: NumberInput
+description: Input component for numeric values in forms
+---
+
+# NumberInput
+
+The `<NumberInput>` component is a form input for entering numeric values. It provides built-in validation and formatting for numbers.
+
+## Usage
+
+Use NumberInput in forms for numeric data:
+
+```tsx
+import { Edit, SimpleForm, TextInput, NumberInput } from '@/components/admin';
+
+const ProductEdit = () => (
+  <Edit>
+    <SimpleForm>
+      <TextInput source="name" />
+      <NumberInput source="price" />
+      <NumberInput source="stock" />
+      <NumberInput source="discount" step={0.01} />
+    </SimpleForm>
+  </Edit>
+);
+```
+
+## Installation
+
+```bash title="Terminal"
+npx better-admin add number-input
+```
+
+## Props
+
+| Prop | Required | Type | Default | Description |
+|------|----------|------|---------|-------------|
+| `source` | Required | `string` | - | Field name |
+| `label` | Optional | `string` | Inferred | Input label |
+| `placeholder` | Optional | `string` | - | Placeholder text |
+| `helperText` | Optional | `string` | - | Help text below input |
+| `min` | Optional | `number` | - | Minimum value |
+| `max` | Optional | `number` | - | Maximum value |
+| `step` | Optional | `number` | `1` | Step increment |
+| `required` | Optional | `boolean` | `false` | Mark as required |
+| `disabled` | Optional | `boolean` | `false` | Disable input |
+| `readOnly` | Optional | `boolean` | `false` | Read-only mode |
+| `validate` | Optional | `Validator[]` | - | Validation rules |
+
+## Min and Max Values
+
+Set bounds for the input:
+
+```tsx
+<NumberInput source="age" min={0} max={120} />
+<NumberInput source="rating" min={1} max={5} />
+<NumberInput source="quantity" min={0} />
+```
+
+## Step Increment
+
+Control the increment step:
+
+```tsx
+<NumberInput source="price" step={0.01} /> {/* Decimals */}
+<NumberInput source="quantity" step={1} /> {/* Integers */}
+<NumberInput source="discount" step={5} /> {/* Steps of 5 */}
+```
+
+## With Validation
+
+Add validation rules:
+
+```tsx
+import { required, min, max, number } from '@/lib/validators';
+
+<NumberInput 
+  source="price" 
+  validate={[
+    required('Price is required'),
+    min(0, 'Price must be positive'),
+    max(10000, 'Price too high')
+  ]} 
+  step={0.01}
+/>
+```
+
+## Helper Text
+
+Add context about the input:
+
+```tsx
+<NumberInput 
+  source="stock" 
+  helperText="Current inventory level"
+  min={0}
+/>
+<NumberInput 
+  source="discount_percent" 
+  helperText="Enter percentage (0-100)"
+  min={0}
+  max={100}
+/>
+```
+
+## Required Fields
+
+Mark fields as required:
+
+```tsx
+<NumberInput source="price" required min={0} />
+<NumberInput source="quantity" required min={1} />
+```
+
+## With better-query
+
+NumberInput integrates with better-query:
+
+```tsx
+import { Edit, SimpleForm, TextInput, NumberInput } from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+
+export function ProductEdit({ id }: { id: string }) {
+  const { data, update } = useBetterQuery("product", query);
+
+  return (
+    <Edit
+      resource="product"
+      id={id}
+      onSubmit={(values) => {
+        update.mutate({
+          where: { id },
+          data: values,
+        });
+      }}
+    >
+      <SimpleForm>
+        <TextInput source="name" required />
+        <TextInput source="sku" />
+        <NumberInput 
+          source="price" 
+          step={0.01}
+          min={0}
+          required 
+          helperText="Price in USD"
+        />
+        <NumberInput 
+          source="stock" 
+          min={0}
+          required 
+        />
+        <NumberInput 
+          source="discount_percent" 
+          min={0}
+          max={100}
+          helperText="Discount percentage (0-100)"
+        />
+      </SimpleForm>
+    </Edit>
+  );
+}
+```
+
+## Currency Input
+
+Create a currency input wrapper:
+
+```tsx
+import { NumberInput } from '@/components/admin';
+
+export function CurrencyInput({ source, ...props }: any) {
+  return (
+    <NumberInput
+      source={source}
+      step={0.01}
+      min={0}
+      {...props}
+      format={(value) => value ? `$${value.toFixed(2)}` : ''}
+      parse={(value) => parseFloat(value.replace('$', '')) || 0}
+    />
+  );
+}
+```
+
+## Percentage Input
+
+```tsx
+<NumberInput 
+  source="tax_rate" 
+  min={0}
+  max={100}
+  step={0.1}
+  helperText="Tax rate percentage"
+  suffix="%"
+/>
+```
+
+## Complete Example
+
+```tsx
+import {
+  Create,
+  SimpleForm,
+  TextInput,
+  NumberInput,
+  SelectInput,
+} from '@/components/admin';
+import { useBetterQuery } from 'better-admin';
+import { query } from '@/lib/query';
+import { required, min } from '@/lib/validators';
+
+export function ProductCreate() {
+  const { create } = useBetterQuery("product", query);
+
+  return (
+    <Create
+      resource="product"
+      onSubmit={(values) => {
+        create.mutate({ data: values });
+      }}
+    >
+      <SimpleForm>
+        <TextInput 
+          source="name" 
+          validate={required()}
+          required 
+        />
+        
+        <TextInput 
+          source="sku" 
+          validate={required()}
+          helperText="Unique product identifier"
+        />
+        
+        <NumberInput 
+          source="price" 
+          step={0.01}
+          min={0}
+          validate={[required(), min(0.01, 'Price must be greater than 0')]}
+          required
+          helperText="Price in USD"
+        />
+        
+        <NumberInput 
+          source="cost" 
+          step={0.01}
+          min={0}
+          helperText="Cost per unit"
+        />
+        
+        <NumberInput 
+          source="stock" 
+          min={0}
+          validate={[required(), min(0)]}
+          required
+          helperText="Available inventory"
+        />
+        
+        <NumberInput 
+          source="weight" 
+          step={0.01}
+          min={0}
+          helperText="Weight in kg"
+        />
+        
+        <NumberInput 
+          source="discount_percent" 
+          min={0}
+          max={100}
+          step={1}
+          helperText="Discount percentage (0-100)"
+        />
+        
+        <SelectInput
+          source="status"
+          choices={[
+            { id: 'active', name: 'Active' },
+            { id: 'inactive', name: 'Inactive' },
+          ]}
+          required
+        />
+      </SimpleForm>
+    </Create>
+  );
+}
+```
+
+## Format and Parse
+
+Custom formatting and parsing:
+
+```tsx
+<NumberInput
+  source="phone"
+  format={(value) => {
+    // Format for display
+    return value?.toString().replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+  }}
+  parse={(value) => {
+    // Parse for storage
+    return parseInt(value.replace(/\D/g, ''));
+  }}
+/>
+```
+
+## Integer Only
+
+Restrict to integers:
+
+```tsx
+<NumberInput 
+  source="quantity" 
+  step={1}
+  validate={[
+    required(),
+    (value) => Number.isInteger(value) || 'Must be an integer'
+  ]}
+/>
+```
+
+## Related Components
+
+- [TextInput](/docs/better-admin/components/text-input) - Text input
+- [SelectInput](/docs/better-admin/components/select-input) - Select dropdown
+- [NumberField](/docs/better-admin/components/number-field) - Display numbers
+
+## Next Steps
+
+- [Learn about form validation](/docs/better-admin/validation)
+- [Explore other Input components](/docs/better-admin/components)
+- [Work with forms](/docs/better-admin/forms)
