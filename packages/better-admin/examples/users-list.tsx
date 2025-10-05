@@ -7,11 +7,11 @@
 
 "use client";
 
-import { DataTable } from "@/components/ui/data-table";
-import { useQuery } from "better-query/react";
-import { ColumnDef } from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
+import { ColumnDef } from "@tanstack/react-table";
+import { useQuery } from "better-query/react";
 
 interface User {
 	id: string;

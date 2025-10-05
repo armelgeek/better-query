@@ -1,0 +1,26 @@
+{
+	"name": "recent-activity",
+	"type": "components:ui",
+	"category": "dashboard",
+	"description": "Display recent activity feed with timestamps",
+	"dependencies": {
+		"shadcn": ["card"],
+		"npm": []
+	},
+	"registryDependencies": [],
+	"files": [
+		{
+			"path": "components/admin/recent-activity.tsx",
+			"content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Card, CardContent, CardHeader, CardTitle } from \"@/components/ui/card\";\nimport { cn } from \"@/lib/utils\";\n\nexport interface Activity {\n\tid: string | number;\n\ttitle: string;\n\tdescription?: string;\n\ttimestamp: Date | string;\n\ticon?: React.ReactNode;\n\tlink?: string;\n}\n\nexport interface RecentActivityProps {\n\ttitle?: string;\n\tactivities: Activity[];\n\temptyMessage?: string;\n\tformatTimestamp?: (timestamp: Date | string) => string;\n\tonActivityClick?: (activity: Activity) => void;\n\tloading?: boolean;\n\tmaxItems?: number;\n\tshowIcons?: boolean;\n\tclassName?: string;\n}\n\nfunction defaultFormatTimestamp(timestamp: Date | string): string {\n\tconst date = typeof timestamp === \"string\" ? new Date(timestamp) : timestamp;\n\tconst now = new Date();\n\tconst diffMs = now.getTime() - date.getTime();\n\tconst diffMins = Math.floor(diffMs / 60000);\n\tconst diffHours = Math.floor(diffMs / 3600000);\n\tconst diffDays = Math.floor(diffMs / 86400000);\n\n\tif (diffMins < 1) return \"Just now\";\n\tif (diffMins < 60) return `${diffMins}m ago`;\n\tif (diffHours < 24) return `${diffHours}h ago`;\n\tif (diffDays < 7) return `${diffDays}d ago`;\n\treturn date.toLocaleDateString();\n}\n\nexport function RecentActivity({\n\ttitle = \"Recent Activity\",\n\tactivities,\n\temptyMessage = \"No recent activity\",\n\tformatTimestamp = defaultFormatTimestamp,\n\tonActivityClick,\n\tloading = false,\n\tmaxItems,\n\tshowIcons = true,\n\tclassName,\n}: RecentActivityProps) {\n\tconst displayedActivities = maxItems\n\t\t? activities.slice(0, maxItems)\n\t\t: activities;\n\n\tif (loading) {\n\t\treturn (\n\t\t\t<Card className={cn(\"animate-pulse\", className)}>\n\t\t\t\t<CardHeader>\n\t\t\t\t\t<CardTitle className=\"text-sm font-medium\">\n\t\t\t\t\t\t<div className=\"h-4 w-32 bg-muted rounded\" />\n\t\t\t\t\t</CardTitle>\n\t\t\t\t</CardHeader>\n\t\t\t\t<CardContent>\n\t\t\t\t\t<div className=\"space-y-4\">\n\t\t\t\t\t\t{[1, 2, 3].map((i) => (\n\t\t\t\t\t\t\t<div key={i} className=\"flex items-start gap-3\">\n\t\t\t\t\t\t\t\t<div className=\"h-8 w-8 bg-muted rounded-full\" />\n\t\t\t\t\t\t\t\t<div className=\"flex-1 space-y-2\">\n\t\t\t\t\t\t\t\t\t<div className=\"h-4 w-3/4 bg-muted rounded\" />\n\t\t\t\t\t\t\t\t\t<div className=\"h-3 w-1/2 bg-muted rounded\" />\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t))}\n\t\t\t\t\t</div>\n\t\t\t\t</CardContent>\n\t\t\t</Card>\n\t\t);\n\t}\n\n\treturn (\n\t\t<Card className={className}>\n\t\t\t<CardHeader>\n\t\t\t\t<CardTitle className=\"text-sm font-medium\">{title}</CardTitle>\n\t\t\t</CardHeader>\n\t\t\t<CardContent>\n\t\t\t\t{displayedActivities.length === 0 ? (\n\t\t\t\t\t<p className=\"text-sm text-muted-foreground text-center py-8\">\n\t\t\t\t\t\t{emptyMessage}\n\t\t\t\t\t</p>\n\t\t\t\t) : (\n\t\t\t\t\t<div className=\"space-y-4\">\n\t\t\t\t\t\t{displayedActivities.map((activity) => (\n\t\t\t\t\t\t\t<div\n\t\t\t\t\t\t\t\tkey={activity.id}\n\t\t\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\t\t\"flex items-start gap-3\",\n\t\t\t\t\t\t\t\t\tonActivityClick && \"cursor-pointer hover:bg-muted/50 p-2 rounded-md -m-2\",\n\t\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t\tonClick={() => onActivityClick?.(activity)}\n\t\t\t\t\t\t\t>\n\t\t\t\t\t\t\t\t{showIcons && activity.icon && (\n\t\t\t\t\t\t\t\t\t<div className=\"h-8 w-8 flex items-center justify-center rounded-full bg-muted text-muted-foreground flex-shrink-0\">\n\t\t\t\t\t\t\t\t\t\t{activity.icon}\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t\t<div className=\"flex-1 space-y-1 min-w-0\">\n\t\t\t\t\t\t\t\t\t<div className=\"flex items-start justify-between gap-2\">\n\t\t\t\t\t\t\t\t\t\t<p className=\"text-sm font-medium leading-none truncate\">\n\t\t\t\t\t\t\t\t\t\t\t{activity.title}\n\t\t\t\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\t\t\t\t<span className=\"text-xs text-muted-foreground whitespace-nowrap flex-shrink-0\">\n\t\t\t\t\t\t\t\t\t\t\t{formatTimestamp(activity.timestamp)}\n\t\t\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t{activity.description && (\n\t\t\t\t\t\t\t\t\t\t<p className=\"text-sm text-muted-foreground line-clamp-2\">\n\t\t\t\t\t\t\t\t\t\t\t{activity.description}\n\t\t\t\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t))}\n\t\t\t\t\t</div>\n\t\t\t\t)}\n\t\t\t</CardContent>\n\t\t</Card>\n\t);\n}\n",
+			"type": "components:ui"
+		}
+	],
+	"tailwind": {
+		"config": {}
+	},
+	"betterQuery": {
+		"operations": ["list"],
+		"hook": "useBetterQuery(\"resource\", query).list()",
+		"example": "const { list } = useBetterQuery(\"activity\", query);\nconst { data: recentActivities } = list.useQuery({ orderBy: { createdAt: 'desc' }, take: 5 });"
+	}
+}

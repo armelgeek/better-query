@@ -7,9 +7,9 @@
 
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { ResourceList } from "@/components/ui/resource-list";
 import { useQuery } from "better-query/react";
-import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 
 interface Project {

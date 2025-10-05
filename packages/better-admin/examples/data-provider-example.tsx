@@ -7,8 +7,8 @@
 
 // 1. Setup better-query (typically in lib/query.ts)
 import { betterQuery, createResource } from "better-query";
-import { auth } from "./auth";
 import Database from "better-sqlite3";
+import { auth } from "./auth";
 
 const db = new Database("app.db");
 
@@ -75,9 +75,9 @@ export function App() {
 	);
 }
 
+import { DataTable } from "@/components/ui/data-table";
 // 4. Use in list components
 import { useBetterQuery } from "better-admin";
-import { DataTable } from "@/components/ui/data-table";
 
 export function UsersList() {
 	const { list } = useBetterQuery("user", query);

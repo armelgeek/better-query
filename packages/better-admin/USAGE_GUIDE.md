@@ -351,7 +351,50 @@ export function Login() {
 }
 ```
 
-### 9. UI Components (4 components)
+### 9. Dashboard (5 components)
+
+Ready-to-use dashboard components extending shadcn/ui.
+
+**Available Components:**
+- `stat-card` - Metrics display with icons and trends
+- `dashboard-grid` - Responsive grid layout
+- `metric-trend` - Metrics with automatic trend calculations
+- `quick-actions` - Quick action buttons
+- `recent-activity` - Activity feed with timestamps
+
+**Example: Complete Dashboard**
+```tsx
+import { StatCard, DashboardGrid, RecentActivity } from "@/components/admin";
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { Users } from "lucide-react";
+
+export default function Dashboard() {
+  const { count } = useBetterQuery("user", query);
+  const { data: totalUsers, isLoading } = count.useQuery();
+
+  return (
+    <div className="space-y-6">
+      <h1>Dashboard</h1>
+      <DashboardGrid columns={{ default: 1, md: 2, lg: 4 }} gap="md">
+        <StatCard
+          title="Total Users"
+          value={totalUsers || 0}
+          icon={<Users className="h-4 w-4" />}
+          trend={{ value: 12.5, direction: "up", label: "from last month" }}
+          loading={isLoading}
+        />
+        {/* More stat cards */}
+      </DashboardGrid>
+    </div>
+  );
+}
+```
+
+See [DASHBOARD_COMPONENTS.md](./DASHBOARD_COMPONENTS.md) for detailed documentation.
+
+### 10. UI Components (4 components)
+
 
 Common UI components and utilities.
 
@@ -379,7 +422,7 @@ export function App() {
 }
 ```
 
-### 10. Toolbars (2 components)
+### 11. Toolbars (2 components)
 
 Toolbar and action bar components.
 

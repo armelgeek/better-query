@@ -1,0 +1,26 @@
+{
+	"name": "metric-trend",
+	"type": "components:ui",
+	"category": "dashboard",
+	"description": "Display metrics with trend indicators and comparisons",
+	"dependencies": {
+		"shadcn": ["card"],
+		"npm": []
+	},
+	"registryDependencies": [],
+	"files": [
+		{
+			"path": "components/admin/metric-trend.tsx",
+			"content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Card, CardContent, CardHeader, CardTitle } from \"@/components/ui/card\";\nimport { cn } from \"@/lib/utils\";\n\nexport interface MetricTrendProps {\n\ttitle: string;\n\tcurrentValue: number;\n\tpreviousValue: number;\n\ticon?: React.ReactNode;\n\tformatValue?: (value: number) => string;\n\tcomparisonLabel?: string;\n\tshowPercentage?: boolean;\n\tloading?: boolean;\n\tclassName?: string;\n}\n\nexport function MetricTrend({\n\ttitle,\n\tcurrentValue,\n\tpreviousValue,\n\ticon,\n\tformatValue = (value) => value.toLocaleString(),\n\tcomparisonLabel = \"from last period\",\n\tshowPercentage = true,\n\tloading = false,\n\tclassName,\n}: MetricTrendProps) {\n\tconst difference = currentValue - previousValue;\n\tconst percentageChange =\n\t\tpreviousValue !== 0\n\t\t\t? ((difference / previousValue) * 100).toFixed(1)\n\t\t\t: \"0\";\n\tconst isPositive = difference >= 0;\n\n\tif (loading) {\n\t\treturn (\n\t\t\t<Card className={cn(\"animate-pulse\", className)}>\n\t\t\t\t<CardHeader className=\"flex flex-row items-center justify-between space-y-0 pb-2\">\n\t\t\t\t\t<CardTitle className=\"text-sm font-medium\">\n\t\t\t\t\t\t<div className=\"h-4 w-24 bg-muted rounded\" />\n\t\t\t\t\t</CardTitle>\n\t\t\t\t\t{icon && <div className=\"h-4 w-4 bg-muted rounded\" />}\n\t\t\t\t</CardHeader>\n\t\t\t\t<CardContent>\n\t\t\t\t\t<div className=\"h-8 w-32 bg-muted rounded mb-2\" />\n\t\t\t\t\t<div className=\"h-4 w-40 bg-muted rounded\" />\n\t\t\t\t</CardContent>\n\t\t\t</Card>\n\t\t);\n\t}\n\n\treturn (\n\t\t<Card className={className}>\n\t\t\t<CardHeader className=\"flex flex-row items-center justify-between space-y-0 pb-2\">\n\t\t\t\t<CardTitle className=\"text-sm font-medium\">{title}</CardTitle>\n\t\t\t\t{icon && (\n\t\t\t\t\t<div className=\"h-4 w-4 text-muted-foreground\">{icon}</div>\n\t\t\t\t)}\n\t\t\t</CardHeader>\n\t\t\t<CardContent>\n\t\t\t\t<div className=\"text-2xl font-bold mb-2\">\n\t\t\t\t\t{formatValue(currentValue)}\n\t\t\t\t</div>\n\t\t\t\t<div className=\"flex items-center gap-2 text-sm\">\n\t\t\t\t\t<span\n\t\t\t\t\t\tclassName={cn(\n\t\t\t\t\t\t\t\"flex items-center font-medium\",\n\t\t\t\t\t\t\tisPositive\n\t\t\t\t\t\t\t\t? \"text-green-600 dark:text-green-400\"\n\t\t\t\t\t\t\t\t: \"text-red-600 dark:text-red-400\",\n\t\t\t\t\t\t)}\n\t\t\t\t\t>\n\t\t\t\t\t\t{isPositive ? (\n\t\t\t\t\t\t\t<span className=\"mr-1\">↑</span>\n\t\t\t\t\t\t) : (\n\t\t\t\t\t\t\t<span className=\"mr-1\">↓</span>\n\t\t\t\t\t\t)}\n\t\t\t\t\t\t{showPercentage && <span>{percentageChange}%</span>}\n\t\t\t\t\t\t{!showPercentage && (\n\t\t\t\t\t\t\t<span>{formatValue(Math.abs(difference))}</span>\n\t\t\t\t\t\t)}\n\t\t\t\t\t</span>\n\t\t\t\t\t<span className=\"text-muted-foreground\">{comparisonLabel}</span>\n\t\t\t\t</div>\n\t\t\t</CardContent>\n\t\t</Card>\n\t);\n}\n",
+			"type": "components:ui"
+		}
+	],
+	"tailwind": {
+		"config": {}
+	},
+	"betterQuery": {
+		"operations": ["count"],
+		"hook": "useBetterQuery(\"resource\", query).count()",
+		"example": "const { count } = useBetterQuery(\"order\", query);\nconst { data: todayOrders } = count.useQuery({ where: { createdAt: { gte: today } } });"
+	}
+}

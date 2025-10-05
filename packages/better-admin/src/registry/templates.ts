@@ -4,9 +4,9 @@
  */
 
 import type {
-	ComponentMetadata,
-	ComponentCategory,
 	BetterQueryIntegration,
+	ComponentCategory,
+	ComponentMetadata,
 } from "../types.js";
 
 export interface ComponentTemplate {

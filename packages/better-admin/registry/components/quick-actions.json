@@ -1,0 +1,21 @@
+{
+	"name": "quick-actions",
+	"type": "components:ui",
+	"category": "dashboard",
+	"description": "Quick action buttons for common admin tasks",
+	"dependencies": {
+		"shadcn": ["button", "card"],
+		"npm": []
+	},
+	"registryDependencies": [],
+	"files": [
+		{
+			"path": "components/admin/quick-actions.tsx",
+			"content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Card, CardContent, CardHeader, CardTitle } from \"@/components/ui/card\";\nimport { Button } from \"@/components/ui/button\";\nimport { cn } from \"@/lib/utils\";\n\nexport interface QuickAction {\n\tlabel: string;\n\ticon?: React.ReactNode;\n\tonClick: () => void;\n\tvariant?: \"default\" | \"secondary\" | \"outline\" | \"ghost\" | \"link\";\n\tdisabled?: boolean;\n}\n\nexport interface QuickActionsProps {\n\ttitle?: string;\n\tactions: QuickAction[];\n\tcolumns?: number;\n\tshowTitle?: boolean;\n\tclassName?: string;\n}\n\nexport function QuickActions({\n\ttitle = \"Quick Actions\",\n\tactions,\n\tcolumns = 2,\n\tshowTitle = true,\n\tclassName,\n}: QuickActionsProps) {\n\tconst gridClasses = cn(\n\t\t\"grid gap-2\",\n\t\tcolumns === 1 && \"grid-cols-1\",\n\t\tcolumns === 2 && \"grid-cols-2\",\n\t\tcolumns === 3 && \"grid-cols-3\",\n\t\tcolumns === 4 && \"grid-cols-4\",\n\t);\n\n\treturn (\n\t\t<Card className={className}>\n\t\t\t{showTitle && (\n\t\t\t\t<CardHeader>\n\t\t\t\t\t<CardTitle className=\"text-sm font-medium\">{title}</CardTitle>\n\t\t\t\t</CardHeader>\n\t\t\t)}\n\t\t\t<CardContent className={!showTitle ? \"pt-6\" : \"\"}>\n\t\t\t\t<div className={gridClasses}>\n\t\t\t\t\t{actions.map((action, index) => (\n\t\t\t\t\t\t<Button\n\t\t\t\t\t\t\tkey={index}\n\t\t\t\t\t\t\tvariant={action.variant || \"outline\"}\n\t\t\t\t\t\t\tonClick={action.onClick}\n\t\t\t\t\t\t\tdisabled={action.disabled}\n\t\t\t\t\t\t\tclassName=\"flex items-center justify-start gap-2 h-auto py-3\"\n\t\t\t\t\t\t>\n\t\t\t\t\t\t\t{action.icon && (\n\t\t\t\t\t\t\t\t<span className=\"h-4 w-4\">{action.icon}</span>\n\t\t\t\t\t\t\t)}\n\t\t\t\t\t\t\t<span>{action.label}</span>\n\t\t\t\t\t\t</Button>\n\t\t\t\t\t))}\n\t\t\t\t</div>\n\t\t\t</CardContent>\n\t\t</Card>\n\t);\n}\n",
+			"type": "components:ui"
+		}
+	],
+	"tailwind": {
+		"config": {}
+	}
+}

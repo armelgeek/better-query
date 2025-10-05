@@ -2,7 +2,7 @@
  * Types for Better Admin declarative resource components
  */
 
-import type { ReactNode, ComponentType } from "react";
+import type { ComponentType, ReactNode } from "react";
 
 /**
  * Resource configuration for declarative admin setup

@@ -7,10 +7,10 @@
 
 "use client";
 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CrudForm } from "@/components/ui/crud-form";
 import { useQuery } from "better-query/react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface EditUserPageProps {
 	params: {

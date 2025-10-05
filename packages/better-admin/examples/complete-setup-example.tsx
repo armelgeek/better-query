@@ -153,11 +153,11 @@ export const dataProvider = createBetterQueryProvider({
 // ============================================================================
 ("use client");
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginPage() {
 	const [email, setEmail] = useState("");
@@ -247,9 +247,9 @@ export default function LoginPage() {
 // ============================================================================
 ("use client");
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useBetterAuth } from "better-admin";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
 	const { user, isLoading } = useBetterAuth(authClient);
@@ -292,9 +292,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 // ============================================================================
 ("use client");
 
-import { useBetterQuery } from "better-admin";
-import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
+import { useBetterQuery } from "better-admin";
 import Link from "next/link";
 
 export default function UsersPage() {
@@ -352,8 +352,8 @@ export default function UsersPage() {
 // ============================================================================
 ("use client");
 
-import { useBetterQuery } from "better-admin";
 import { CrudForm } from "@/components/ui/crud-form";
+import { useBetterQuery } from "better-admin";
 import { useRouter } from "next/navigation";
 
 export default function UserCreatePage() {
@@ -394,8 +394,8 @@ export default function UserCreatePage() {
 // ============================================================================
 ("use client");
 
-import { useBetterQuery } from "better-admin";
 import { CrudForm } from "@/components/ui/crud-form";
+import { useBetterQuery } from "better-admin";
 import { useRouter } from "next/navigation";
 
 export default function UserEditPage({ params }: { params: { id: string } }) {
@@ -445,8 +445,8 @@ export default function UserEditPage({ params }: { params: { id: string } }) {
 // ============================================================================
 ("use client");
 
-import { useBetterQuery } from "better-admin";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useBetterQuery } from "better-admin";
 
 export default function DashboardPage() {
 	const { count: userCount } = useBetterQuery("user", query);

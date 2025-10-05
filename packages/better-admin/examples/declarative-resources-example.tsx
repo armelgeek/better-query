@@ -144,9 +144,9 @@ export default function App() {
 // 4. With Custom Components (if needed)
 // ============================================================================
 
+import { CrudForm } from "@/components/ui/crud-form";
 // You can still provide custom components for specific operations
 import { DataTable } from "@/components/ui/data-table";
-import { CrudForm } from "@/components/ui/crud-form";
 import { useBetterQuery } from "better-admin";
 
 function CustomUserList() {

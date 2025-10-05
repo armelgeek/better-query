@@ -4,7 +4,7 @@
  */
 
 import type { ReactElement } from "react";
-import { useState, useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ResourceContext } from "./resource-context.js";
 import type { AdminProps, ResourceConfig, ResourceProps } from "./types.js";
 

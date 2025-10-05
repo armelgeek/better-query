@@ -1,9 +1,9 @@
 import chalk from "chalk";
 import { Command } from "commander";
 import ora from "ora";
+import type { Registry } from "../../types.js";
 import { configExists, readConfig } from "../utils/config.js";
 import { fetchRegistry, getComponentsList } from "../utils/registry.js";
-import type { Registry } from "../../types.js";
 
 export const listCommand = new Command("list")
 	.description("List all available components")

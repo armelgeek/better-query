@@ -1,13 +1,14 @@
 # Better Admin
 
-A comprehensive admin interface solution with **78 production-ready components**, built specifically for **better-auth** and **better-query** integration. No ra-core, no ra-data-simple-rest, just pure better-query goodness.
+A comprehensive admin interface solution with **83 production-ready components**, built specifically for **better-auth** and **better-query** integration. No ra-core, no ra-data-simple-rest, just pure better-query goodness.
 
 **✨ Key Features:**
 - 🔐 **better-auth** for authentication (not ra-core)
 - 📊 **better-query** for data operations (not ra-data-simple-rest)
 - ⚡ **Declarative Resources** - Auto-generate admin pages
+- 📈 **Dashboard Components** - Ready-to-use dashboard widgets (NEW!)
 - 🎯 Full TypeScript type safety
-- 📦 78 components across 10 categories
+- 📦 83 components across 11 categories
 - 🚀 Built on shadcn/ui
 - 🔧 CLI for easy installation
 
@@ -27,13 +28,14 @@ Unlike traditional admin frameworks like react-admin:
 better-admin/
 ├── Auth Provider → better-auth integration
 ├── Data Provider → better-query integration  
-└── 78 Components
+└── 83 Components
     ├── Data Display (11)
     ├── Forms (18)
     ├── Layout (10)
     ├── Buttons (13)
     ├── Fields (9)
     ├── Feedback (5)
+    ├── Dashboard (5) ← NEW!
     ├── Views (3)
     ├── Auth (2)
     ├── UI (4)
@@ -131,6 +133,7 @@ npx better-admin list
 ```bash
 npx better-admin list --category data-display
 npx better-admin list --category forms
+npx better-admin list --category dashboard
 ```
 
 ### 2. Install Components
@@ -142,14 +145,63 @@ npx better-admin add data-table
 # Install CRUD form
 npx better-admin add crud-form
 
-# Install authentication
-npx better-admin add login-page
+# Install dashboard components (NEW!)
+npx better-admin add stat-card dashboard-grid metric-trend
 
-# Install multiple components
+# Install multiple components at once
 npx better-admin add data-table crud-form login-page
 ```
 
-### 3. Use with better-query
+### 3. Dashboard Components (NEW! 📈)
+
+Build beautiful dashboards with ready-to-use components:
+
+```tsx title="app/admin/page.tsx"
+import { StatCard, DashboardGrid, RecentActivity } from "@/components/admin";
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { Users, ShoppingCart } from "lucide-react";
+
+export default function DashboardPage() {
+  const { count } = useBetterQuery("user", query);
+  const { data: totalUsers, isLoading } = count.useQuery();
+
+  return (
+    <div className="space-y-6">
+      <h1>Dashboard</h1>
+      
+      <DashboardGrid columns={{ default: 1, md: 2, lg: 4 }} gap="md">
+        <StatCard
+          title="Total Users"
+          value={totalUsers || 0}
+          icon={<Users className="h-4 w-4" />}
+          trend={{ value: 12.5, direction: "up", label: "from last month" }}
+          loading={isLoading}
+        />
+        <StatCard
+          title="Orders"
+          value="1,234"
+          icon={<ShoppingCart className="h-4 w-4" />}
+          trend={{ value: 8.2, direction: "up" }}
+        />
+      </DashboardGrid>
+    </div>
+  );
+}
+```
+
+**Dashboard Components:**
+- `stat-card` - Metrics with icons and trends
+- `dashboard-grid` - Responsive grid layout
+- `metric-trend` - Automatic trend calculations
+- `quick-actions` - Quick action buttons
+- `recent-activity` - Activity feed
+
+📖 **[Complete Dashboard Guide →](./DASHBOARD_COMPONENTS.md)**
+
+---
+
+### 4. Use with better-query
 
 All components use **better-query** for data operations:
 
@@ -173,7 +225,7 @@ export function UsersPage() {
 }
 ```
 
-### 4. CRUD Operations
+### 5. CRUD Operations
 
 ```tsx title="app/admin/users/create/page.tsx"
 import { useBetterQuery } from "better-admin";
@@ -477,6 +529,18 @@ Add a component to your project:
 npx better-admin add <component> [options]
 ```
 
+Examples:
+```bash
+# Add a single component
+npx better-admin add stat-card
+
+# Add multiple dashboard components at once
+npx better-admin add stat-card dashboard-grid metric-trend quick-actions recent-activity
+
+# Add with overwrite
+npx better-admin add stat-card --overwrite
+```
+
 Options:
 - `--yes`: Skip confirmation prompts
 - `--overwrite`: Overwrite existing files
@@ -490,8 +554,20 @@ List available components:
 npx better-admin list [options]
 ```
 
+Examples:
+```bash
+# List all components
+npx better-admin list
+
+# List dashboard components only
+npx better-admin list --category dashboard
+
+# List components with better-query integration
+npx better-admin list --with-query
+```
+
 Options:
-- `--category <category>`: Filter by category
+- `--category <category>`: Filter by category (data-display, forms, dashboard, etc.)
 - `--with-query`: Show only Better Query integrated components
 
 ## Configuration

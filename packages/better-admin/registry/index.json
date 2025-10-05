@@ -50,6 +50,11 @@
 			"id": "toolbars",
 			"name": "Toolbars",
 			"description": "Toolbar and action bar components"
+		},
+		{
+			"id": "dashboard",
+			"name": "Dashboard",
+			"description": "Ready-to-use dashboard components for admin interfaces"
 		}
 	],
 	"components": [
@@ -835,6 +840,66 @@
 			"dependencies": {
 				"shadcn": ["toolbar", "button"],
 				"npm": []
+			}
+		},
+		{
+			"name": "stat-card",
+			"description": "Dashboard stat card with metrics, icons, and trends",
+			"category": "dashboard",
+			"dependencies": {
+				"shadcn": ["card"],
+				"npm": []
+			},
+			"betterQuery": {
+				"operations": ["count", "list"],
+				"hook": "useBetterQuery(\"resource\", query).count()",
+				"example": "const { count } = useBetterQuery(\"user\", query);\nconst { data: totalUsers } = count.useQuery();"
+			}
+		},
+		{
+			"name": "dashboard-grid",
+			"description": "Responsive grid layout for dashboard components",
+			"category": "dashboard",
+			"dependencies": {
+				"shadcn": [],
+				"npm": []
+			}
+		},
+		{
+			"name": "metric-trend",
+			"description": "Display metrics with trend indicators and comparisons",
+			"category": "dashboard",
+			"dependencies": {
+				"shadcn": ["card"],
+				"npm": []
+			},
+			"betterQuery": {
+				"operations": ["count"],
+				"hook": "useBetterQuery(\"resource\", query).count()",
+				"example": "const { count } = useBetterQuery(\"order\", query);\nconst { data: todayOrders } = count.useQuery({ where: { createdAt: { gte: today } } });"
+			}
+		},
+		{
+			"name": "quick-actions",
+			"description": "Quick action buttons for common admin tasks",
+			"category": "dashboard",
+			"dependencies": {
+				"shadcn": ["button", "card"],
+				"npm": []
+			}
+		},
+		{
+			"name": "recent-activity",
+			"description": "Display recent activity feed with timestamps",
+			"category": "dashboard",
+			"dependencies": {
+				"shadcn": ["card"],
+				"npm": []
+			},
+			"betterQuery": {
+				"operations": ["list"],
+				"hook": "useBetterQuery(\"resource\", query).list()",
+				"example": "const { list } = useBetterQuery(\"activity\", query);\nconst { data: recentActivities } = list.useQuery({ orderBy: { createdAt: 'desc' }, take: 5 });"
 			}
 		}
 	]
