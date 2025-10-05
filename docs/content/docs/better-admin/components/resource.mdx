@@ -1,0 +1,543 @@
+---
+title: Resource
+description: Declaratively define and register resources in Better Admin
+---
+
+# Resource
+
+The `Resource` component is the foundation of declarative resource management in Better Admin. It automatically generates CRUD pages for your data models, dramatically reducing the amount of code you need to write while maintaining full customization flexibility.
+
+<Callout type="info">
+**Think of it as a blueprint**: Each Resource component tells Better Admin "I have this type of data, here's how to manage it." Better Admin then automatically creates list, create, and edit pages for that data.
+</Callout>
+
+## What It Does
+
+The Resource component:
+- **Registers a resource** with the Admin system
+- **Auto-generates CRUD pages** - List, Create, Edit, and Show views
+- **Handles routing** - Automatically creates routes for all operations
+- **Provides customization** - Override any auto-generated page with your own component
+- **Manages navigation** - Adds the resource to your admin menu
+
+## Usage
+
+The Resource component must be used inside an `Admin` component. It doesn't render anything visible itself—it just registers the resource configuration.
+
+### Basic Example
+
+The simplest way to add a resource:
+
+```tsx
+import { Admin, Resource } from 'better-admin';
+
+export default function App() {
+  return (
+    <Admin dataProvider={dataProvider} authProvider={authProvider}>
+      <Resource name="users" />
+      <Resource name="posts" />
+      <Resource name="comments" />
+    </Admin>
+  );
+}
+```
+
+**What this creates:**
+- `/admin/users` - Auto-generated list page
+- `/admin/users/create` - Auto-generated create page
+- `/admin/users/:id/edit` - Auto-generated edit page
+- Same routes for posts and comments
+
+<Callout type="info">
+**Zero configuration required**: Just declare the resource name, and Better Admin generates fully functional CRUD pages based on your data schema.
+</Callout>
+
+## Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `name` | `string` | Yes | Resource name (e.g., "users", "posts"). Must match your better-query resource name. |
+| `label` | `string` | No | Display label in the UI (defaults to name) |
+| `list` | `Component` | No | Custom list component (overrides auto-generated) |
+| `create` | `Component` | No | Custom create component (overrides auto-generated) |
+| `edit` | `Component` | No | Custom edit component (overrides auto-generated) |
+| `show` | `Component` | No | Custom show/detail component (overrides auto-generated) |
+| `icon` | `ReactNode` | No | Icon to display in the navigation menu |
+
+<Callout type="tip">
+**The name prop is critical**: It must exactly match the resource name you defined in your better-query configuration. If they don't match, data operations will fail.
+</Callout>
+
+## Examples
+
+### Auto-Generated Resource
+
+Let Better Admin handle everything:
+
+```tsx
+<Admin dataProvider={dataProvider}>
+  <Resource name="products" label="Products" />
+</Admin>
+```
+
+**What you get:**
+- List page with data table, pagination, search
+- Create page with form for all fields
+- Edit page with pre-populated form
+- All validation based on your schema
+
+**Best for**: Quick prototypes, admin tools, or when the default UI works for your needs.
+
+### With Custom Label
+
+Make the resource name more user-friendly:
+
+```tsx
+<Resource name="user" label="Users" />
+<Resource name="blogPost" label="Blog Posts" />
+<Resource name="productCategory" label="Product Categories" />
+```
+
+**Why this matters**: The `name` is your database resource name (singular, camelCase), but `label` is what users see (plural, human-readable).
+
+### With Custom Icon
+
+Add visual indicators to your navigation:
+
+```tsx
+import { Users, FileText, MessageSquare } from 'lucide-react';
+
+<Admin dataProvider={dataProvider}>
+  <Resource 
+    name="user" 
+    label="Users" 
+    icon={<Users />} 
+  />
+  <Resource 
+    name="post" 
+    label="Posts" 
+    icon={<FileText />} 
+  />
+  <Resource 
+    name="comment" 
+    label="Comments" 
+    icon={<MessageSquare />} 
+  />
+</Admin>
+```
+
+**Result**: Your admin menu displays icons next to each resource, making navigation more intuitive.
+
+### Partially Custom Resource
+
+Override specific pages while keeping others auto-generated:
+
+```tsx
+import { CustomUserList } from './components/CustomUserList';
+
+<Resource 
+  name="user" 
+  label="Users"
+  list={CustomUserList}
+  // create and edit are auto-generated
+/>
+```
+
+**Use case**: You need a complex list view with custom filters and charts, but the create/edit forms are fine with defaults.
+
+### Fully Custom Resource
+
+Complete control over all pages:
+
+```tsx
+import { UserList } from './components/UserList';
+import { UserCreate } from './components/UserCreate';
+import { UserEdit } from './components/UserEdit';
+import { UserShow } from './components/UserShow';
+
+<Resource 
+  name="user" 
+  label="Users"
+  list={UserList}
+  create={UserCreate}
+  edit={UserEdit}
+  show={UserShow}
+/>
+```
+
+**When to use**: You need full control over the UI, complex business logic, or unique workflows.
+
+### Multiple Resources
+
+Declare all your resources in one place:
+
+```tsx
+<Admin dataProvider={dataProvider} authProvider={authProvider}>
+  {/* Core resources with custom components */}
+  <Resource 
+    name="user" 
+    label="Users"
+    list={UserList}
+    icon={<Users />}
+  />
+  
+  {/* Simple resources using auto-generation */}
+  <Resource name="post" label="Posts" />
+  <Resource name="comment" label="Comments" />
+  <Resource name="tag" label="Tags" />
+  
+  {/* Complex resources with full customization */}
+  <Resource 
+    name="order" 
+    label="Orders"
+    list={OrderList}
+    create={OrderCreate}
+    edit={OrderEdit}
+    show={OrderShow}
+    icon={<ShoppingCart />}
+  />
+</Admin>
+```
+
+**Best practice**: Start with auto-generated pages and only customize when needed.
+
+## Installation
+
+The Resource component is included with Better Admin. No separate installation needed.
+
+```bash
+npx better-admin init
+```
+
+This installs all necessary components including Admin and Resource.
+
+## How It Works
+
+The Resource component uses React's Context API to register itself with the parent Admin component:
+
+```
+┌─────────────────────────────────────┐
+│         <Admin>                      │
+│  ┌──────────────────────────────┐  │
+│  │  Resource Registry            │  │
+│  │  - users                      │  │
+│  │  - posts                      │  │
+│  │  - comments                   │  │
+│  └──────────────────────────────┘  │
+│                                      │
+│    <Resource name="users" />        │
+│         ↓ registers                 │
+│    Creates routes:                  │
+│    - /admin/users                   │
+│    - /admin/users/create            │
+│    - /admin/users/:id/edit          │
+└─────────────────────────────────────┘
+```
+
+**Process:**
+1. Resource component mounts inside Admin
+2. Calls `registerResource()` to add itself to the registry
+3. Admin component creates routes based on registration
+4. When you navigate to a route, Admin renders the appropriate component (custom or auto-generated)
+
+## Integration with Admin
+
+Resources only work inside an Admin component:
+
+```tsx
+// ✅ Correct
+<Admin dataProvider={dataProvider}>
+  <Resource name="users" />
+</Admin>
+
+// ❌ Wrong - Resource needs Admin parent
+<Resource name="users" />
+```
+
+The Admin component provides:
+- **Data provider** - For CRUD operations
+- **Auth provider** - For permissions
+- **Router context** - For navigation
+- **Resource registry** - To track all resources
+
+## Custom Components
+
+When you provide custom components, they receive props from Better Admin:
+
+```tsx
+// Your custom list component
+export function UserList({ resource, data, isLoading }) {
+  // resource: "user"
+  // data: array of user records
+  // isLoading: boolean
+  
+  return (
+    <div>
+      <h1>Users</h1>
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : (
+        <ul>
+          {data.map(user => (
+            <li key={user.id}>{user.name}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// Use it
+<Resource name="user" list={UserList} />
+```
+
+## Common Patterns
+
+### Next.js App Router
+
+Place your Admin and Resource components in a layout:
+
+```tsx title="app/admin/layout.tsx"
+import { Admin, Resource } from 'better-admin';
+import { dataProvider, authProvider } from '@/lib/providers';
+
+export default function AdminLayout({ children }) {
+  return (
+    <Admin 
+      dataProvider={dataProvider} 
+      authProvider={authProvider}
+    >
+      <Resource name="user" label="Users" />
+      <Resource name="post" label="Posts" />
+      <Resource name="comment" label="Comments" />
+      {children}
+    </Admin>
+  );
+}
+```
+
+Then create a page to show the dashboard:
+
+```tsx title="app/admin/page.tsx"
+export default function AdminDashboard() {
+  return <div>Welcome to Admin Dashboard</div>;
+}
+```
+
+**Result**: Resources automatically create their own routes under `/admin/`.
+
+### Next.js Pages Router
+
+Wrap your admin pages in an admin component:
+
+```tsx title="pages/admin.tsx"
+import { Admin, Resource } from 'better-admin';
+
+export default function AdminPage() {
+  return (
+    <Admin dataProvider={dataProvider} authProvider={authProvider}>
+      <Resource name="user" label="Users" />
+      <Resource name="post" label="Posts" />
+    </Admin>
+  );
+}
+```
+
+### Conditional Resources
+
+Show resources based on user permissions:
+
+```tsx
+import { useAuth } from 'better-admin';
+
+function AdminApp() {
+  const { user } = useAuth();
+  
+  return (
+    <Admin dataProvider={dataProvider} authProvider={authProvider}>
+      <Resource name="post" label="Posts" />
+      
+      {/* Only admins see users */}
+      {user?.role === 'admin' && (
+        <Resource name="user" label="Users" />
+      )}
+      
+      {/* Only editors see drafts */}
+      {user?.role === 'editor' && (
+        <Resource name="draft" label="Drafts" />
+      )}
+    </Admin>
+  );
+}
+```
+
+**Use case**: Role-based resource visibility.
+
+### Resource Groups
+
+Organize related resources together:
+
+```tsx
+<Admin dataProvider={dataProvider}>
+  {/* User Management */}
+  <Resource name="user" label="Users" icon={<Users />} />
+  <Resource name="role" label="Roles" icon={<Shield />} />
+  <Resource name="permission" label="Permissions" icon={<Key />} />
+  
+  {/* Content Management */}
+  <Resource name="post" label="Posts" icon={<FileText />} />
+  <Resource name="page" label="Pages" icon={<File />} />
+  <Resource name="media" label="Media" icon={<Image />} />
+  
+  {/* E-commerce */}
+  <Resource name="product" label="Products" icon={<Package />} />
+  <Resource name="order" label="Orders" icon={<ShoppingCart />} />
+  <Resource name="customer" label="Customers" icon={<UserCircle />} />
+</Admin>
+```
+
+**Tip**: Use comments to group related resources visually in your code.
+
+## Accessing Resources
+
+Use hooks to access resource information in your components:
+
+```tsx
+import { useResources, useResource } from 'better-admin';
+
+function NavigationMenu() {
+  // Get all registered resources
+  const resources = useResources();
+  
+  return (
+    <nav>
+      {resources.map(resource => (
+        <a key={resource.name} href={`/admin/${resource.name}`}>
+          {resource.icon}
+          {resource.label}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+function UserListPage() {
+  // Get a specific resource
+  const userResource = useResource('user');
+  
+  return (
+    <div>
+      <h1>{userResource?.label}</h1>
+      {/* Rest of your component */}
+    </div>
+  );
+}
+```
+
+## Related
+
+Learn about related concepts and components:
+
+- **[Admin](/docs/better-admin/components/admin)** - Root component that provides context for resources
+- **[List](/docs/better-admin/components/list)** - Display lists of records
+- **[Create](/docs/better-admin/components/create)** - Create new records
+- **[Edit](/docs/better-admin/components/edit)** - Edit existing records
+- **[Data Provider](/docs/better-admin/data-provider)** - Configure data operations with better-query
+
+## Troubleshooting
+
+### "Resource name must match better-query resource"
+
+**Problem**: You get an error when trying to fetch data.
+
+**Solution**: Make sure the resource name matches exactly:
+
+```tsx
+// In your better-query config
+const query = betterQuery({
+  resources: [
+    createResource({ name: "user" }), // Note: "user" not "users"
+  ]
+});
+
+// In your Admin
+<Resource name="user" /> // ✅ Correct - matches "user"
+<Resource name="users" /> // ❌ Wrong - doesn't match
+```
+
+### Resource not appearing in navigation
+
+**Problem**: You declared a resource but don't see it in the menu.
+
+**Solution**: Check that:
+1. Resource is inside Admin component
+2. Resource has a `label` prop or a proper `name`
+3. Your navigation component is reading from `useResources()`
+
+```tsx
+// Make sure your Resource is inside Admin
+<Admin dataProvider={dataProvider}>
+  <Resource name="user" label="Users" /> {/* Will appear */}
+</Admin>
+
+<Resource name="post" /> {/* Won't appear - outside Admin */}
+```
+
+### Custom component not receiving data
+
+**Problem**: Your custom list/edit component doesn't have data.
+
+**Solution**: Make sure you're using the data provider:
+
+```tsx
+import { useList } from 'better-admin';
+
+export function CustomUserList() {
+  const { data, isLoading } = useList('user');
+  
+  if (isLoading) return <p>Loading...</p>;
+  
+  return (
+    <div>
+      {data.map(user => (
+        <div key={user.id}>{user.name}</div>
+      ))}
+    </div>
+  );
+}
+```
+
+### Auto-generated pages not working
+
+**Problem**: When you navigate to a resource route, you see a blank page.
+
+**Solution**: Make sure:
+1. Data provider is configured correctly
+2. Resource exists in better-query
+3. You have proper schema definitions
+
+```tsx
+// Verify your setup
+const query = betterQuery({
+  resources: [
+    createResource({
+      name: "user",
+      schema: z.object({
+        id: z.string(),
+        name: z.string(),
+        email: z.string(),
+      }),
+    }),
+  ],
+});
+
+const dataProvider = createBetterQueryProvider({ queryClient: query });
+
+<Admin dataProvider={dataProvider}>
+  <Resource name="user" />
+</Admin>
+```
+
+<Callout type="tip">
+**Still stuck?** Check the [Quick Start guide](/docs/better-admin/quick-start) for a complete working example, or see [Examples](/docs/better-admin/examples) for common use cases.
+</Callout>
