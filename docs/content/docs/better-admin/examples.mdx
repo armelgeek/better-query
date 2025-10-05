@@ -1,0 +1,875 @@
+---
+title: Examples
+description: Real-world examples of building admin interfaces with better-admin
+---
+
+# Better Admin Examples
+
+Learn by example! This page shows you complete, working examples of real-world admin interfaces built with Better Admin. Each example includes full source code you can copy and adapt.
+
+<Callout type="info">
+**How to use these examples**: Each example is self-contained. You can copy the entire code into your project and it should work with minimal modifications (mainly environment variables and database setup).
+</Callout>
+
+## Example 1: Simple User Management
+
+**What you'll build**: A basic admin interface for managing users with authentication.
+
+**Features**:
+- ✅ User login with email/password
+- ✅ List all users in a table
+- ✅ Create new users with a form
+- ✅ Edit existing users
+- ✅ Delete users with confirmation
+- ✅ Role-based permissions (only admins can modify)
+
+**Time to build**: ~30 minutes
+
+### Step 1: Setup Authentication
+
+First, configure Better Auth for handling user login:
+
+```typescript title="lib/auth.ts"
+import { betterAuth } from "better-auth";
+import Database from "better-sqlite3";
+
+// Create database connection
+const db = new Database("app.db");
+
+// Configure Better Auth
+export const auth = betterAuth({
+  database: db,
+  emailAndPassword: {
+    enabled: true,  // Enable email/password login
+  },
+});
+```
+
+**What this does**: Sets up authentication with email/password login and connects to a SQLite database.
+
+Create the client for use in React:
+
+```typescript title="lib/auth-client.ts"
+import { createAuthClient } from "better-auth/client";
+
+export const authClient = createAuthClient({
+  baseURL: "http://localhost:3000",
+});
+```
+
+<Callout type="tip">
+**Production tip**: Replace `http://localhost:3000` with `process.env.NEXT_PUBLIC_APP_URL` for production deployments.
+</Callout>
+
+### Step 2: Setup Data Layer
+
+Define your user resource with permissions:
+
+```typescript title="lib/query.ts"
+import { betterQuery, createResource } from "better-query";
+import { auth } from "./auth";
+import Database from "better-sqlite3";
+
+const db = new Database("app.db");
+
+// Define user resource
+const userResource = createResource({
+  name: "user",
+  schema: {
+    id: { type: "string", primary: true },
+    name: { type: "string", required: true },
+    email: { type: "string", required: true },
+    role: { type: "string" },
+    createdAt: { type: "date" },
+    updatedAt: { type: "date" },
+  },
+  // Add authentication to all requests
+  middlewares: [
+    {
+      handler: async (context) => {
+        const session = await auth.api.getSession({
+          headers: context.request.headers,
+        });
+        if (session) {
+          context.user = session.user;
+        }
+      },
+    },
+  ],
+  // Define permissions
+  permissions: {
+    create: async (context) => {
+      const user = context.user as any;
+      return user?.role === "admin";  // Only admins can create
+    },
+    read: async (context) => !!context.user,  // Any logged-in user can read
+    update: async (context) => {
+      const user = context.user as any;
+      return user?.role === "admin";  // Only admins can update
+    },
+    delete: async (context) => {
+      const user = context.user as any;
+      return user?.role === "admin";  // Only admins can delete
+    },
+  },
+});
+
+// Create query client
+export const query = betterQuery({
+  database: db,
+  resources: [userResource],
+});
+```
+
+**What this does**: 
+- Defines what a user looks like (schema)
+- Adds authentication to all queries
+- Sets permissions (only admins can modify users)
+
+<Callout type="info">
+**Understanding permissions**: The `read` permission returns `true` if the user is logged in. The `create`, `update`, and `delete` permissions only return `true` for admin users. This means regular users can view the list but can't make changes.
+</Callout>
+      return user?.role === "admin";
+    },
+  },
+});
+
+export const query = betterQuery({
+  database: db,
+  resources: [userResource],
+});
+```
+
+### 3. Create Providers
+
+```typescript title="lib/admin-providers.ts"
+import { createBetterAuthProvider, createBetterQueryProvider } from "better-admin";
+import { authClient } from "./auth-client";
+import { query } from "./query";
+
+export const authProvider = createBetterAuthProvider({
+  authClient,
+});
+
+export const dataProvider = createBetterQueryProvider({
+  queryClient: query,
+});
+```
+
+### 4. Build Login Page
+
+```tsx title="app/login/page.tsx"
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      await authClient.signIn.email({
+        email,
+        password,
+      });
+      router.push("/admin");
+    } catch (err) {
+      setError("Invalid credentials");
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Admin Login</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            {error && <p className="text-sm text-red-500">{error}</p>}
+            <Button type="submit" className="w-full">
+              Sign In
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+### 5. Protected Admin Layout
+
+```tsx title="app/admin/layout.tsx"
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useBetterAuth } from "better-admin";
+import { authClient } from "@/lib/auth-client";
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useBetterAuth(authClient);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!user) return null;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <nav className="border-b">
+        <div className="flex h-16 items-center px-4">
+          <h1 className="text-xl font-bold">Admin Portal</h1>
+        </div>
+      </nav>
+      <main className="p-6">{children}</main>
+    </div>
+  );
+}
+```
+
+### 6. Users List Page
+
+```tsx title="app/admin/users/page.tsx"
+"use client";
+
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { DataTable } from "@/components/admin/data-table";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+
+export default function UsersListPage() {
+  const { list } = useBetterQuery("user", query);
+  const { data, isLoading } = list.useQuery();
+
+  if (isLoading) return <div>Loading...</div>;
+
+  const columns = [
+    { accessorKey: "name", header: "Name" },
+    { accessorKey: "email", header: "Email" },
+    { accessorKey: "role", header: "Role" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Users</h1>
+        <Link href="/admin/users/create">
+          <Button>Create User</Button>
+        </Link>
+      </div>
+      <DataTable columns={columns} data={data || []} />
+    </div>
+  );
+}
+```
+
+## Complete CRUD Example
+
+A full-featured user management interface with all CRUD operations.
+
+### List with Actions
+
+```tsx title="app/admin/users/page.tsx"
+"use client";
+
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { DataTable } from "@/components/admin/data-table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Edit, Trash2, Eye } from "lucide-react";
+import Link from "next/link";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+export default function UsersPage() {
+  const { list, remove } = useBetterQuery("user", query);
+  const { data, isLoading, refetch } = list.useQuery();
+
+  const handleDelete = async (id: string) => {
+    await remove.mutateAsync({ where: { id } });
+    refetch();
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+
+  const columns = [
+    {
+      accessorKey: "name",
+      header: "Name",
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+    },
+    {
+      accessorKey: "role",
+      header: "Role",
+      cell: ({ row }) => (
+        <Badge variant={row.original.role === "admin" ? "default" : "secondary"}>
+          {row.original.role}
+        </Badge>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <div className="flex gap-2">
+          <Link href={`/admin/users/${row.original.id}`}>
+            <Button variant="ghost" size="icon">
+              <Eye className="h-4 w-4" />
+            </Button>
+          </Link>
+          <Link href={`/admin/users/${row.original.id}/edit`}>
+            <Button variant="ghost" size="icon">
+              <Edit className="h-4 w-4" />
+            </Button>
+          </Link>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete User</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => handleDelete(row.original.id)}>
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Users</h1>
+        <Link href="/admin/users/create">
+          <Button>Create User</Button>
+        </Link>
+      </div>
+      <DataTable columns={columns} data={data || []} />
+    </div>
+  );
+}
+```
+
+### Create Form
+
+```tsx title="app/admin/users/create/page.tsx"
+"use client";
+
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { CrudForm } from "@/components/admin/crud-form";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+
+export default function UserCreatePage() {
+  const { create } = useBetterQuery("user", query);
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const fields = [
+    {
+      name: "name",
+      label: "Full Name",
+      type: "text" as const,
+      required: true,
+      placeholder: "John Doe",
+    },
+    {
+      name: "email",
+      label: "Email Address",
+      type: "email" as const,
+      required: true,
+      placeholder: "john@example.com",
+    },
+    {
+      name: "role",
+      label: "Role",
+      type: "select" as const,
+      options: [
+        { value: "user", label: "User" },
+        { value: "admin", label: "Admin" },
+      ],
+      required: true,
+    },
+  ];
+
+  const handleSubmit = async (data: any) => {
+    try {
+      await create.mutateAsync(data);
+      toast({
+        title: "Success",
+        description: "User created successfully",
+      });
+      router.push("/admin/users");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Create User</h1>
+      <CrudForm fields={fields} onSubmit={handleSubmit} submitLabel="Create User" />
+    </div>
+  );
+}
+```
+
+### Detail View
+
+```tsx title="app/admin/users/[id]/page.tsx"
+"use client";
+
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { Edit } from "lucide-react";
+
+export default function UserDetailPage({ params }: { params: { id: string } }) {
+  const { get } = useBetterQuery("user", query);
+  const { data, isLoading } = get.useQuery({ where: { id: params.id } });
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!data) return <div>User not found</div>;
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">User Details</h1>
+        <Link href={`/admin/users/${params.id}/edit`}>
+          <Button>
+            <Edit className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
+        </Link>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Personal Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Name</label>
+              <p className="text-lg">{data.name}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Email</label>
+              <p className="text-lg">{data.email}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Role</label>
+              <div>
+                <Badge variant={data.role === "admin" ? "default" : "secondary"}>
+                  {data.role}
+                </Badge>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Created</label>
+              <p className="text-lg">
+                {new Date(data.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+### Edit Form
+
+```tsx title="app/admin/users/[id]/edit/page.tsx"
+"use client";
+
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { CrudForm } from "@/components/admin/crud-form";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+
+export default function UserEditPage({ params }: { params: { id: string } }) {
+  const { get, update } = useBetterQuery("user", query);
+  const { data, isLoading } = get.useQuery({ where: { id: params.id } });
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const fields = [
+    {
+      name: "name",
+      label: "Full Name",
+      type: "text" as const,
+      required: true,
+    },
+    {
+      name: "email",
+      label: "Email Address",
+      type: "email" as const,
+      required: true,
+    },
+    {
+      name: "role",
+      label: "Role",
+      type: "select" as const,
+      options: [
+        { value: "user", label: "User" },
+        { value: "admin", label: "Admin" },
+      ],
+    },
+  ];
+
+  const handleSubmit = async (formData: any) => {
+    try {
+      await update.mutateAsync({
+        where: { id: params.id },
+        data: formData,
+      });
+      toast({
+        title: "Success",
+        description: "User updated successfully",
+      });
+      router.push("/admin/users");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Edit User</h1>
+      <CrudForm
+        fields={fields}
+        defaultValues={data}
+        onSubmit={handleSubmit}
+        submitLabel="Update User"
+      />
+    </div>
+  );
+}
+```
+
+## Advanced Examples
+
+### List with Filtering and Search
+
+```tsx title="app/admin/users/page.tsx"
+"use client";
+
+import { useState } from "react";
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { DataTable } from "@/components/admin/data-table";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
+
+export default function UsersWithFilters() {
+  const [search, setSearch] = useState("");
+  const [role, setRole] = useState<string>("");
+  const { list } = useBetterQuery("user", query);
+
+  const where: any = {};
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: "insensitive" } },
+      { email: { contains: search, mode: "insensitive" } },
+    ];
+  }
+  if (role) {
+    where.role = role;
+  }
+
+  const { data, isLoading } = list.useQuery({ where });
+
+  const clearFilters = () => {
+    setSearch("");
+    setRole("");
+  };
+
+  const hasFilters = search || role;
+
+  const columns = [
+    { accessorKey: "name", header: "Name" },
+    { accessorKey: "email", header: "Email" },
+    { accessorKey: "role", header: "Role" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold">Users</h1>
+
+      <div className="flex gap-4 items-end">
+        <div className="flex-1">
+          <label className="text-sm font-medium mb-2 block">Search</label>
+          <Input
+            placeholder="Search by name or email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <div className="w-48">
+          <label className="text-sm font-medium mb-2 block">Role</label>
+          <Select value={role} onValueChange={setRole}>
+            <SelectTrigger>
+              <SelectValue placeholder="All Roles" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Roles</SelectItem>
+              <SelectItem value="user">User</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {hasFilters && (
+          <Button variant="ghost" onClick={clearFilters}>
+            <X className="h-4 w-4 mr-2" />
+            Clear
+          </Button>
+        )}
+      </div>
+
+      {isLoading ? (
+        <div>Loading...</div>
+      ) : (
+        <DataTable columns={columns} data={data || []} />
+      )}
+    </div>
+  );
+}
+```
+
+### Master-Detail with Relationships
+
+```tsx title="app/admin/users/[id]/posts/page.tsx"
+"use client";
+
+import { useBetterQuery } from "better-admin";
+import { query } from "@/lib/query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable } from "@/components/admin/data-table";
+import { Badge } from "@/components/ui/badge";
+
+export default function UserPostsPage({ params }: { params: { id: string } }) {
+  const { get: getUser } = useBetterQuery("user", query);
+  const { list: listPosts } = useBetterQuery("post", query);
+
+  const { data: user } = getUser.useQuery({ where: { id: params.id } });
+  const { data: posts, isLoading } = listPosts.useQuery({
+    where: { authorId: params.id },
+  });
+
+  const columns = [
+    { accessorKey: "title", header: "Title" },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge
+          variant={
+            row.original.status === "published" ? "default" : "secondary"
+          }
+        >
+          {row.original.status}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Created",
+      cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Author: {user?.name}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">{user?.email}</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Posts</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div>Loading posts...</div>
+          ) : (
+            <DataTable columns={columns} data={posts || []} />
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+## Integration Examples
+
+### With React Query
+
+```tsx
+import { useBetterQuery } from "better-admin";
+import { useQueryClient } from "@tanstack/react-query";
+
+export function UserList() {
+  const { list, update } = useBetterQuery("user", query);
+  const queryClient = useQueryClient();
+
+  const toggleActive = async (id: string, active: boolean) => {
+    // Optimistic update
+    queryClient.setQueryData(["user", id], (old: any) => ({
+      ...old,
+      active: !active,
+    }));
+
+    try {
+      await update.mutateAsync({
+        where: { id },
+        data: { active: !active },
+      });
+    } catch (error) {
+      // Rollback
+      queryClient.invalidateQueries(["user", id]);
+    }
+  };
+
+  // ... rest of component
+}
+```
+
+### With Server Actions
+
+```tsx title="app/admin/users/actions.ts"
+"use server";
+
+import { query } from "@/lib/query";
+import { revalidatePath } from "next/cache";
+
+export async function createUser(data: any) {
+  await query("user").create(data);
+  revalidatePath("/admin/users");
+}
+
+export async function updateUser(id: string, data: any) {
+  await query("user").update({ where: { id }, data });
+  revalidatePath("/admin/users");
+}
+
+export async function deleteUser(id: string) {
+  await query("user").remove({ where: { id } });
+  revalidatePath("/admin/users");
+}
+```
+
+```tsx title="app/admin/users/create/page.tsx"
+"use client";
+
+import { createUser } from "../actions";
+import { CrudForm } from "@/components/admin/crud-form";
+import { useRouter } from "next/navigation";
+
+export default function UserCreatePage() {
+  const router = useRouter();
+
+  const handleSubmit = async (data: any) => {
+    await createUser(data);
+    router.push("/admin/users");
+  };
+
+  // ... rest of component
+}
+```
+
+## Next Steps
+
+- [Components](/docs/better-admin/components) - Browse all components
+- [CLI Reference](/docs/better-admin/cli) - Learn CLI commands
+- [API Reference](/docs/better-admin/api-reference) - Complete API docs
