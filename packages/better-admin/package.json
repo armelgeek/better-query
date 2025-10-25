@@ -1,6 +1,6 @@
 {
 	"name": "better-admin",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"type": "module",
 	"description": "CLI for installing Better Admin components with automatic shadcn/ui dependency resolution",
 	"author": "armelgeek",
