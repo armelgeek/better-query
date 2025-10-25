@@ -10,7 +10,6 @@
 	"ignore": [
 		"@better-query/shared",
 		"@better-query/docs",
-		"bun",
 		"todo-hono-better-query",
 		"todo-next-better-query",
 		"todo-react-better-query",
