@@ -1,6 +1,6 @@
 {
   "name": "todo-express-better-query",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "Simple and elegant todo app using Better Query with Express.js",
   "scripts": {
