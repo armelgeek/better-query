@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -10,7 +8,7 @@ import {
 
 /**
  * Better Query MCP Server
- * 
+ *
  * Provides AI assistants with tools to interact with better-query instances:
  * - Discover resources and their schemas
  * - Perform CRUD operations
@@ -225,8 +223,7 @@ const TOOLS: Tool[] = [
 	},
 	{
 		name: "execute_custom_operation",
-		description:
-			"Execute a custom operation defined by an adapter or plugin",
+		description: "Execute a custom operation defined by an adapter or plugin",
 		inputSchema: {
 			type: "object",
 			properties: {
@@ -295,11 +292,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 										resources: [
 											{
 												name: "user",
-												schema: "z.object({ name: z.string(), email: z.string().email() })",
+												schema:
+													"z.object({ name: z.string(), email: z.string().email() })",
 											},
 											{
 												name: "post",
-												schema: "z.object({ title: z.string(), content: z.string() })",
+												schema:
+													"z.object({ title: z.string(), content: z.string() })",
 											},
 										],
 									},
