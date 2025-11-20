@@ -9,6 +9,7 @@ Better Query is a comprehensive TypeScript monorepo containing production-ready 
 | Package | Description | Version | Status |
 |---------|-------------|---------|--------|
 | [**better-query**](./packages/better-query) | Type-safe CRUD generator with auto-generated REST APIs | `0.0.1` | 🚧 Beta |
+| [**better-query-mcp**](./packages/better-query-mcp) | MCP server for AI assistant integration | `0.1.0` | ✨ New |
 | [**better-admin**](./packages/better-admin) | CLI for installing admin components with shadcn/ui dependencies | `0.0.1` | 🚧 Beta |
 | [**shared**](./packages/shared) | Shared utilities and types | `0.0.1` | 🚧 Beta |
 
@@ -58,6 +59,29 @@ npx better-admin list
 - 📝 **crud-form** - Form builder with validation
 - 📋 **resource-list** - Display resources with actions
 
+### 🤖 **Better Query MCP** - AI Assistant Integration
+```bash
+# Install the MCP server globally
+npm install -g better-query-mcp
+
+# Configure in your AI assistant (e.g., Claude Desktop)
+# Add to claude_desktop_config.json:
+{
+  "mcpServers": {
+    "better-query": {
+      "command": "npx",
+      "args": ["better-query-mcp"]
+    }
+  }
+}
+```
+
+**AI-Powered Features:**
+- 🔍 Resource discovery and schema exploration
+- 📊 Natural language CRUD operations
+- 🔗 Relationship navigation
+- 🧩 Plugin system integration
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -88,6 +112,7 @@ pnpm dev
 ## 📚 Documentation
 
 - 📖 **[Better Query Docs](./packages/better-query/README.md)** - CRUD operations and API generation
+- 🤖 **[Better Query MCP Docs](./packages/better-query-mcp/README.md)** - AI assistant integration via MCP
 - 🎨 **[Better Admin Docs](./packages/better-admin/README.md)** - Component CLI with dependency management
 - 📋 **[Complete Documentation](./documentation/README.md)** - Comprehensive guides
 - 💡 **[Examples](./examples/)** - Working code examples

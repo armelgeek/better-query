@@ -1,0 +1,10 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/config.json",
+  "mcpServers": {
+    "better-query": {
+      "command": "npx",
+      "args": ["better-query-mcp"],
+      "env": {}
+    }
+  }
+}
