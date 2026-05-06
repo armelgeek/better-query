@@ -26,8 +26,6 @@ function extractAPIMethods(rawContent: string): string {
 		const path = pathMatch ? pathMatch[1] : "";
 		const method = methodMatch ? methodMatch[1] : "GET";
 		const requireSession = !!requireSessionMatch;
-		const isServerOnly = !!isServerOnlyMatch;
-		const isClientOnly = !!isClientOnlyMatch;
 		const noResult = !!noResultMatch;
 		const resultVariable = resultVariableMatch
 			? resultVariableMatch[1]
@@ -105,7 +103,7 @@ function parseTypeBody(typeBody: string) {
 			const [, name, optional, type, , exampleValue, , description] = propMatch;
 
 			let cleanType = type.trim();
-			let cleanExampleValue = exampleValue || "";
+			const cleanExampleValue = exampleValue || "";
 
 			cleanType = cleanType.replace(/,$/, "");
 

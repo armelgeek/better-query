@@ -28,7 +28,7 @@ export const baseUrl =
 		? new URL("http://localhost:3000")
 		: new URL(`https://${process.env.VERCEL_URL}`);
 export function formatDate(date: Date) {
-	let d = new Date(date);
+	const d = new Date(date);
 	return d
 		.toLocaleDateString("en-US", { month: "short", day: "numeric" })
 		.replace(",", "");

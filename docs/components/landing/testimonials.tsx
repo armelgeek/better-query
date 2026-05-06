@@ -194,7 +194,9 @@ const TestimonialItem = ({
 	testimonials: TestimonialProps[];
 	noSsr?: boolean;
 }) => {
-	noSsr && noSSR();
+	if (noSsr) {
+		noSSR();
+	}
 	const animeSeconds = testimonials.length * 10;
 	return (
 		<div className="max-w-full mx-auto">

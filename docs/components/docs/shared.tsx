@@ -10,7 +10,7 @@ export function replaceOrDefault(
 		| {
 				enabled?: boolean;
 				component?: ReactNode;
-		  }
+		}
 		| undefined,
 	def: ReactNode,
 	customComponentProps?: object,
