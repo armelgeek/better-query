@@ -1,3 +1,5 @@
+import { createClient as createBetterCallClient } from "better-call/client";
+
 export interface RealtimeTransport {
 	connect(): Promise<void>;
 	disconnect(): void;
@@ -8,10 +10,12 @@ export interface RealtimeTransport {
 
 export interface ClientOptions {
 	url: string;
+	realtimeUrl?: string;
 	transport?: "ws" | "sse" | "auto";
 	reconnect?: boolean;
 	webSocket?: any;
 	eventSource?: any;
+	headers?: Record<string, string> | (() => Record<string, string> | Promise<Record<string, string>>);
 }
 
 class WebSocketTransport implements RealtimeTransport {
@@ -127,18 +131,125 @@ class SSETransport implements RealtimeTransport {
 	}
 }
 
-export class BetterQueryClient {
+type NestedAPI<T> = {
+	[K in keyof T as K extends `${infer Resource}.${infer Operation}` ? Resource : K]: 
+		K extends `${infer Resource}.${infer Operation}`
+			? { [Op in Operation]: T[K] }
+			: T[K]
+} extends infer O ? {
+	[K in keyof O]: O[K] extends Record<string, any> 
+		? UnionToIntersection<O[K]> 
+		: O[K]
+} : never;
+
+type UnionToIntersection<U> = 
+  (U extends any ? (k: U)=>void : never) extends ((k: infer I)=>void) ? I : never;
+
+export class BetterQueryClient<API extends Record<string, any> = any> {
 	private transport: RealtimeTransport;
+	private api: any;
 
 	constructor(options: ClientOptions) {
-		const wsUrl = options.url.replace(/^http/, "ws") + "/realtime";
-		const sseUrl = options.url + "/sse";
+		const baseRealtimeUrl = options.realtimeUrl || options.url;
+		const wsUrl = baseRealtimeUrl.replace(/^http/, "ws") + (options.realtimeUrl ? "" : "/realtime");
+		const sseUrl = baseRealtimeUrl + (options.realtimeUrl ? "" : "/sse");
 
 		if (options.transport === "sse") {
 			this.transport = new SSETransport(sseUrl, options.eventSource);
 		} else {
 			this.transport = new WebSocketTransport(wsUrl, options.webSocket);
 		}
+
+		this.api = createBetterCallClient({
+			baseURL: options.url,
+			headers: options.headers as any
+		});
+
+		const createProxy = (path: string[]): any => {
+			return new Proxy(() => {}, {
+				get: (_, prop: string) => {
+					if (prop === "then") return undefined;
+					return createProxy([...path, prop]);
+				},
+				apply: (_, __, args) => {
+					const operation = path[path.length - 1];
+					if (!operation) throw new Error("Invalid operation call");
+					
+					const resource = path.slice(0, -1).join("/");
+
+					// Intercept watch/on methods to use local real-time logic instead of API calls
+					if (operation === "watch" || operation === "on") {
+						return this.watch(resource, args[0], args[1]);
+					}
+					
+					// Map 'get' to 'read' for consistency with server endpoints
+					const actualOperation = operation === "get" ? "read" : operation;
+					let fullPath = `/${resource}/${actualOperation}`;
+					
+					// Special case for get/read/update/delete which might need :id
+					if (["get", "read", "update", "delete"].includes(operation)) {
+						fullPath += "/:id";
+					}
+
+					let method = "POST";
+					if (["list", "get", "read", "count"].includes(operation)) method = "GET";
+					if (operation === "update") method = "PATCH";
+					if (operation === "delete") method = "DELETE";
+
+					const options = args[0] || {};
+					let finalPath = fullPath;
+					
+					// Interpolate params into path
+					if (options.params) {
+						for (const [key, value] of Object.entries(options.params)) {
+							finalPath = finalPath.replace(`:${key}`, String(value));
+						}
+					}
+
+					// Try calling as a function if it's a direct better-call client
+					if (typeof this.api === "function") {
+						return (this.api as any)(finalPath, {
+							method,
+							...options
+						});
+					}
+
+					// Fallback to property access if it somehow works
+					let fn = this.api;
+					for (const segment of path) {
+						fn = fn?.[segment];
+					}
+					
+					if (typeof fn?.[method.toLowerCase()] === "function") {
+						return fn[method.toLowerCase()](...args);
+					}
+
+					throw new Error(`[DEBUG-V6] Failed to call endpoint "${finalPath}". Client type: ${typeof this.api}`);
+				}
+			});
+		};
+
+		const clientFn = (resource: string) => {
+			return createProxy([resource]);
+		};
+
+		// Add methods to clientFn
+		Object.assign(clientFn, {
+			api: this.api,
+			transport: this.transport,
+			connect: this.connect.bind(this),
+			watch: this.watch.bind(this),
+			status: this.status
+		});
+
+		return new Proxy(clientFn, {
+			get(target, prop: string) {
+				if (prop in target) {
+					return (target as any)[prop];
+				}
+				return createProxy([prop]);
+			}
+		}) as any;
 	}
 
 	async connect() {
@@ -166,8 +277,8 @@ export class BetterQueryClient {
 	}
 }
 
-export function createClient(options: ClientOptions) {
-	return new BetterQueryClient(options);
+export function createClient<API extends Record<string, any>>(options: ClientOptions): BetterQueryClient<API> & NestedAPI<API> & ((resource: string) => any) {
+	return new BetterQueryClient<API>(options) as any;
 }
 
 export const QUERY_ERROR_CODES = {

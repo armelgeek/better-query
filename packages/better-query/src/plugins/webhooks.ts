@@ -1,63 +1,67 @@
-import { QueryHookContext } from "../types";
 import { Plugin } from "../types/plugins";
+import { QueryHookContext } from "../types";
 
-export interface WebhookConfig {
+export interface WebhookOptions {
 	url: string;
 	events: Array<"create" | "update" | "delete">;
-	secret?: string; // For signature
-}
-
-export interface WebhookPluginOptions {
-	/** Global webhooks */
-	webhooks: WebhookConfig[];
-	/** Resource-specific webhooks mapping */
-	resourceWebhooks?: Record<string, WebhookConfig[]>;
+	headers?: Record<string, string>;
+	secret?: string;
 }
 
 /**
- * Webhook Plugin
- * Sends HTTP POST requests when data changes
+ * Webhook plugin for BetterQuery
+ * Sends outgoing HTTP requests when data changes
  */
-export function webhookPlugin(options: WebhookPluginOptions): Plugin {
-	const { webhooks, resourceWebhooks = {} } = options;
-
-	const triggerWebhooks = async (ctx: QueryHookContext, event: "create" | "update" | "delete") => {
-		const targetWebhooks = [
-			...webhooks,
-			...(resourceWebhooks[ctx.resource] || [])
-		].filter(w => w.events.includes(event));
-
-		for (const webhook of targetWebhooks) {
-			try {
-				// We use a fire-and-forget approach or background task
-				fetch(webhook.url, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						"X-Better-Query-Event": event,
-						"X-Better-Query-Resource": ctx.resource,
-						// Add signature if secret provided
-					},
-					body: JSON.stringify({
-						event,
-						resource: ctx.resource,
-						data: ctx.result || ctx.data,
-						timestamp: new Date().toISOString()
-					})
-				}).catch(err => console.error(`[Webhook] Failed to send to ${webhook.url}:`, err));
-			} catch (e) {
-				console.error(`[Webhook] Error triggering webhook:`, e);
-			}
-		}
-	};
-
+export const webhooks = (options: WebhookOptions[]): Plugin => {
 	return {
-		id: "webhooks",
-		init: () => {},
+		name: "webhooks",
 		hooks: {
-			afterCreate: async (ctx) => triggerWebhooks(ctx, "create"),
-			afterUpdate: async (ctx) => triggerWebhooks(ctx, "update"),
-			afterDelete: async (ctx) => triggerWebhooks(ctx, "delete"),
-		}
+			afterCreate: async (context: QueryHookContext) => {
+				await triggerWebhooks("create", context, options);
+			},
+			afterUpdate: async (context: QueryHookContext) => {
+				await triggerWebhooks("update", context, options);
+			},
+			afterDelete: async (context: QueryHookContext) => {
+				await triggerWebhooks("delete", context, options);
+			},
+		},
 	};
+};
+
+async function triggerWebhooks(
+	event: "create" | "update" | "delete",
+	context: QueryHookContext,
+	options: WebhookOptions[],
+) {
+	const relevantWebhooks = options.filter((o) => o.events.includes(event));
+
+	for (const webhook of relevantWebhooks) {
+		try {
+			const payload = {
+				event,
+				resource: context.resource,
+				timestamp: new Date().toISOString(),
+				data: context.result,
+				user: context.user
+					? {
+							id: context.user.id,
+							email: context.user.email,
+					  }
+					: null,
+			};
+
+			await fetch(webhook.url, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					...(webhook.secret && { "X-Webhook-Secret": webhook.secret }),
+					...webhook.headers,
+				},
+				body: JSON.stringify(payload),
+			});
+		} catch (error) {
+			console.error(`[Webhook] Failed to trigger webhook for ${webhook.url}:`, error);
+		}
+	}
 }

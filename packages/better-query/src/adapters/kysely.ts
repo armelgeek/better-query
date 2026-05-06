@@ -1,3 +1,5 @@
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 import { Kysely, sql } from "kysely";
 import { FieldAttribute, IncludeOptions } from "../types";
 import {
@@ -249,7 +251,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 
 		// Apply soft delete filter if enabled
 		const activeWhere = [...where];
-		if (resourceConfig?.softDelete?.enabled !== false) {
+		if (resourceConfig?.softDelete?.enabled === true) {
 			const softDeleteField = resourceConfig?.softDelete?.field || "deletedAt";
 			// Only add if field exists in schema
 			if (resourceConfig?.schema) {
@@ -311,7 +313,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 
 		// Apply soft delete filter if enabled
 		const activeWhere = [...where];
-		if (resourceConfig?.softDelete?.enabled !== false) {
+		if (resourceConfig?.softDelete?.enabled === true) {
 			const softDeleteField = resourceConfig?.softDelete?.field || "deletedAt";
 			// Check if field exists in schema or if we should just try anyway
 			activeWhere.push({
@@ -1044,7 +1046,6 @@ export function createKyselyDatabase(config: {
 	// In a real scenario, you'd handle different database providers
 	if (config.provider === "sqlite") {
 		try {
-			// For SQLite with better-sqlite3
 			const Database = require("better-sqlite3");
 			const { Kysely, SqliteDialect } = require("kysely");
 

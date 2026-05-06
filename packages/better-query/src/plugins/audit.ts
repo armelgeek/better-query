@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createCrudEndpoint } from "../endpoints/crud-endpoint";
+import { createQueryEndpoint } from "../endpoints";
 import { CrudHookContext } from "../types";
 import { Plugin } from "../types/plugins";
 
@@ -103,27 +103,25 @@ export function auditPlugin(options: AuditPluginOptions = {}): Plugin {
 		id: "audit",
 
 		endpoints: {
-			getAuditLogs: createCrudEndpoint(
+			getAuditLogs: createQueryEndpoint(
 				"/audit/logs",
 				{
 					method: "GET",
-					query: z
-						.object({
-							resource: z.string().optional(),
-							operation: z.string().optional(),
-							user: z.string().optional(),
-							startDate: z.string().optional(),
-							endDate: z.string().optional(),
-							page: z
-								.string()
-								.optional()
-								.transform((val) => (val ? parseInt(val) : 1)),
-							limit: z
-								.string()
-								.optional()
-								.transform((val) => (val ? parseInt(val) : 50)),
-						})
-						.optional(),
+					query: z.object({
+						resource: z.string().optional(),
+						operation: z.string().optional(),
+						user: z.string().optional(),
+						startDate: z.string().optional(),
+						endDate: z.string().optional(),
+						page: z
+							.string()
+							.optional()
+							.transform((val) => (val ? parseInt(val) : 1)),
+						limit: z
+							.string()
+							.optional()
+							.transform((val) => (val ? parseInt(val) : 50)),
+					}) as any,
 				},
 				async (ctx) => {
 					// This would typically query an audit table

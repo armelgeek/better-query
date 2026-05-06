@@ -124,6 +124,11 @@ export function realtimePlugin(options: RealtimePluginOptions = {}): Plugin {
 					clientMetadata.delete(ws);
 				});
 			});
+			
+			// Override context broadcast helper
+			context.broadcast = (message) => {
+				broadcast(message.channel, message as any);
+			};
 		},
 
 		hooks: {
@@ -135,16 +140,22 @@ export function realtimePlugin(options: RealtimePluginOptions = {}): Plugin {
 			},
 			afterUpdate: async (ctx: QueryHookContext) => {
 				if (resources.length === 0 || resources.includes(ctx.resource)) {
+					const id = ctx.result?.id || ctx.data?.id;
 					// Broadcast to resource channel
 					broadcast(`resource:${ctx.resource}`, { type: "data_change", payload: { action: "update", data: ctx.result } });
 					// Broadcast to specific record channel
-					broadcast(`${ctx.resource}:${ctx.data.id}`, { type: "data_change", payload: { action: "update", data: ctx.result } });
+					if (id) {
+						broadcast(`${ctx.resource}:${id}`, { type: "data_change", payload: { action: "update", data: ctx.result } });
+					}
 				}
 			},
 			afterDelete: async (ctx: QueryHookContext) => {
 				if (resources.length === 0 || resources.includes(ctx.resource)) {
-					broadcast(`resource:${ctx.resource}`, { type: "data_change", payload: { action: "delete", id: ctx.data.id } });
-					broadcast(`${ctx.resource}:${ctx.data.id}`, { type: "data_change", payload: { action: "delete", id: ctx.data.id } });
+					const id = ctx.result?.id || ctx.data?.id;
+					broadcast(`resource:${ctx.resource}`, { type: "data_change", payload: { action: "delete", id } });
+					if (id) {
+						broadcast(`${ctx.resource}:${id}`, { type: "data_change", payload: { action: "delete", id } });
+					}
 				}
 			}
 		},

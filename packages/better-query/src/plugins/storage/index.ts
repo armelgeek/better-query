@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createCrudEndpoint } from "../../endpoints/crud-endpoint";
+import { createQueryEndpoint } from "../../endpoints";
 import { Plugin } from "../../types/plugins";
 import { StorageProvider } from "./providers";
 
@@ -20,7 +20,7 @@ export function storagePlugin(options: StoragePluginOptions): Plugin {
 		init: () => {},
 		endpoints: {
 			// Generic upload endpoint
-			uploadFile: createCrudEndpoint(
+			uploadFile: createQueryEndpoint(
 				uploadPath,
 				{ method: "POST" },
 				async (ctx) => {
@@ -43,11 +43,11 @@ export function storagePlugin(options: StoragePluginOptions): Plugin {
 			),
 
 			// Get signed URL
-			getSignedUrl: createCrudEndpoint(
+			getSignedUrl: createQueryEndpoint(
 				`${uploadPath}/signed-url`,
 				{ 
 					method: "GET",
-					query: z.object({ key: z.string() })
+					query: z.object({ key: z.string() }) as any
 				},
 				async (ctx) => {
 					const { key } = ctx.query;

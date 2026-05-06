@@ -16,6 +16,7 @@ import { capitalize, generateId } from "../utils/schema";
 import { FilterBuilder, SearchBuilder } from "../utils/search";
 import {
 	checkEnhancedPermissions,
+	checkOwnership,
 	extractSecurityContext,
 	hasRequiredScopes,
 	rateLimiter,
@@ -142,7 +143,7 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 		schema,
 		tableName,
 		endpoints = {},
-		permissions = {},
+		policies = {},
 		customEndpoints = {},
 	} = resourceConfig;
 	const actualTableName = tableName || name;
@@ -159,39 +160,45 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 
 	const queryEndpoints: Record<string, any> = {};
 
-	// Enhanced helper function to check permissions with scopes and ownership
+	// Enhanced helper function to check policies with scopes and RLS filters
 	const checkPermission = async (
-		operation: keyof typeof permissions,
+		operation: keyof typeof policies,
 		context: QueryPermissionContext,
-		config?: QueryResourceConfig,
-	): Promise<boolean> => {
-		const permissionFn = permissions[operation];
-		const requiredScopes = config?.scopes?.[operation];
-		const ownershipConfig = config?.ownership;
+		config: QueryResourceConfig,
+	): Promise<boolean | Record<string, any>> => {
+		const policyFn = config.policies?.[operation];
+		const requiredScopes = config.scopes?.[operation];
+		const ownershipConfig = config.ownership;
 
-		// Check basic permission function first
-		if (permissionFn) {
-			try {
-				const hasBasicPermission = await permissionFn(context);
-				if (!hasBasicPermission) return false;
-			} catch {
-				return false;
-			}
-		} else if (!config) {
-			// SECURITY: Default to forbidden if no permission function or config is provided
+		// 1. Check scopes first (fastest)
+		if (requiredScopes && !hasRequiredScopes(context.scopes, requiredScopes)) {
 			return false;
 		}
 
-		// Check enhanced permissions (scopes, ownership) if config is provided
-		if (config) {
-			return await checkEnhancedPermissions(
-				context,
-				requiredScopes,
-				ownershipConfig,
-			);
+		// 2. Check policy function
+		let policyResult: boolean | Record<string, any> = true;
+		if (policyFn) {
+			try {
+				policyResult = await policyFn(context);
+				if (policyResult === false) return false;
+			} catch (e) {
+				console.error(`[Policy] Error executing policy for ${name}.${operation}:`, e);
+				return false;
+			}
 		}
 
-		return true;
+		// 3. Check legacy ownership if policy didn't return a filter
+		if (policyResult === true && ownershipConfig && context.existingData) {
+			const isOwner = checkOwnership(
+				context.user,
+				context.existingData,
+				ownershipConfig.field,
+				ownershipConfig.strategy,
+			);
+			if (!isOwner) return false;
+		}
+
+		return policyResult;
 	};
 
 	// Helper to extract user from request/context
@@ -202,6 +209,48 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 	// Helper to extract user scopes
 	const extractUserScopes = (user: any): string[] => {
 		return user?.scopes || user?.roles || [];
+	};
+
+	/**
+	 * Apply global filters like multi-tenancy to where conditions
+	 */
+	const applyGlobalFilters = (
+		where: Array<{ field: string; value: any; operator?: string }>,
+		user: any,
+	) => {
+		// 1. Handle Multi-Tenancy
+		if (resourceConfig.multiTenancy?.enabled) {
+			const tenantField = resourceConfig.multiTenancy.field || "tenantId";
+			const contextKey = resourceConfig.multiTenancy.contextKey || "tenantId";
+			const tenantId = user?.[contextKey];
+
+			if (tenantId) {
+				// Avoid duplicate tenant filter
+				const hasTenantFilter = where.some((w) => w.field === tenantField);
+				if (!hasTenantFilter) {
+					where.push({
+						field: tenantField,
+						value: tenantId,
+						operator: "eq",
+					});
+				}
+			}
+		}
+
+		// 2. Handle Soft Delete (Global)
+		if (resourceConfig.softDelete?.enabled) {
+			const softDeleteField = resourceConfig.softDelete.field || "deletedAt";
+			const hasSoftDeleteFilter = where.some((w) => w.field === softDeleteField);
+			if (!hasSoftDeleteFilter) {
+				where.push({
+					field: softDeleteField,
+					value: null,
+					operator: "eq",
+				});
+			}
+		}
+
+		return where;
 	};
 
 	// Helper function to parse include options from query parameters
@@ -233,20 +282,20 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 
 	// CREATE endpoint
 	if (enabledEndpoints.create) {
-		queryEndpoints[`create${capitalize(name)}`] = createQueryEndpoint(
-			`/${name}`,
+		queryEndpoints[`${name}.create`] = createQueryEndpoint(
+			`/${name}/create`,
 			{
 				method: "POST",
-				body: createFlexibleSchema(schema),
+				body: createFlexibleSchema(schema) as any,
 				query: z
 					.object({
 						include: z.string().optional(),
 						select: z.string().optional(),
 					})
-					.optional(),
+					.optional() as any,
 			},
-			async (ctx) => {
-				console.log("ici");
+			async (ctx: any) => {
+				
 				const { body, context, query } = ctx;
 				const { adapter } = context;
 
@@ -377,6 +426,15 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 					}
 				}
 
+				// Automatically set tenantId if multiTenancy is enabled
+				if (resourceConfig.multiTenancy?.enabled) {
+					const field = resourceConfig.multiTenancy.field || "tenantId";
+					const contextKey = resourceConfig.multiTenancy.contextKey || "tenantId";
+					if (user?.[contextKey] && !data[field]) {
+						data[field] = user[contextKey];
+					}
+				}
+
 				// Update hook context with final data
 				hookContext.data = data;
 
@@ -420,21 +478,21 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 
 	// READ endpoint
 	if (enabledEndpoints.read) {
-		queryEndpoints[`get${capitalize(name)}`] = createQueryEndpoint(
-			`/${name}/:id`,
+		queryEndpoints[`${name}.get`] = createQueryEndpoint(
+			`/${name}/get/:id`,
 			{
 				method: "GET",
 				params: z.object({
 					id: z.string(),
-				}),
+				}) as any,
 				query: z
 					.object({
 						include: z.string().optional(),
 						select: z.string().optional(),
 					})
-					.optional(),
+					.optional() as any,
 			},
-			async (ctx) => {
+			async (ctx: any) => {
 				const { params, context, query } = ctx;
 				const { adapter } = context;
 				const { id } = params;
@@ -499,37 +557,62 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 				// Parse include options
 				const include = parseIncludeOptions(query);
 
+				// 1. Pre-fetch permission check (to see if we can apply RLS filters)
+				const prePermissionContext: QueryPermissionContext = {
+					user,
+					resource: name,
+					operation: "read",
+					id,
+					request: ctx,
+					scopes: userScopes,
+				};
+
+				const prePermissionResult = await checkPermission(
+					"read",
+					prePermissionContext,
+					resourceConfig,
+				);
+
+				if (prePermissionResult === false) {
+					return ctx.json({ error: "Forbidden" }, { status: 403 });
+				}
+
+				const policyFilter = typeof prePermissionResult === "object" ? prePermissionResult : {};
+
 				try {
+					// Build where clause with ID, policy filters, and global filters
+					let whereConditions: Array<{ field: string; value: any; operator?: string }> = [{ field: "id", value: id }];
+					for (const [field, value] of Object.entries(policyFilter)) {
+						whereConditions.push({ field, value, operator: "eq" });
+					}
+					
+					// Apply global filters (Multi-Tenancy, Soft Delete)
+					whereConditions = applyGlobalFilters(whereConditions, user);
+
 					const result = await adapter.findFirst({
 						model: actualTableName,
-						where: convertToQueryWhere([{ field: "id", value: id }]),
+						where: convertToQueryWhere(whereConditions),
 						include,
 					});
 
 					if (!result) {
+						// If we had policy filters, it might be a 403 masquerading as a 404
 						return ctx.json({ error: "Resource not found" }, { status: 404 });
 					}
 
-					// Update hook context with found data
-					hookContext.existingData = result;
-
-					// Check permissions with enhanced context including existing data
-					const permissionContext: QueryPermissionContext = {
-						user,
-						resource: name,
-						operation: "read",
-						id,
+					// 2. Post-fetch permission check (for data-dependent policies)
+					const postPermissionContext: QueryPermissionContext = {
+						...prePermissionContext,
 						existingData: result,
-						request: ctx,
-						scopes: userScopes,
 					};
 
-					const hasPermission = await checkPermission(
+					const postPermissionResult = await checkPermission(
 						"read",
-						permissionContext,
+						postPermissionContext,
 						resourceConfig,
 					);
-					if (!hasPermission) {
+
+					if (postPermissionResult === false) {
 						return ctx.json({ error: "Forbidden" }, { status: 403 });
 					}
 
@@ -554,16 +637,16 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 
 	// UPDATE endpoint
 	if (enabledEndpoints.update) {
-		queryEndpoints[`update${capitalize(name)}`] = createQueryEndpoint(
-			`/${name}/:id`,
+		queryEndpoints[`${name}.update`] = createQueryEndpoint(
+			`/${name}/update/:id`,
 			{
 				method: "PATCH",
 				params: z.object({
 					id: z.string(),
-				}),
-				body: createFlexibleSchema(schema, true),
+				}) as any,
+				body: createFlexibleSchema(schema, true) as any,
 			},
-			async (ctx) => {
+			async (ctx: any) => {
 				const { params, body, context } = ctx;
 				const { adapter } = context;
 				const { id } = params;
@@ -572,17 +655,64 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 				let user = extractUser(ctx);
 				let userScopes = extractUserScopes(user);
 
-				// Check if resource exists first (needed for hooks and ownership checks)
+				// 1. Pre-fetch permission check
+				const prePermissionContext: QueryPermissionContext = {
+					user,
+					resource: name,
+					operation: "update",
+					id,
+					data: body,
+					request: ctx,
+					scopes: userScopes,
+				};
+
+				const prePermissionResult = await checkPermission(
+					"update",
+					prePermissionContext,
+					resourceConfig,
+				);
+
+				if (prePermissionResult === false) {
+					return ctx.json({ error: "Forbidden" }, { status: 403 });
+				}
+
+				const policyFilter = typeof prePermissionResult === "object" ? prePermissionResult : {};
+
+				// Apply global filters (Multi-Tenancy, Soft Delete)
+				// Build where clause with ID and policy filters
+				const whereConditions: Array<{ field: string; value: any; operator?: string }> = [{ field: "id", value: id }];
+				for (const [field, value] of Object.entries(policyFilter)) {
+					whereConditions.push({ field, value, operator: "eq" });
+				}
+
+				const finalWhereConditions = applyGlobalFilters([...whereConditions], user);
+
 				const existing = await adapter.findFirst({
 					model: actualTableName,
-					where: convertToQueryWhere([{ field: "id", value: id }]),
+					where: convertToQueryWhere(finalWhereConditions),
 				});
 
 				if (!existing) {
 					return ctx.json({ error: "Resource not found" }, { status: 404 });
 				}
 
-				// Execute middleware BEFORE permission checks - they can modify user and context
+				// 2. Post-fetch permission check
+				const postPermissionContext: QueryPermissionContext = {
+					...prePermissionContext,
+					existingData: existing,
+				};
+
+				const postPermissionResult = await checkPermission(
+					"update",
+					postPermissionContext,
+					resourceConfig,
+				);
+
+				if (postPermissionResult === false) {
+					return ctx.json({ error: "Forbidden" }, { status: 403 });
+				}
+
+				// Execute middleware BEFORE hooks
 				const middlewareContext: QueryMiddlewareContext = {
 					user,
 					resource: name,
@@ -664,27 +794,6 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 					data = sanitizeFields(data, resourceConfig.sanitization.fields);
 				}
 
-				// Check permissions with enhanced context including existing data
-				const permissionContext: QueryPermissionContext = {
-					user,
-					resource: name,
-					operation: "update",
-					id,
-					data,
-					existingData: existing,
-					request: ctx,
-					scopes: userScopes,
-				};
-
-				const hasPermission = await checkPermission(
-					"update",
-					permissionContext,
-					resourceConfig,
-				);
-				if (!hasPermission) {
-					return ctx.json({ error: "Forbidden" }, { status: 403 });
-				}
-
 				// Update hook context with final data
 				hookContext.data = data;
 
@@ -725,15 +834,15 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 
 	// DELETE endpoint
 	if (enabledEndpoints.delete) {
-		queryEndpoints[`delete${capitalize(name)}`] = createQueryEndpoint(
-			`/${name}/:id`,
+		queryEndpoints[`${name}.delete`] = createQueryEndpoint(
+			`/${name}/delete/:id`,
 			{
 				method: "DELETE",
 				params: z.object({
 					id: z.string(),
-				}),
+				}) as any,
 			},
-			async (ctx) => {
+			async (ctx: any) => {
 				const { params, context } = ctx;
 				const { adapter } = context;
 				const { id } = params;
@@ -742,17 +851,63 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 				let user = extractUser(ctx);
 				let userScopes = extractUserScopes(user);
 
-				// Check if resource exists first (needed for hooks, ownership and audit)
+				// 1. Pre-fetch permission check
+				const prePermissionContext: QueryPermissionContext = {
+					user,
+					resource: name,
+					operation: "delete",
+					id,
+					request: ctx,
+					scopes: userScopes,
+				};
+
+				const prePermissionResult = await checkPermission(
+					"delete",
+					prePermissionContext,
+					resourceConfig,
+				);
+
+				if (prePermissionResult === false) {
+					return ctx.json({ error: "Forbidden" }, { status: 403 });
+				}
+
+				const policyFilter = typeof prePermissionResult === "object" ? prePermissionResult : {};
+				// Build where clause with ID and policy filters
+				const whereConditions: Array<{ field: string; value: any; operator?: string }> = [{ field: "id", value: id }];
+				for (const [field, value] of Object.entries(policyFilter)) {
+					whereConditions.push({ field, value, operator: "eq" });
+				}
+
+
+				// Apply global filters (Multi-Tenancy, Soft Delete)
+				const finalWhereConditions = applyGlobalFilters([...whereConditions], user);
+
 				const existing = await adapter.findFirst({
 					model: actualTableName,
-					where: convertToQueryWhere([{ field: "id", value: id }]),
+					where: convertToQueryWhere(finalWhereConditions),
 				});
 
 				if (!existing) {
 					return ctx.json({ error: "Resource not found" }, { status: 404 });
 				}
 
-				// Execute middleware BEFORE permission checks - they can modify user and context
+				// 2. Post-fetch permission check
+				const postPermissionContext: QueryPermissionContext = {
+					...prePermissionContext,
+					existingData: existing,
+				};
+
+				const postPermissionResult = await checkPermission(
+					"delete",
+					postPermissionContext,
+					resourceConfig,
+				);
+
+				if (postPermissionResult === false) {
+					return ctx.json({ error: "Forbidden" }, { status: 403 });
+				}
+
+				// Execute middleware BEFORE hooks
 				const middlewareContext: QueryMiddlewareContext = {
 					user,
 					resource: name,
@@ -862,8 +1017,8 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 
 	// LIST endpoint with advanced search and filtering
 	if (enabledEndpoints.list) {
-		queryEndpoints[`list${capitalize(name)}s`] = createQueryEndpoint(
-			`/${name}s`,
+		queryEndpoints[`${name}.list`] = createQueryEndpoint(
+			`/${name}/list`,
 			{
 				method: "GET",
 				query: z.object({
@@ -885,9 +1040,9 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 					filters: z.string().optional(), // JSON string of advanced filters
 					where: z.string().optional(), // JSON string of where conditions
 					dateRange: z.string().optional(), // JSON string for date range filtering
-				}),
+				}) as any,
 			},
-			async (ctx) => {
+			async (ctx: any) => {
 				const { query, context } = ctx;
 				const { adapter } = context;
 
@@ -925,15 +1080,15 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 				}
 
 				// Execute before hooks AFTER middleware for list operations
-					const hookContext: QueryHookContext = {
-						user,
-						resource: name,
-						operation: "list",
-						request: ctx.request,
-						adapter,
-						context,
-						params: query,
-					};
+				const hookContext: QueryHookContext = {
+					user,
+					resource: name,
+					operation: "list",
+					request: ctx.request,
+					adapter,
+					context,
+					params: query,
+				};
 
 				try {
 					await HookExecutor.executeBefore(resourceConfig.hooks, hookContext);
@@ -974,14 +1129,17 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 					scopes: userScopes,
 				};
 
-				const hasPermission = await checkPermission(
+				const permissionResult = await checkPermission(
 					"list",
 					permissionContext,
 					resourceConfig,
 				);
-				if (!hasPermission) {
+				if (permissionResult === false) {
 					return ctx.json({ error: "Forbidden" }, { status: 403 });
 				}
+
+				// Extract policy filter if any
+				const policyFilter = typeof permissionResult === "object" ? permissionResult : {};
 
 				try {
 					// Build search conditions
@@ -1001,8 +1159,18 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 					const includeOptions =
 						SearchBuilder.buildIncludeOptions(enhancedQuery);
 
-					// Apply ownership filtering if configured
-					let whereConditions = [...searchConditions];
+					// Combine conditions: search + policy filter + ownership
+					let whereConditions: Array<{ field: string; value: any; operator?: string }> = [...searchConditions];
+					
+					// Add policy filter
+					for (const [field, value] of Object.entries(policyFilter)) {
+						whereConditions.push({
+							field,
+							value,
+							operator: "eq",
+						});
+					}
+
 					if (resourceConfig.ownership && user) {
 						const ownershipField = resourceConfig.ownership.field;
 						const userId = user.id || user.userId;
@@ -1114,6 +1282,18 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 							user,
 							adapter,
 						} as any);
+
+						// Automatically broadcast action event
+						queryContext.broadcast({
+							type: "data_change",
+							channel: `resource:${name}`,
+							payload: {
+								action: actionName,
+								resource: name,
+								result,
+								user: user ? { id: user.id, email: user.email } : null
+							}
+						});
 
 						return ctx.json(result);
 					} catch (error) {

@@ -24,6 +24,12 @@ function initQuery(options: QueryOptions): QueryContext {
 		relationships,
 		schemas,
 		pluginManager,
+		broadcast: (message) => {
+			// This will be overridden by the realtime plugin if present
+			if (options.debug) {
+				console.log(`[Broadcast] No realtime plugin active for channel ${message.channel}`);
+			}
+		},
 	};
 
 	const relationshipManager = new RelationshipManager(context);
@@ -96,7 +102,6 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 	}
 
 	let processedEndpoints = allEndpoints;
-
 	const api: Record<string, any> = {};
 	for (const [key, value] of Object.entries(processedEndpoints)) {
 		api[key] = (context: any) => {
@@ -120,6 +125,7 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 		relationships: queryContext.relationships,
 		adapter: queryContext.adapter,
 		options: options,
+		broadcast: queryContext.broadcast,
 	};
 
 	queryContext

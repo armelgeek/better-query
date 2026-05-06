@@ -97,6 +97,8 @@ export interface PluginInitContext {
 	adapter: any;
 	/** Plugin options */
 	options: any;
+	/** Global broadcast helper */
+	broadcast: (message: { type: string; channel: string; payload: any }) => void;
 }
 
 /**

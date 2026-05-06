@@ -35,12 +35,12 @@ export interface QueryResourceConfig {
 	};
 	customEndpoints?: Record<string, Endpoint>;
 	middlewares?: QueryMiddleware[];
-	permissions?: {
-		create?: (context: QueryPermissionContext) => Promise<boolean> | boolean;
-		read?: (context: QueryPermissionContext) => Promise<boolean> | boolean;
-		update?: (context: QueryPermissionContext) => Promise<boolean> | boolean;
-		delete?: (context: QueryPermissionContext) => Promise<boolean> | boolean;
-		list?: (context: QueryPermissionContext) => Promise<boolean> | boolean;
+	policies?: {
+		create?: (context: QueryPermissionContext) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
+		read?: (context: QueryPermissionContext) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
+		update?: (context: QueryPermissionContext) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
+		delete?: (context: QueryPermissionContext) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
+		list?: (context: QueryPermissionContext) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
 	};
 	scopes?: {
 		create?: string[];
@@ -168,6 +168,8 @@ export interface QueryOptions {
 	middlewares?: QueryMiddleware[];
 	plugins?: Plugin[];
 	auth?: AuthOptions;
+	/** Enable debug logging */
+	debug?: boolean;
 	hooks?: {
 		onCreate?: (context: QueryHookContext) => Promise<void> | void;
 		onUpdate?: (context: QueryHookContext) => Promise<void> | void;
@@ -250,6 +252,11 @@ export interface QueryContext {
 	relationships: Map<string, Record<string, RelationshipConfig>>;
 	schemas: Map<string, { fields: Record<string, FieldAttribute> }>;
 	pluginManager?: any;
+	broadcast: (message: {
+		type: string;
+		channel: string;
+		payload: any;
+	}) => void;
 }
 
 export type CrudContext = QueryContext;

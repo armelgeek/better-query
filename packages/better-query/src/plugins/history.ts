@@ -1,4 +1,4 @@
-import { createEndpoint } from "better-call";
+import { createQueryEndpoint } from "../endpoints";
 import { z } from "zod";
 import { Plugin } from "../types/plugins";
 import { QueryHookContext } from "../types";
@@ -54,13 +54,13 @@ export function historyPlugin(options: HistoryPluginOptions = {}): Plugin {
 		},
 
 		endpoints: {
-			getHistory: createEndpoint("/:resource/:id/history", {
+			getHistory: createQueryEndpoint("/:resource/:id/history", {
 				method: "GET",
 				params: z.object({
 					resource: z.string(),
 					id: z.string()
-				}),
-			}, async (ctx) => {
+				}) as any,
+			}, async (ctx: any) => {
 				const { resource, id } = ctx.params;
 				const historyTable = tableNamePattern(resource);
 				
@@ -76,16 +76,16 @@ export function historyPlugin(options: HistoryPluginOptions = {}): Plugin {
 				}));
 			}),
 
-			restoreVersion: createEndpoint("/:resource/:id/restore", {
+			restoreVersion: createQueryEndpoint("/:resource/:id/restore", {
 				method: "POST",
 				params: z.object({
 					resource: z.string(),
 					id: z.string()
-				}),
+				}) as any,
 				body: z.object({
 					historyId: z.string()
-				}),
-			}, async (ctx) => {
+				}) as any,
+			}, async (ctx: any) => {
 				const { resource, id } = ctx.params;
 				const { historyId } = ctx.body;
 				const historyTable = tableNamePattern(resource);
