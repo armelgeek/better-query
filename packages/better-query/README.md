@@ -8,6 +8,8 @@ The standalone, type-safe CRUD engine for professional Node.js applications.
 - **⚡ Performance**: Built on Kysely for type-safe database queries and better-call for lightweight routing.
 - **🔒 Security**: Native GDPR masking and field-level permissions.
 - **🔄 Extensible**: Powerful plugin system (Audit, History, Cache, Webhooks).
+- **⏳ Time Travel**: Automated record versioning and one-click restoration.
+- **🔍 Advanced Search**: Built-in fuzzy search, complex filtering, and date ranges.
 
 ## 🚀 Quick Start
 

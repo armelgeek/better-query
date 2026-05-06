@@ -3,28 +3,22 @@ import { createCrudEndpoint } from "../endpoints/crud-endpoint";
 import { FieldAttribute } from "../types";
 import { Plugin, PluginInitContext } from "../types/plugins";
 
-/**
- * Job status enum
- */
 export type JobStatus =
-	| "pending" // Job is waiting to be executed
-	| "running" // Job is currently executing
-	| "completed" // Job completed successfully
-	| "failed" // Job failed with error
-	| "cancelled"; // Job was cancelled
+	| "pending"
+	| "running"
+	| "completed"
+	| "failed"
+	| "cancelled";
 
-/**
- * Job definition structure
- */
 export interface JobDefinition {
 	id: string;
 	name: string;
-	handler: string; // Name of the registered handler function
-	data?: any; // JSON data passed to the handler
-	schedule?: string; // Cron expression or interval (e.g., "*/5 * * * *" or "5m")
+	handler: string;
+	data?: any;
+	schedule?: string;
 	status: JobStatus;
-	attempts: number; // Number of execution attempts
-	maxAttempts: number; // Maximum retry attempts
+	attempts: number;
+	maxAttempts: number;
 	lastRunAt?: Date;
 	nextRunAt?: Date;
 	lastError?: string;
@@ -32,9 +26,6 @@ export interface JobDefinition {
 	updatedAt: Date;
 }
 
-/**
- * Job execution history entry
- */
 export interface JobHistory {
 	id: string;
 	jobId: string;
@@ -43,46 +34,27 @@ export interface JobHistory {
 	completedAt?: Date;
 	error?: string;
 	result?: any;
-	duration?: number; // Execution duration in ms
+	duration?: number;
 }
 
-/**
- * Job handler function type
- */
 export type JobHandler = (data?: any) => Promise<any> | any;
 
-/**
- * Job plugin options
- */
 export interface JobPluginOptions {
-	/** Whether to enable the job system */
 	enabled?: boolean;
-	/** Poll interval for checking scheduled jobs (in ms) */
 	pollInterval?: number;
-	/** Default max retry attempts */
 	defaultMaxAttempts?: number;
-	/** Whether to store job execution history */
 	enableHistory?: boolean;
-	/** Auto-start the job runner */
 	autoStart?: boolean;
-	/** Custom job handlers */
 	handlers?: Record<string, JobHandler>;
 }
 
-/**
- * Job execution context
- */
 export interface JobContext {
 	job: JobDefinition;
 	adapter: any;
 	handlers: Map<string, JobHandler>;
 }
 
-/**
- * Parse schedule expression to next run time
- */
 function parseSchedule(schedule: string, from: Date = new Date()): Date | null {
-	// Handle interval expressions (e.g., "5m", "1h", "30s")
 	const intervalMatch = schedule.match(/^(\d+)(s|m|h|d)$/);
 	if (intervalMatch && intervalMatch[1] && intervalMatch[2]) {
 		const value = intervalMatch[1];
@@ -101,9 +73,6 @@ function parseSchedule(schedule: string, from: Date = new Date()): Date | null {
 		}
 	}
 
-	// Handle cron expressions (simplified implementation)
-	// Format: minute hour day month dayOfWeek
-	// Example: "*/5 * * * *" = every 5 minutes
 	const cronMatch = schedule.match(
 		/^(\*|[\d,\-\/]+)\s+(\*|[\d,\-\/]+)\s+(\*|[\d,\-\/]+)\s+(\*|[\d,\-\/]+)\s+(\*|[\d,\-\/]+)$/,
 	);
@@ -114,10 +83,6 @@ function parseSchedule(schedule: string, from: Date = new Date()): Date | null {
 	return null;
 }
 
-/**
- * Parse cron expression to next execution time
- * Simplified cron parser - supports star-slash-n syntax and specific values
- */
 function parseCronExpression(cron: string, from: Date): Date {
 	const parts = cron.split(" ");
 	const [
@@ -131,11 +96,8 @@ function parseCronExpression(cron: string, from: Date): Date {
 	const next = new Date(from);
 	next.setSeconds(0);
 	next.setMilliseconds(0);
-
-	// Add one minute to start from next available slot
 	next.setMinutes(next.getMinutes() + 1);
 
-	// Parse minute
 	if (minutePart && minutePart !== "*") {
 		if (minutePart.startsWith("*/")) {
 			const interval = Number.parseInt(minutePart.slice(2), 10);
@@ -152,7 +114,6 @@ function parseCronExpression(cron: string, from: Date): Date {
 		}
 	}
 
-	// Parse hour
 	if (hourPart && hourPart !== "*" && !hourPart.startsWith("*/")) {
 		next.setHours(Number.parseInt(hourPart, 10));
 	}
@@ -160,9 +121,6 @@ function parseCronExpression(cron: string, from: Date): Date {
 	return next;
 }
 
-/**
- * Job executor - runs job handlers
- */
 class JobExecutor {
 	private handlers: Map<string, JobHandler> = new Map();
 	private adapter: any;
@@ -203,30 +161,25 @@ class JobExecutor {
 		}
 
 		try {
-			// Update job status to running
 			await this.adapter.update("jobs", job.id, {
 				status: "running",
 				lastRunAt: new Date(),
 			});
 
-			// Execute the handler
 			const result = await handler(job.data);
 
-			// Calculate next run time if scheduled
 			const nextRunAt = job.schedule
 				? parseSchedule(job.schedule, new Date())
 				: null;
 
-			// Update job as completed
 			await this.adapter.update("jobs", job.id, {
 				status: nextRunAt ? "pending" : "completed",
-				attempts: 0, // Reset attempts on success
+				attempts: 0,
 				lastRunAt: new Date(),
 				nextRunAt: nextRunAt,
 				lastError: null,
 			});
 
-			// Save history
 			if (this.enableHistory && historyEntry) {
 				await this.adapter.create("job_history", {
 					...historyEntry,
@@ -240,7 +193,6 @@ class JobExecutor {
 			const errorMessage =
 				error instanceof Error ? error.message : String(error);
 
-			// Update job as failed
 			const newAttempts = job.attempts + 1;
 			const shouldRetry = newAttempts < job.maxAttempts;
 			const nextRunAt =
@@ -256,7 +208,6 @@ class JobExecutor {
 				nextRunAt: nextRunAt,
 			});
 
-			// Save history
 			if (this.enableHistory && historyEntry) {
 				await this.adapter.create("job_history", {
 					...historyEntry,
@@ -279,9 +230,6 @@ class JobExecutor {
 	}
 }
 
-/**
- * Job runner - polls and executes scheduled jobs
- */
 class JobRunner {
 	private executor: JobExecutor;
 	private adapter: any;
@@ -318,7 +266,6 @@ class JobRunner {
 		}
 
 		try {
-			// Find jobs that are ready to run
 			const now = new Date();
 			const jobs = await this.adapter.list("jobs", {
 				where: {
@@ -327,7 +274,6 @@ class JobRunner {
 				},
 			});
 
-			// Execute jobs
 			for (const job of jobs) {
 				try {
 					await this.executor.executeJob(job);
@@ -339,20 +285,16 @@ class JobRunner {
 			console.error("Error polling jobs:", error);
 		}
 
-		// Schedule next poll
 		if (this.isRunning) {
 			this.timerId = setTimeout(() => this.poll(), this.pollInterval);
 		}
 	}
 }
 
-/**
- * Jobs plugin factory
- */
 export function jobsPlugin(options: JobPluginOptions = {}): Plugin {
 	const {
 		enabled = true,
-		pollInterval = 60000, // 1 minute default
+		pollInterval = 60000,
 		defaultMaxAttempts = 3,
 		enableHistory = true,
 		autoStart = true,
@@ -369,7 +311,6 @@ export function jobsPlugin(options: JobPluginOptions = {}): Plugin {
 	let executor: JobExecutor;
 	let runner: JobRunner;
 
-	// Plugin schema for database tables
 	const schema = {
 		jobs: {
 			fields: {
@@ -410,9 +351,7 @@ export function jobsPlugin(options: JobPluginOptions = {}): Plugin {
 			: {}),
 	};
 
-	// Plugin endpoints
 	const endpoints = {
-		// Create a new job
 		createJob: createCrudEndpoint(
 			"/jobs",
 			{
@@ -422,7 +361,6 @@ export function jobsPlugin(options: JobPluginOptions = {}): Plugin {
 				const { context } = ctx;
 				const body = await ctx.body;
 
-				// Validate required fields
 				if (!body.name || !body.handler) {
 					return ctx.json(
 						{ error: "name and handler are required" },
@@ -430,7 +368,6 @@ export function jobsPlugin(options: JobPluginOptions = {}): Plugin {
 					);
 				}
 
-				// Calculate next run time if schedule is provided
 				const nextRunAt = body.schedule
 					? parseSchedule(body.schedule, new Date())
 					: new Date();
@@ -456,7 +393,6 @@ export function jobsPlugin(options: JobPluginOptions = {}): Plugin {
 			},
 		),
 
-		// List all jobs
 		listJobs: createCrudEndpoint(
 			"/jobs",
 			{
@@ -474,7 +410,6 @@ export function jobsPlugin(options: JobPluginOptions = {}): Plugin {
 			},
 		),
 
-		// Get job by ID
 		getJob: createCrudEndpoint(
 			"/jobs/:id",
 			{
@@ -492,7 +427,6 @@ export function jobsPlugin(options: JobPluginOptions = {}): Plugin {
 			},
 		),
 
-		// Update job
 		updateJob: createCrudEndpoint(
 			"/jobs/:id",
 			{
@@ -507,7 +441,6 @@ export function jobsPlugin(options: JobPluginOptions = {}): Plugin {
 					return ctx.json({ error: "Job not found" }, { status: 404 });
 				}
 
-				// Recalculate next run time if schedule changed
 				if (body.schedule && body.schedule !== existing.schedule) {
 					body.nextRunAt = parseSchedule(body.schedule, new Date());
 				}
@@ -519,7 +452,6 @@ export function jobsPlugin(options: JobPluginOptions = {}): Plugin {
 			},
 		),
 
-		// Delete job
 		deleteJob: createCrudEndpoint(
 			"/jobs/:id",
 			{
@@ -538,7 +470,6 @@ export function jobsPlugin(options: JobPluginOptions = {}): Plugin {
 			},
 		),
 
-		// Trigger job immediately
 		triggerJob: createCrudEndpoint(
 			"/jobs/:id/trigger",
 			{
@@ -567,7 +498,6 @@ export function jobsPlugin(options: JobPluginOptions = {}): Plugin {
 			},
 		),
 
-		// Get job execution history
 		...(enableHistory
 			? {
 					getJobHistory: createCrudEndpoint(
@@ -589,7 +519,6 @@ export function jobsPlugin(options: JobPluginOptions = {}): Plugin {
 				}
 			: {}),
 
-		// Job runner control
 		startRunner: createCrudEndpoint(
 			"/jobs/runner/start",
 			{
@@ -631,30 +560,23 @@ export function jobsPlugin(options: JobPluginOptions = {}): Plugin {
 		endpoints,
 		options,
 
-		// Initialize plugin
 		init: async (context: PluginInitContext) => {
 			executor = new JobExecutor(context.adapter, handlers, enableHistory);
 			runner = new JobRunner(executor, context.adapter, pollInterval);
 
 			if (autoStart) {
 				runner.start();
-				console.log("[Jobs Plugin] Job runner started");
 			}
 		},
 
-		// Cleanup on destroy
 		destroy: async () => {
 			if (runner) {
 				runner.stop();
-				console.log("[Jobs Plugin] Job runner stopped");
 			}
 		},
 	};
 }
 
-/**
- * Helper to generate IDs
- */
 function generateId(): string {
 	return (
 		Math.random().toString(36).substring(2, 15) +
@@ -662,9 +584,6 @@ function generateId(): string {
 	);
 }
 
-/**
- * Helper to register job handlers at runtime
- */
 export function createJobHandler(name: string, handler: JobHandler) {
 	return { name, handler };
 }

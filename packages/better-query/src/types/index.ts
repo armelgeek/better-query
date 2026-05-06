@@ -5,45 +5,27 @@ import { Plugin } from "./plugins";
 import { AuthOptions } from "./auth";
 
 export type QueryOperation = "create" | "read" | "update" | "delete" | "list";
-
-// Legacy alias
 export type CrudOperation = QueryOperation;
 
-/** Relationship types */
 export type RelationType = "hasOne" | "hasMany" | "belongsTo" | "belongsToMany";
 
-/** Relationship definition */
 export interface RelationshipConfig {
-	/** Type of relationship */
 	type: RelationType;
-	/** The target model/resource name */
 	target: string;
-	/** Foreign key field in the current model (for belongsTo) */
 	foreignKey?: string;
-	/** Foreign key field in the target model (for hasOne/hasMany) */
 	targetKey?: string;
-	/** Junction table for many-to-many relationships */
 	through?: string;
-	/** Our key in the junction table */
 	sourceKey?: string;
-	/** Target key in the junction table */
 	targetForeignKey?: string;
-	/** Whether this relationship should be included by default */
 	includeByDefault?: boolean;
-	/** Maximum depth for nested inclusions */
 	maxDepth?: number;
 }
 
 export interface QueryResourceConfig {
-	/** Resource name (e.g., "product") */
 	name: string;
-	/** Zod validation schema */
 	schema: ZodSchema;
-	/** Custom table name (defaults to name) */
 	tableName?: string;
-	/** Relationship definitions */
 	relationships?: Record<string, RelationshipConfig>;
-	/** Enable/disable specific endpoints */
 	endpoints?: {
 		create?: boolean;
 		read?: boolean;
@@ -51,11 +33,8 @@ export interface QueryResourceConfig {
 		delete?: boolean;
 		list?: boolean;
 	};
-	/** Custom endpoints for the resource */
 	customEndpoints?: Record<string, Endpoint>;
-	/** Middleware functions that run before permission checks */
 	middlewares?: QueryMiddleware[];
-	/** Permission functions */
 	permissions?: {
 		create?: (context: QueryPermissionContext) => Promise<boolean> | boolean;
 		read?: (context: QueryPermissionContext) => Promise<boolean> | boolean;
@@ -63,7 +42,6 @@ export interface QueryResourceConfig {
 		delete?: (context: QueryPermissionContext) => Promise<boolean> | boolean;
 		list?: (context: QueryPermissionContext) => Promise<boolean> | boolean;
 	};
-	/** Scoped permissions for advanced access control */
 	scopes?: {
 		create?: string[];
 		read?: string[];
@@ -71,14 +49,11 @@ export interface QueryResourceConfig {
 		delete?: string[];
 		list?: string[];
 	};
-	/** Ownership fields for row-level security */
 	ownership?: {
-		field: string; // e.g., "userId", "createdBy"
-		strategy: "strict" | "flexible"; // strict: exact match, flexible: allow admins
+		field: string;
+		strategy: "strict" | "flexible";
 	};
-	/** Lifecycle hooks */
 	hooks?: {
-		// Before hooks (support both naming conventions)
 		onCreate?: (context: QueryHookContext) => Promise<void> | void;
 		onUpdate?: (context: QueryHookContext) => Promise<void> | void;
 		onDelete?: (context: QueryHookContext) => Promise<void> | void;
@@ -87,28 +62,23 @@ export interface QueryResourceConfig {
 		beforeDelete?: (context: QueryHookContext) => Promise<void> | void;
 		beforeRead?: (context: QueryHookContext) => Promise<void> | void;
 		beforeList?: (context: QueryHookContext) => Promise<void> | void;
-		// After hooks
 		afterCreate?: (context: QueryHookContext) => Promise<void> | void;
 		afterUpdate?: (context: QueryHookContext) => Promise<void> | void;
 		afterDelete?: (context: QueryHookContext) => Promise<void> | void;
 		afterRead?: (context: QueryHookContext) => Promise<void> | void;
 		afterList?: (context: QueryHookContext) => Promise<void> | void;
 	};
-	/** Input sanitization rules */
 	sanitization?: {
 		fields?: Record<string, SanitizationRule[]>;
 		global?: SanitizationRule[];
 	};
-	/** Enable soft delete (sets deletedAt instead of physical delete) */
 	softDelete?: {
 		enabled?: boolean;
-		field?: string; // Default: "deletedAt"
+		field?: string;
 	};
-	/** Computed fields (virtual fields calculated at runtime) */
 	computed?: Record<string, (record: any) => any | Promise<any>>;
-	/** State machine configuration (for resource lifecycle) */
 	stateMachine?: {
-		field: string; // e.g., "status"
+		field: string;
 		states: string[];
 		transitions: Array<{
 			from: string | string[];
@@ -116,102 +86,67 @@ export interface QueryResourceConfig {
 			permission?: (ctx: QueryPermissionContext) => boolean | Promise<boolean>;
 		}>;
 	};
-	/** Field-level security and metadata */
 	fields?: Record<string, {
-		/** Visibility based on user context */
 		hidden?: boolean | ((ctx: QueryPermissionContext) => boolean | Promise<boolean>);
-		/** Whether the field is read-only */
 		readOnly?: boolean | ((ctx: QueryPermissionContext) => boolean | Promise<boolean>);
-		/** Default value generator */
 		defaultValue?: any | ((ctx: QueryHookContext) => any | Promise<any>);
 	}>;
-	/** Relational aggregations (count, sum, etc.) */
 	aggregations?: Record<string, {
 		relation: string;
 		type: "count" | "sum" | "avg" | "min" | "max";
-		field?: string; // Field to aggregate (for sum/avg/etc.)
+		field?: string;
 	}>;
-	/** Search configuration */
 	search?: {
-		/** Fields to include in global search */
 		fields: string[];
 		strategy?: "contains" | "startsWith" | "exact" | "fuzzy";
 		caseSensitive?: boolean;
 	};
-	/** Multi-tenancy configuration (SaaS isolation) */
 	multiTenancy?: {
 		enabled: boolean;
-		/** Field to filter by (default: "tenantId") */
 		field?: string;
-		/** Path to find tenantId in user context (default: "tenantId") */
 		contextKey?: string;
 	};
-	/** Custom resource actions (for complex business logic) */
 	actions?: Record<string, {
 		method?: "GET" | "POST" | "PUT" | "DELETE";
 		handler: (ctx: QueryActionContext) => Promise<any>;
 		permission?: (ctx: QueryPermissionContext) => boolean | Promise<boolean>;
 	}>;
-	/** Data masking (for GDPR/Privacy) */
 	masking?: Record<string, (value: any, ctx: QueryPermissionContext) => any>;
 }
 
 export interface QueryActionContext extends QueryHookContext {
-	/** Action parameters (from request body or query) */
 	params: any;
 }
 
-// Legacy alias
 export type CrudResourceConfig = QueryResourceConfig;
 
 export interface QueryPermissionContext {
-	/** Any user data (can be null for anonymous) */
 	user?: any;
-	/** Resource being accessed */
 	resource: string;
-	/** Operation being performed */
 	operation: QueryOperation;
-	/** Data being created/updated (for create/update operations) */
 	data?: any;
-	/** ID being accessed (for read/update/delete operations) */
 	id?: string;
-	/** Full request context */
 	request?: any;
-	/** User scopes/roles */
 	scopes?: string[];
-	/** Existing data (for update/delete operations) */
 	existingData?: any;
 }
 
-// Legacy alias
 export type CrudPermissionContext = QueryPermissionContext;
 
 export interface QueryHookContext {
-	/** User performing the operation */
 	user?: any;
-	/** Resource being accessed */
 	resource: string;
-	/** Operation being performed */
 	operation: QueryOperation;
-	/** Data being created/updated */
 	data?: any;
-	/** ID being accessed (for read/update/delete operations) */
 	id?: string;
-	/** Existing data before operation (for update/delete) */
 	existingData?: any;
-	/** Result after operation (for after hooks) */
 	result?: any;
-	/** Request context */
 	request?: any;
-	/** Adapter instance for custom queries - can be extended with context */
 	adapter: QueryAdapter & { context?: any };
-	/** Original query parameters */
 	params?: any;
-	/** Better Query instance context */
 	context: any;
 }
 
-// Legacy alias
 export type CrudHookContext = QueryHookContext;
 
 export interface SanitizationRule {
@@ -226,23 +161,14 @@ export interface UserScope {
 }
 
 export interface QueryOptions {
-	/** Array of resources to generate operations for */
 	resources: QueryResourceConfig[];
-	/** Database adapter configuration */
 	database: QueryDatabaseOptions;
-	/** Base path for all endpoints (optional) */
 	basePath?: string;
-	/** Global auth requirement (default: false) */
 	requireAuth?: boolean;
-	/** Custom middleware */
 	middlewares?: QueryMiddleware[];
-	/** Plugins to enable */
 	plugins?: Plugin[];
-	/** Authentication and session configuration */
 	auth?: AuthOptions;
-	/** Global lifecycle hooks that apply to all resources */
 	hooks?: {
-		// Before hooks (support both naming conventions)
 		onCreate?: (context: QueryHookContext) => Promise<void> | void;
 		onUpdate?: (context: QueryHookContext) => Promise<void> | void;
 		onDelete?: (context: QueryHookContext) => Promise<void> | void;
@@ -251,36 +177,29 @@ export interface QueryOptions {
 		beforeDelete?: (context: QueryHookContext) => Promise<void> | void;
 		beforeRead?: (context: QueryHookContext) => Promise<void> | void;
 		beforeList?: (context: QueryHookContext) => Promise<void> | void;
-		// After hooks
 		afterCreate?: (context: QueryHookContext) => Promise<void> | void;
 		afterUpdate?: (context: QueryHookContext) => Promise<void> | void;
 		afterDelete?: (context: QueryHookContext) => Promise<void> | void;
 		afterRead?: (context: QueryHookContext) => Promise<void> | void;
 		afterList?: (context: QueryHookContext) => Promise<void> | void;
 	};
-	/** Global security settings */
 	security?: {
-		/** Rate limiting configuration */
 		rateLimit?: {
-			windowMs: number; // time window in milliseconds
-			max: number; // max requests per window
+			windowMs: number;
+			max: number;
 		};
-		/** CORS settings */
 		cors?: {
 			origin: string | string[];
 			credentials?: boolean;
 		};
-		/** Global input sanitization */
 		sanitization?: {
 			enabled: boolean;
 			rules: SanitizationRule[];
 		};
-		/** Global permission checks */
 		globalPermissions?: (
 			context: QueryPermissionContext,
 		) => Promise<boolean> | boolean;
 	};
-	/** Audit logging configuration */
 	audit?: {
 		enabled: boolean;
 		logOperations?: QueryOperation[];
@@ -288,80 +207,51 @@ export interface QueryOptions {
 	};
 }
 
-// Legacy alias
 export type CrudOptions = QueryOptions;
 
 export interface QueryDatabaseConfig {
-	/** Database provider */
 	provider: "sqlite" | "postgres" | "mysql";
-	/** Database connection URL */
 	url: string;
-	/** Enable auto-migration */
 	autoMigrate?: boolean;
 }
 
-/**
- * Database configuration can be either a provider config or a direct adapter
- */
 export type QueryDatabaseOptions =
 	| QueryDatabaseConfig
 	| { adapter: QueryAdapter };
 
-// Legacy aliases
 export type CrudDatabaseConfig = QueryDatabaseConfig;
 export type CrudDatabaseOptions = QueryDatabaseOptions;
 
 export interface QueryMiddleware {
-	/** Path pattern to match (optional for resource-level middleware) */
 	path?: string;
-	/** Middleware function that can modify the permission context */
 	handler: (context: QueryMiddlewareContext) => Promise<void> | void;
 }
 
 export interface QueryMiddlewareContext {
-	/** User data (can be modified by middleware) */
 	user?: any;
-	/** Resource being accessed */
 	resource: string;
-	/** Operation being performed */
 	operation: QueryOperation;
-	/** Data being created/updated (for create/update operations) */
 	data?: any;
-	/** ID being accessed (for read/update/delete operations) */
 	id?: string;
-	/** Full request context */
 	request?: any;
-	/** User scopes/roles (can be modified by middleware) */
 	scopes?: string[];
-	/** Existing data (for update/delete operations) */
 	existingData?: any;
 }
 
-// Legacy alias
 export type CrudMiddleware = QueryMiddleware;
 
 export interface QueryContext {
-	/** Database instance */
 	db: any;
-	/** Current user (if authenticated) */
 	user?: any;
-	/** Impersonator (if any) */
 	impersonator?: any;
-	/** Current session (if authenticated) */
 	session?: any;
-	/** Database adapter */
 	adapter: QueryAdapter;
-	/** Query options */
 	options: QueryOptions;
-	/** Relationship registry for resolving relations */
 	relationships: Map<string, Record<string, RelationshipConfig>>;
-	/** Schema registry for field information */
 	schemas: Map<string, { fields: Record<string, FieldAttribute> }>;
-	/** Plugin manager instance */
 	pluginManager?: any;
 }
 
-// Legacy alias
 export type CrudContext = QueryContext;
 
 export interface FieldAttribute {
@@ -370,20 +260,15 @@ export interface FieldAttribute {
 	unique?: boolean;
 	default?: any;
 	length?: number;
-	/** Reference to another model for foreign key relationships */
 	references?: {
-		/** The model to reference */
 		model: string;
-		/** The field on the referenced model */
 		field: string;
-		/** Action to perform when the reference is deleted */
 		onDelete?:
 			| "cascade"
 			| "restrict"
 			| "set null"
 			| "set default"
 			| "no action";
-		/** Action to perform when the reference is updated */
 		onUpdate?:
 			| "cascade"
 			| "restrict"
@@ -393,17 +278,12 @@ export interface FieldAttribute {
 	};
 }
 
-/** Options for including related data */
 export interface IncludeOptions {
-	/** Simple includes as array of relationship names */
 	include?: string[];
-	/** Advanced includes with nested options */
 	select?: Record<string, IncludeOptions | boolean>;
-	/** Maximum depth for nested includes (overrides resource config) */
 	maxDepth?: number;
 }
 
-/** Basic pagination parameters */
 export interface PaginationParams {
 	page?: number;
 	limit?: number;
@@ -412,25 +292,17 @@ export interface PaginationParams {
 	sortOrder?: "asc" | "desc";
 }
 
-/** Query parameters for list operations with relationships */
 export interface QueryParams extends PaginationParams {
-	/** Include related data */
 	include?: string | string[];
-	/** Advanced select with nested includes */
 	select?: Record<string, any>;
-	/** Filter by related data and advanced conditions (supports dot notation like 'author.name') */
 	where?: Record<string, any>;
-	/** Global search query */
 	q?: string;
-	/** Order by fields in current or related models */
 	orderBy?: Array<{
 		field: string;
 		direction: "asc" | "desc";
 		relation?: string;
 	}>;
-	/** Search in specific fields */
 	searchFields?: string | string[];
-	/** Filter operators for advanced filtering */
 	filters?: Record<
 		string,
 		{
@@ -449,7 +321,6 @@ export interface QueryParams extends PaginationParams {
 			value: any;
 		}
 	>;
-	/** Date range filters */
 	dateRange?: {
 		field: string;
 		start?: string;
@@ -457,46 +328,28 @@ export interface QueryParams extends PaginationParams {
 	};
 }
 
-// Legacy alias
 export type CrudQueryParams = QueryParams;
 
 export interface AuditEvent {
-	/** Timestamp of the event */
 	timestamp: Date;
-	/** User who performed the action */
 	user?: any;
-	/** Resource affected */
 	resource: string;
-	/** Operation performed */
 	operation: QueryOperation;
-	/** ID of the affected record */
 	recordId?: string;
-	/** Data before the operation (for updates/deletes) */
 	dataBefore?: any;
-	/** Data after the operation (for creates/updates) */
 	dataAfter?: any;
-	/** IP address of the request */
 	ipAddress?: string;
-	/** User agent of the request */
 	userAgent?: string;
-	/** Additional metadata */
 	metadata?: Record<string, any>;
 }
 
 export interface SecurityContext {
-	/** Current user */
 	user?: any;
-	/** User being impersonated (if any) */
 	impersonator?: any;
-	/** User scopes/roles */
 	scopes?: string[];
-	/** Request IP address */
 	ipAddress?: string;
-	/** Request user agent */
 	userAgent?: string;
-	/** Session information */
 	session?: any;
-	/** Rate limiting configuration */
 	rateLimit?: {
 		windowMs: number;
 		max: number;
@@ -516,7 +369,5 @@ export interface PaginationResult<T> {
 }
 
 export type QueryEndpoint = Endpoint<any>;
-
-// Legacy alias
 export type CrudEndpoint = QueryEndpoint;
 export * from "./auth";

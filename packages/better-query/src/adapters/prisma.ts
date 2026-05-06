@@ -6,53 +6,30 @@ import {
 	CustomOperations,
 } from "../types/adapter";
 
-/**
- * Prisma ORM adapter for Better Query
- *
- * Usage:
- * ```typescript
- * import { PrismaClient } from '@prisma/client';
- *
- * const prisma = new PrismaClient();
- *
- * const crud = betterQuery({
- *   resources: [...],
- *   database: {
- *     adapter: new PrismaCrudAdapter(prisma),
- *   },
- * });
- * ```
- */
 export class PrismaCrudAdapter implements CrudAdapter {
 	public customOperations: CustomOperations = {};
 
 	constructor(private prisma: any) {
-		// PrismaClient type
 		this.initializeCustomOperations();
 	}
 
 	private initializeCustomOperations() {
-		// Prisma-specific custom operations
 		this.customOperations = {
-			// Raw SQL queries
 			rawQuery: async (params: { sql: string; values?: any[] }) => {
 				const { sql, values = [] } = params;
 				return await this.prisma.$queryRaw`${sql}`;
 			},
 
-			// Raw query with interpolated values
 			rawQueryUnsafe: async (params: { sql: string; values?: any[] }) => {
 				const { sql, values = [] } = params;
 				return await this.prisma.$queryRawUnsafe(sql, ...values);
 			},
 
-			// Execute raw SQL commands (non-query operations)
 			executeRaw: async (params: { sql: string; values?: any[] }) => {
 				const { sql, values = [] } = params;
 				return await this.prisma.$executeRawUnsafe(sql, ...values);
 			},
 
-			// Transaction with custom logic
 			transaction: async (params: {
 				operations: Array<{ model: string; operation: string; data: any }>;
 			}) => {
@@ -86,7 +63,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 				});
 			},
 
-			// Batch operations
 			createMany: async (params: {
 				model: string;
 				data: Record<string, any>[];
@@ -94,7 +70,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 			}) => {
 				const { model, data, skipDuplicates = false } = params;
 
-				// Add timestamps to all records
 				const now = new Date();
 				const dataWithTimestamps = data.map((item) => ({
 					...item,
@@ -108,7 +83,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 				});
 			},
 
-			// Update many with conditions
 			updateMany: async (params: {
 				model: string;
 				where: Record<string, any>;
@@ -123,7 +97,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 				});
 			},
 
-			// Delete many with conditions
 			deleteMany: async (params: {
 				model: string;
 				where: Record<string, any>;
@@ -132,7 +105,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 				return await this.prisma[model].deleteMany({ where });
 			},
 
-			// Upsert operation
 			upsert: async (params: {
 				model: string;
 				where: Record<string, any>;
@@ -142,7 +114,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 			}) => {
 				const { model, where, update, create, include } = params;
 
-				// Add timestamps
 				const now = new Date();
 				update.updatedAt = now;
 				if (!create.createdAt) create.createdAt = now;
@@ -156,7 +127,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 				});
 			},
 
-			// Advanced aggregations
 			aggregate: async (params: {
 				model: string;
 				where?: Record<string, any>;
@@ -173,7 +143,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 				return await this.prisma[model].aggregate(aggregationParams);
 			},
 
-			// Group by operations
 			groupBy: async (params: {
 				model: string;
 				by: string[];
@@ -192,7 +161,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 				return await this.prisma[model].groupBy(groupByParams);
 			},
 
-			// Find with cursor-based pagination
 			findManyWithCursor: async (params: {
 				model: string;
 				cursor?: Record<string, any>;
@@ -207,7 +175,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 				return await this.prisma[model].findMany(findParams);
 			},
 
-			// Connect or create relations
 			connectOrCreate: async (params: {
 				model: string;
 				data: Record<string, any>;
@@ -223,7 +190,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 				data.updatedAt = now;
 				if (!data.createdAt) data.createdAt = now;
 
-				// Add timestamps to relation create data
 				if (!relationData.create.createdAt) relationData.create.createdAt = now;
 				if (!relationData.create.updatedAt) relationData.create.updatedAt = now;
 
@@ -260,7 +226,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 	}): Promise<any> {
 		const { model, data, include } = params;
 
-		// Add timestamps
 		const now = new Date();
 		if (!data.createdAt) data.createdAt = now;
 		if (!data.updatedAt) data.updatedAt = now;
@@ -334,13 +299,11 @@ export class PrismaCrudAdapter implements CrudAdapter {
 	}): Promise<any> {
 		const { model, where, data, include } = params;
 
-		// Add updated timestamp
 		data.updatedAt = new Date();
 
 		const whereClause = this.convertWhere(where);
 		const prismaInclude = this.convertIncludeOptions(include);
 
-		// For single record update, use update
 		if (where.length === 1 && where[0]?.field === "id") {
 			return await this.prisma[model].update({
 				where: { id: where[0]?.value },
@@ -349,7 +312,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 			});
 		}
 
-		// For complex where clauses, use updateMany then findFirst
 		await this.prisma[model].updateMany({
 			where: whereClause,
 			data,
@@ -370,13 +332,11 @@ export class PrismaCrudAdapter implements CrudAdapter {
 
 		const whereClause = this.convertWhere(where);
 
-		// For single record delete by ID, use delete
 		if (where.length === 1 && where[0]?.field === "id") {
 			await this.prisma[model].delete({
 				where: { id: where[0]?.value },
 			});
 		} else {
-			// For complex where clauses, use deleteMany
 			await this.prisma[model].deleteMany({
 				where: whereClause,
 			});
@@ -399,8 +359,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 	async createSchema(
 		data: { model: string; fields: Record<string, FieldAttribute> }[],
 	): Promise<void> {
-		// Note: Prisma schema is typically defined in schema.prisma file
-		// This method could be used for runtime schema validation
 		console.warn(
 			"Prisma schema is typically defined in schema.prisma file. Auto-migration not supported through adapter.",
 		);
@@ -469,14 +427,12 @@ export class PrismaCrudAdapter implements CrudAdapter {
 
 		const converted: Record<string, any> = {};
 
-		// Handle simple includes array
 		if (include.include) {
 			for (const relationName of include.include) {
 				converted[relationName] = true;
 			}
 		}
 
-		// Handle advanced select with nested options
 		if (include.select) {
 			for (const [relationName, options] of Object.entries(include.select)) {
 				if (options === true) {
@@ -504,9 +460,6 @@ export class PrismaCrudAdapter implements CrudAdapter {
 	}
 }
 
-/**
- * Helper function to create Prisma adapter
- */
 export function createPrismaAdapter(prisma: any): PrismaCrudAdapter {
 	return new PrismaCrudAdapter(prisma);
 }

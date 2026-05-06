@@ -1,6 +1,3 @@
-/**
- * Unified Realtime Transport interface
- */
 export interface RealtimeTransport {
 	connect(): Promise<void>;
 	disconnect(): void;
@@ -9,22 +6,14 @@ export interface RealtimeTransport {
 	status: "connecting" | "open" | "closed";
 }
 
-/**
- * Options for the unified Better Query Client
- */
 export interface ClientOptions {
 	url: string;
 	transport?: "ws" | "sse" | "auto";
 	reconnect?: boolean;
-	/** Optional custom WebSocket implementation (e.g. for Node.js) */
 	webSocket?: any;
-	/** Optional custom EventSource implementation */
 	eventSource?: any;
 }
 
-/**
- * WebSocket Transport Implementation
- */
 class WebSocketTransport implements RealtimeTransport {
 	private ws: any = null;
 	private callbacks = new Map<string, Set<(data: any) => void>>();
@@ -91,9 +80,6 @@ class WebSocketTransport implements RealtimeTransport {
 	}
 }
 
-/**
- * SSE Transport Implementation
- */
 class SSETransport implements RealtimeTransport {
 	private es: any = null;
 	private callbacks = new Map<string, Set<(data: any) => void>>();
@@ -141,9 +127,6 @@ class SSETransport implements RealtimeTransport {
 	}
 }
 
-/**
- * The Unified Better Query Client
- */
 export class BetterQueryClient {
 	private transport: RealtimeTransport;
 
@@ -162,9 +145,6 @@ export class BetterQueryClient {
 		await this.transport.connect();
 	}
 
-	/**
-	 * Watch a resource or a specific record for changes
-	 */
 	watch(resource: string, idOrCallback: string | ((data: any) => void), callback?: (data: any) => void) {
 		let channel = `resource:${resource}`;
 		let cb: (data: any) => void;
@@ -178,7 +158,6 @@ export class BetterQueryClient {
 
 		this.transport.subscribe(channel, cb);
 
-		// Return unwatch function
 		return () => this.transport.unsubscribe(channel);
 	}
 
@@ -187,15 +166,10 @@ export class BetterQueryClient {
 	}
 }
 
-/**
- * Factory function to create a new client
- */
 export function createClient(options: ClientOptions) {
 	return new BetterQueryClient(options);
 }
-/**
- * Standardized error codes for Better Query
- */
+
 export const QUERY_ERROR_CODES = {
 	UNAUTHORIZED: "UNAUTHORIZED",
 	FORBIDDEN: "FORBIDDEN",

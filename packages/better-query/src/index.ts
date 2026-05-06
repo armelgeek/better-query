@@ -1,25 +1,19 @@
-// Main export - the betterQuery factory function
 export { betterQuery } from "./query";
 export type { BetterQuery, BetterCrud } from "./query";
 
-// Client
 export { createClient } from "./client";
 export type { BetterQueryClient as QueryClient, ClientOptions as QueryClientOptions } from "./client";
 
-// Types
 export * from "./types";
 export * from "./types/adapter";
 export * from "./types/plugins";
 export * from "./types/better-auth";
 export * from "./types/client-plugins";
 
-// Export custom operations types specifically
 export type { CustomOperation, CustomOperations } from "./types/adapter";
 
-// Plugins
 export * from "./plugins";
 
-// Utils
 export { createResource, zodSchemaToFields } from "./utils/schema";
 export { RelationshipManager } from "./utils/relationships";
 export {
@@ -33,21 +27,16 @@ export type {
 	SchemaChange,
 } from "./utils/migrations";
 
-// Schema helpers (no predefined schemas, just utilities)
 export * from "./schemas";
 
-// Relationship helpers
 export * from "./schemas/relationships";
 
-// Endpoints
 export { createQueryEndpoints, createQueryEndpoint } from "./endpoints";
 
-// Legacy endpoint exports
 export {
 	createQueryEndpoints as createCrudEndpoints,
 	createQueryEndpoint as createCrudEndpoint,
 } from "./endpoints";
 
-// CLI exports (for programmatic use)
 export { templateManager } from "./cli/templates";
 export type { ProjectConfig } from "./cli/templates";

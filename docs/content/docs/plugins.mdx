@@ -138,6 +138,73 @@ export const { handler } = betterQuery({
   ]
 });
 ```
+## 🕰️ Advanced History & Auditing
+
+The History plugin provides automated record versioning and a full audit trail of changes. It allows you to see who changed what and when, and provides a simple way to restore previous versions.
+
+### Installation
+
+```typescript
+import { betterQuery } from "better-query";
+import { historyPlugin } from "better-query/plugins";
+
+export const auth = betterQuery({
+  database: { ... },
+  plugins: [
+    historyPlugin({
+      // Optional: limit to specific resources
+      resources: ["project", "organization"],
+      // Optional: custom history table naming
+      tableNamePattern: (model) => `${model}_versions`
+    })
+  ]
+});
+```
+
+### Features
+
+- **Automated Snapshots**: Automatically saves the full state of a record before updates or deletions.
+- **Audit Trail**: Tracks the user ID and timestamp for every change.
+- **Versioning**: Each snapshot is stored with a version number and action type (`create`, `update`, `delete`).
+- **Restoration**: One-click restoration of any previous version.
+
+### Usage in Client
+
+The History plugin extends your resource client with specialized methods:
+
+#### List Version History
+Get a chronological list of all changes made to a specific record.
+
+```typescript
+const { data: versions } = await client.project.history("project-id");
+
+// Each version contains:
+// - snapshotData: The full state at that time
+// - changedBy: The user ID who made the change
+// - timestamp: When it happened
+// - action: "create", "update", or "delete"
+```
+
+#### Restore a Version
+Revert a record to its state at a specific point in time.
+
+```typescript
+await client.project.restore("project-id", {
+  historyId: "version-uuid-from-history-list"
+});
+```
+
+### Database Schema
+The plugin expects a history table for each tracked resource. If you use the `autoMigrate` feature, Better Query will handle the creation of these tables automatically.
+
+Example schema for `project_history`:
+- `id`: Primary Key
+- `originalId`: UUID/String (Reference to the actual project)
+- `snapshotData`: JSON/Text (The serialized record)
+- `action`: String
+- `changedBy`: String
+- `timestamp`: DateTime
+- `version`: Integer
 
 ---
 

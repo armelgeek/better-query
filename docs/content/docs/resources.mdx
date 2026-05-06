@@ -79,3 +79,52 @@ When `autoMigrate` is enabled, Better Query will:
 - **Create** tables if they don't exist.
 - **Add** new columns defined in your Zod schema.
 - **Sync** field types and constraints.
+
+## 🔍 Advanced Filtering & Search
+
+Better Query includes a powerful built-in `SearchBuilder` that allows for complex queries with minimal code.
+
+### Search Strategies
+You can configure how the search behaves for each resource:
+
+```typescript
+const project = defineResource({
+  name: "project",
+  search: {
+    fields: ["title", "description"],
+    strategy: "fuzzy", // options: "contains", "startsWith", "exact", "fuzzy"
+    caseSensitive: false
+  }
+});
+```
+
+### Advanced Queries in Client
+The client allows you to pass complex filter objects:
+
+```typescript
+// Multi-field search
+const { data } = await client.project.list({
+  search: "dashboard",
+  searchFields: ["title", "tags"]
+});
+
+// Complex filtering
+const { data } = await client.project.list({
+  filters: {
+    status: { operator: "in", value: ["active", "pending"] },
+    priority: { operator: "gt", value: 3 }
+  }
+});
+
+// Date ranges
+const { data } = await client.project.list({
+  dateRange: {
+    field: "createdAt",
+    start: "2024-01-01",
+    end: "2024-12-31"
+  }
+});
+```
+
+### Logical Operators
+By default, multiple filters use `AND` logic. You can use nested filter structures for more complex scenarios (e.g., `(A AND B) OR C`).
