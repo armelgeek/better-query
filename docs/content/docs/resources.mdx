@@ -1,0 +1,81 @@
+---
+title: Defining Resources
+description: Learn how to define resources and their relationships.
+---
+
+Resources are the building blocks of your API. Each resource corresponds to a database table and a set of CRUD endpoints.
+
+### Basic Resource
+
+```typescript
+import { createResource } from "better-query";
+import { z } from "zod";
+
+export const project = createResource({
+  name: "project",
+  schema: z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string().optional(),
+    status: z.enum(["active", "archived"]).default("active"),
+  }),
+});
+```
+
+### Relationships
+
+Better Query handles relationships automatically, including deep nesting.
+
+```typescript
+export const task = createResource({
+  name: "task",
+  schema: z.object({
+    id: z.string(),
+    title: z.string(),
+    projectId: z.string(),
+  }),
+  relationships: {
+    project: {
+      type: "belongsTo",
+      target: "project",
+      foreignKey: "projectId",
+    },
+  },
+});
+```
+
+### Computed Fields
+
+You can define virtual fields that are calculated on the fly.
+
+```typescript
+export const user = createResource({
+  name: "user",
+  schema: z.object({
+    firstName: z.string(),
+    lastName: z.string(),
+  }),
+  computed: {
+    fullName: (user) => `${user.firstName} ${user.lastName}`,
+  },
+});
+```
+
+### Automated Database Management
+
+Better Query can automatically manage your database tables based on your Zod schemas.
+
+```typescript
+export const { handler } = betterQuery({
+  database: {
+    connection: db,
+    autoMigrate: true, // Automatically create/update tables
+  },
+  resources: [ /* ... */ ]
+});
+```
+
+When `autoMigrate` is enabled, Better Query will:
+- **Create** tables if they don't exist.
+- **Add** new columns defined in your Zod schema.
+- **Sync** field types and constraints.

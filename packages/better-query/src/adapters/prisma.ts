@@ -7,7 +7,7 @@ import {
 } from "../types/adapter";
 
 /**
- * Prisma ORM adapter for adiemus
+ * Prisma ORM adapter for Better Query
  *
  * Usage:
  * ```typescript
@@ -15,7 +15,7 @@ import {
  *
  * const prisma = new PrismaClient();
  *
- * const crud = betterCrud({
+ * const crud = betterQuery({
  *   resources: [...],
  *   database: {
  *     adapter: new PrismaCrudAdapter(prisma),

@@ -1,0 +1,79 @@
+---
+title: Universal Client
+description: One client to rule them all.
+---
+
+Better Query provides a lightweight, type-safe client that works in any environment (Browser, Node.js, Mobile).
+
+### 1. Initialization
+
+```typescript
+import { createClient } from "better-query/client";
+
+export const client = createClient({
+  url: "http://localhost:3000/api/query",
+  tenantId: "my-tenant-id", // Optional global tenant
+});
+```
+
+### 2. Automatic Path Mapping
+
+The client automatically maps to the generated REST endpoints:
+
+| Operation | Method | Path | Client Call |
+|-----------|--------|------|-------------|
+| **Create** | `POST` | `/:resource` | `client.project.create(data)` |
+| **Read** | `GET` | `/:resource/:id` | `client.project.read(id)` |
+| **Update** | `PATCH` | `/:resource/:id` | `client.project.update(id, data)` |
+| **Delete** | `DELETE` | `/:resource/:id` | `client.project.delete(id)` |
+| **List** | `GET` | `/:resource`s | `client.project.list(params)` |
+
+### 3. Plugin Integration
+
+Plugins registered on the server can inject global endpoints or resource-specific actions.
+
+#### Global Plugin Endpoints
+Endpoints added by plugins (like the Storage plugin) are available directly on the client.
+
+```typescript
+// The Storage plugin adds 'uploadFile'
+const formData = new FormData();
+formData.append("file", myFile);
+
+const { data } = await client.uploadFile(formData);
+console.log("File URL:", data.url);
+```
+
+#### Client Plugins (Rich Features)
+Some plugins provide extra frontend capabilities (like reactive state or complex socket logic).
+
+```typescript
+import { createClient } from "better-query/client";
+import { realtimeClient } from "better-query/client/plugins";
+
+const client = createClient({
+  url: "http://localhost:3000/api/query",
+  plugins: [
+    realtimeClient() // Adds advanced realtime methods
+  ]
+});
+
+// Access plugin-specific methods
+client.realtime.subscribe("project:123", (message) => {
+  console.log("Realtime update:", message);
+});
+```
+
+### 4. Per-Request Options
+
+Every method accepts an options object to override headers or tenant context.
+
+```typescript
+await client.invoice.list({}, {
+  tenantId: "client_b",
+  impersonator: "admin_user_id",
+  headers: {
+    "Cache-Control": "no-cache"
+  }
+});
+```

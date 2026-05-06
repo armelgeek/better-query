@@ -1,0 +1,63 @@
+---
+title: Database Adapters
+description: Connecting Better Query to your database using Kysely.
+---
+
+Better Query uses **Kysely** under the hood, making it compatible with almost any SQL database.
+
+### 1. SQLite (Recommended for Dev)
+
+```typescript
+import { Kysely, SqliteDialect } from "kysely";
+import Database from "better-sqlite3";
+
+const db = new Kysely<any>({
+  dialect: new SqliteDialect({
+    database: new Database("db.sqlite"),
+  }),
+});
+```
+
+### 2. PostgreSQL (Production)
+
+```typescript
+import { Kysely, PostgresDialect } from "kysely";
+import { Pool } from "pg";
+
+const db = new Kysely<any>({
+  dialect: new PostgresDialect({
+    pool: new Pool({
+      connectionString: process.env.DATABASE_URL,
+    }),
+  }),
+});
+```
+
+### 3. MySQL
+
+```typescript
+import { Kysely, MysqlDialect } from "kysely";
+import { createPool } from "mysql2";
+
+const db = new Kysely<any>({
+  dialect: new MysqlDialect({
+    pool: createPool({
+      uri: process.env.DATABASE_URL,
+    }),
+  }),
+});
+```
+
+### Advanced: Custom Adapter
+
+If you need to use a non-SQL database or a custom layer, you can implement the `QueryAdapter` interface.
+
+```typescript
+import { QueryAdapter } from "better-query";
+
+const myAdapter: QueryAdapter = {
+  find: async (params) => { /* ... */ },
+  create: async (params) => { /* ... */ },
+  // ...
+};
+```

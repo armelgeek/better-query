@@ -301,15 +301,3 @@ export type BetterCrud<
 	>,
 > = BetterQuery<O, Endpoints, PluginEndpoints>;
 
-// Legacy alias for the old package name
-export type Adiemus<
-	O extends QueryOptions = QueryOptions,
-	Endpoints extends Record<string, any> = Record<string, any>,
-	PluginEndpoints extends Record<string, any> = UnionToIntersection<
-		O["plugins"] extends Array<infer T>
-			? T extends { endpoints: infer E }
-				? E
-				: Record<string, never>
-			: Record<string, never>
-	>,
-> = BetterQuery<O, Endpoints, PluginEndpoints>;

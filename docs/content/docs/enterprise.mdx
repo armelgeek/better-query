@@ -1,0 +1,177 @@
+---
+title: Enterprise Features
+description: Advanced features for professional applications.
+---
+
+Better Query provides native support for complex requirements common in enterprise software.
+
+### 🛡️ Multi-Tenancy
+
+Isolate data automatically between customers. When enabled, every query is automatically filtered by `tenantId`.
+
+```typescript
+export const invoice = createResource({
+  name: "invoice",
+  schema: z.object({ /* ... */ }),
+  multiTenancy: {
+    enabled: true,
+    column: "tenantId", // Database column name
+  }
+});
+```
+
+The `tenantId` is extracted from the `x-tenant-id` header or your auth session.
+
+### 🎭 User Impersonation
+
+Administrators can perform actions on behalf of other users using the `x-impersonator-id` header. This is useful for debugging or customer support.
+
+When an impersonator ID is provided, Better Query:
+- Records the impersonator in the audit logs.
+- Allows the action if the impersonator has administrative privileges.
+- Still applies the target user's row-level security (Ownership).
+
+### ⚡ Custom Actions
+
+Define business logic endpoints directly on your resources.
+
+```typescript
+export const project = createResource({
+  name: "project",
+  actions: {
+    archive: async ({ id, adapter }) => {
+      await adapter.update({
+        model: "project",
+        where: [{ field: "id", value: id }],
+        data: { status: "archived" }
+      });
+      return { success: true };
+    }
+  }
+});
+
+// Accessible via POST /api/query/project/:id/archive
+```
+
+### ⚛️ Atomic Transactions
+
+Execute multiple operations safely. If any operation fails, the entire transaction is rolled back automatically. The `transaction` method provides a temporary `api` object bound to the transactional context.
+
+```typescript
+import { api } from "./lib/query";
+
+await api.transaction(async (trx) => {
+  // All these operations run in a single transaction
+  const project = await trx.project.create({ name: "Urgent Project" });
+  await trx.task.create({ title: "Task 1", projectId: project.id });
+});
+```
+
+### 📡 Real-time Synchronization
+
+Better Query supports real-time updates via WebSockets or Server-Sent Events (SSE). The client can watch entire resources or specific records.
+
+```typescript
+import { client } from "./lib/client";
+
+// Watch all changes on the 'project' resource
+const unwatch = client.watch("project", (change) => {
+  console.log("Something changed in projects:", change);
+});
+
+// Watch a specific record
+client.watch("project", "project_123", (data) => {
+  console.log("Project 123 was updated:", data);
+});
+
+// Stop watching
+unwatch();
+```
+
+### 🔒 Field Security
+
+Control who can see or edit specific fields.
+
+```typescript
+export const user = createResource({
+  name: "user",
+  schema: z.object({
+    email: z.string(),
+    salary: z.number(),
+    role: z.string(),
+  }),
+  security: {
+    fields: {
+      salary: {
+        read: ({ user }) => user.role === "admin",
+        write: false, // Read-only for everyone
+      }
+    }
+  }
+});
+```
+
+### 🔄 Lifecycle Hooks
+
+Interpose custom logic at any stage of a resource's lifecycle.
+
+```typescript
+export const project = createResource({
+  name: "project",
+  hooks: {
+    beforeCreate: async ({ data, user }) => {
+      data.createdBy = user.id; // Auto-assign owner
+    },
+    afterDelete: async ({ id }) => {
+      await notifySlack(`Project ${id} was deleted`);
+    }
+  }
+});
+```
+
+### 🛡️ Role-Based Access Control (RBAC)
+
+Manage permissions using scopes and ownership strategies.
+
+```typescript
+export const document = createResource({
+  name: "document",
+  scopes: {
+    read: ["user", "admin"],
+    delete: ["admin"]
+  },
+  ownership: {
+    field: "ownerId",
+    strategy: "flexible" // Owners and admins can edit
+  }
+});
+```
+
+### 🧹 Input Sanitization
+
+Automatically clean your data before it reaches the database.
+
+```typescript
+export const user = createResource({
+  name: "user",
+  sanitization: {
+    fields: {
+      bio: [{ type: "trim" }, { type: "escape" }],
+      email: [{ type: "lowercase" }]
+    }
+  }
+});
+```
+
+### 🎭 GDPR Data Masking
+
+Automatically mask sensitive data in responses.
+
+```typescript
+export const user = createResource({
+  name: "user",
+  masking: {
+    email: (val) => val.replace(/(?<=.).(?=[^@]*?@)/g, "*"),
+  }
+});
+```

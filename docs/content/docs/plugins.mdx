@@ -1,0 +1,163 @@
+---
+title: Plugins
+description: Extend Better Query with powerful modules.
+---
+
+Better Query follows a modular architecture. You can easily extend its core functionality using plugins.
+
+### 📤 File Storage & Upload
+
+The storage plugin allows you to handle file uploads with multiple backends.
+
+```typescript
+import { storagePlugin, LocalStorageProvider } from "better-query/plugins";
+
+export const { handler } = betterQuery({
+  // ...
+  plugins: [
+    storagePlugin({
+      provider: new LocalStorageProvider({
+        baseDir: "./uploads",
+        baseUrl: "http://localhost:3000/uploads"
+      }),
+      uploadPath: "/upload" // Custom endpoint path
+    })
+  ]
+});
+```
+
+#### Minio / S3 Compatible
+Since Minio is S3-compatible, you can use the `S3StorageProvider`:
+
+```typescript
+import { storagePlugin, S3StorageProvider } from "better-query/plugins";
+
+const storage = storagePlugin({
+  provider: new S3StorageProvider({
+    endpoint: "http://localhost:9000", // Minio Endpoint
+    bucket: "uploads",
+    region: "us-east-1",
+    credentials: {
+      accessKeyId: "minioadmin",
+      secretAccessKey: "minioadmin"
+    }
+  })
+});
+```
+
+#### Custom Provider (e.g. Cloudinary)
+You can easily implement your own provider for services like Cloudinary:
+
+```typescript
+import { StorageProvider, storagePlugin } from "better-query/plugins";
+
+class CloudinaryProvider implements StorageProvider {
+  async upload({ file, path }) {
+    // Use Cloudinary SDK here
+    return { url: "...", key: "...", size: 0 };
+  }
+  async delete(key: string) { /* ... */ }
+  async getSignedUrl(key: string) { /* ... */ }
+}
+
+const storage = storagePlugin({
+  provider: new CloudinaryProvider()
+});
+```
+
+**Usage with Fetch:**
+```typescript
+const formData = new FormData();
+formData.append("file", myFile);
+
+const response = await fetch("http://localhost:3000/api/query/upload", {
+  method: "POST",
+  body: formData
+});
+```
+
+---
+
+### 🔍 Audit Trail
+
+Automatically track who changed what and when. This plugin records every create, update, and delete operation.
+
+```typescript
+import { auditPlugin } from "better-query/plugins";
+
+export const { handler } = betterQuery({
+  plugins: [
+    auditPlugin({
+      tableName: "audit_logs", // Where to store logs
+      onAudit: (log) => console.log("New change:", log)
+    })
+  ]
+});
+```
+
+---
+
+### 🪝 Webhooks
+
+Trigger external services when your data changes.
+
+```typescript
+import { webhooksPlugin } from "better-query/plugins";
+
+export const { handler } = betterQuery({
+  plugins: [
+    webhooksPlugin({
+      endpoints: [
+        {
+          url: "https://my-service.com/webhook",
+          events: ["project.create", "project.delete"]
+        }
+      ]
+    })
+  ]
+});
+```
+
+---
+
+### ⚡ Caching
+
+Improve performance by caching list and read operations.
+
+```typescript
+import { cachePlugin } from "better-query/plugins";
+
+export const { handler } = betterQuery({
+  plugins: [
+    cachePlugin({
+      ttl: 600, // Time to live in seconds
+      invalidations: [
+        { resource: "project", invalidate: ["project.list"] }
+      ]
+    })
+  ]
+});
+```
+
+---
+
+### 📖 OpenAPI & Swagger
+
+Automatically generate API documentation for your resources and custom actions.
+
+```typescript
+import { openAPIPlugin } from "better-query/plugins";
+
+export const { handler } = betterQuery({
+  plugins: [
+    openAPIPlugin({
+      specPath: "/openapi.json",
+      uiPath: "/docs", // Swagger UI will be available here
+      info: {
+        title: "My Enterprise API",
+        version: "1.0.0"
+      }
+    })
+  ]
+});
+```

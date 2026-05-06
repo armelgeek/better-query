@@ -1,21 +1,10 @@
 // Main export - the betterQuery factory function
 export { betterQuery } from "./query";
-export type { BetterQuery, BetterCrud, Adiemus } from "./query";
-
-// Legacy exports for backward compatibility
-export { betterQuery as adiemus } from "./query";
-export { betterQuery as betterCrud } from "./query";
+export type { BetterQuery, BetterCrud } from "./query";
 
 // Client
 export { createClient } from "./client";
 export type { BetterQueryClient as QueryClient, ClientOptions as QueryClientOptions } from "./client";
-
-// Legacy client exports
-export { createClient as createCrudClient } from "./client";
-export type {
-	BetterQueryClient as CrudClient,
-	ClientOptions as CrudClientOptions,
-} from "./client";
 
 // Types
 export * from "./types";

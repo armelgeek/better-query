@@ -7,7 +7,7 @@ import {
 } from "../types/adapter";
 
 /**
- * Drizzle ORM adapter for adiemus
+ * Drizzle ORM adapter for Better Query
  *
  * Usage:
  * ```typescript
@@ -17,7 +17,7 @@ import {
  * const sqlite = new Database('sqlite.db');
  * const db = drizzle(sqlite);
  *
- * const crud = betterCrud({
+ * const crud = betterQuery({
  *   resources: [...],
  *   database: {
  *     adapter: new DrizzleCrudAdapter(db, schema),

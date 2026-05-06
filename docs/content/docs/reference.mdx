@@ -1,0 +1,49 @@
+---
+title: API Reference
+description: Exhaustive list of options and methods.
+---
+
+### betterQuery(options)
+
+The main entry point to initialize the engine.
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `database` | `QueryDatabaseConfig` | Kysely instance and configuration. |
+| `resources` | `QueryResourceConfig[]` | Array of resource definitions. |
+| `basePath` | `string` | Base path for endpoints (default: `/api/query`). |
+| `plugins` | `Plugin[]` | Array of server plugins. |
+| `auth` | `AuthProvider` | Custom authentication provider. |
+
+### QueryResourceConfig
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `name` | `string` | Resource name (singular, e.g., "user"). |
+| `schema` | `ZodObject` | Zod schema defining the data structure. |
+| `tableName` | `string` | Optional custom table name. |
+| `multiTenancy` | `object` | Enable/disable data isolation. |
+| `actions` | `Record` | Custom business logic endpoints. |
+| `hooks` | `object` | Lifecycle hooks (before/after). |
+| `scopes` | `object` | RBAC scopes for CRUD operations. |
+| `ownership` | `object` | Row-level security strategy. |
+| `masking` | `object` | GDPR data masking rules. |
+
+### Universal Client Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `url` | `string` | Full URL to the Better Query endpoint. |
+| `tenantId` | `string` | Global tenant ID for all requests. |
+| `headers` | `object` | Custom headers to include in every request. |
+| `transport` | `"ws" \| "sse"` | Real-time transport protocol. |
+
+### Error Codes
+
+Better Query returns standardized error codes:
+
+- `UNAUTHORIZED`: Authentication required.
+- `FORBIDDEN`: Permission denied (RBAC/Ownership).
+- `NOT_FOUND`: Record not found.
+- `VALIDATION_ERROR`: Zod validation failed.
+- `CONFLICT`: Database constraint violation.
