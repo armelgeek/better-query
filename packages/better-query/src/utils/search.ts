@@ -11,7 +11,7 @@ export class SearchBuilder {
 		query: QueryParams,
 		searchConfig?: {
 			fields: string[];
-			strategy: "contains" | "startsWith" | "exact" | "fuzzy";
+			strategy?: "contains" | "startsWith" | "exact" | "fuzzy";
 			caseSensitive?: boolean;
 		},
 	): Array<{ field: string; value: any; operator?: string }> {
@@ -21,8 +21,7 @@ export class SearchBuilder {
 		// Handle basic search
 		if (query.search || query.q) {
 			const searchTerm = query.search || query.q || "";
-			const searchFields = query.searchFields ||
-				searchConfig?.fields || ["name"];
+			const searchFields = this.parseStringArray(query.searchFields || searchConfig?.fields || ["name"]);
 			const strategy = searchConfig?.strategy || "contains";
 			const caseSensitive = searchConfig?.caseSensitive || false;
 
@@ -169,12 +168,12 @@ export class SearchBuilder {
 		if (query.include) {
 			// Handle both string and string array
 			if (typeof query.include === "string") {
-				options.include = query.include
+				options.include = (query.include as string)
 					.split(",")
 					.map((s) => s.trim())
 					.filter(Boolean);
 			} else {
-				options.include = query.include;
+				options.include = query.include as string[];
 			}
 		}
 

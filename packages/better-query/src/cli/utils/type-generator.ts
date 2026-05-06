@@ -28,6 +28,7 @@ export interface QueryClient {
 
 		// Generate client interface with resource methods
 		for (const resourceName of resourceNames) {
+			if (!resourceName) continue;
 			const capitalizedName =
 				resourceName.charAt(0).toUpperCase() + resourceName.slice(1);
 			generatedTypes += `  ${resourceName}: {
@@ -62,6 +63,7 @@ export interface ListResult<T> {
 
 		// Generate base types for each resource
 		for (const resourceName of resourceNames) {
+			if (!resourceName) continue;
 			const capitalizedName =
 				resourceName.charAt(0).toUpperCase() + resourceName.slice(1);
 			generatedTypes += `export interface ${capitalizedName} {

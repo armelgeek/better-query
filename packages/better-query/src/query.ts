@@ -178,35 +178,39 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 
 	type Endpoint = typeof endpoints;
 
-	return {
+	// Combine everything into the final result
+	const result = {
 		handler,
 		api: endpoints as Endpoint & PluginEndpoint,
 		options,
 		context: queryContext,
 		schema,
-		// Custom operations support
-		customOperation: async (operationName: string, params: any) => {
-			if (!queryContext.adapter.executeCustomOperation) {
-				throw new Error(`Adapter does not support custom operations`);
+		transaction: async <T>(fn: (api: any) => Promise<T>): Promise<T> => {
+			if (!queryContext.adapter.transaction) {
+				throw new Error("Adapter does not support transactions");
 			}
-			return await queryContext.adapter.executeCustomOperation(
-				operationName,
-				params,
-				queryContext,
-			);
-		},
-		// Get available custom operations
-		getCustomOperations: () => {
-			return queryContext.adapter.customOperations || {};
-		},
-		// Check if custom operation exists
-		hasCustomOperation: (operationName: string) => {
-			return !!(
-				queryContext.adapter.customOperations &&
-				queryContext.adapter.customOperations[operationName]
-			);
+			return await queryContext.adapter.transaction(async (trxAdapter) => {
+				// We need to create a new router/endpoints bound to the transactional adapter
+				// This is complex, for now let's provide a simplified way or just the adapter
+				// Actually, the user wants to use the 'api' object.
+				// We can re-generate the endpoints with the new adapter context.
+				const transactionalContext = { ...queryContext, adapter: trxAdapter };
+				const { endpoints: trxEndpoints } = createRouter(api, { extraContext: transactionalContext });
+				return await fn(trxEndpoints);
+			});
 		},
 	};
+
+	// Add custom operations from the adapter directly to the result object
+	const customOps = queryContext.adapter.customOperations || {};
+	for (const [name, op] of Object.entries(customOps)) {
+		if (!(name in result)) {
+			(result as any)[name] = (params: any) =>
+				op(params, { ...queryContext, adapter: queryContext.adapter });
+		}
+	}
+
+	return result as BetterQuery<O, Endpoint, PluginEndpoint>;
 }
 
 /**
@@ -274,16 +278,15 @@ export type BetterQuery<
 	options: O;
 	context: QueryContext;
 	schema: Record<string, { fields: Record<string, any> }>;
-	/** Execute a custom operation defined in the adapter */
-	customOperation: (operationName: string, params: any) => Promise<any>;
-	/** Get all available custom operations from the adapter */
-	getCustomOperations: () => Record<
-		string,
-		(params: any, context?: any) => Promise<any>
-	>;
-	/** Check if a custom operation exists */
-	hasCustomOperation: (operationName: string) => boolean;
-};
+	/** Execute operations in a transaction */
+	transaction: <T>(fn: (api: Endpoints & PluginEndpoints) => Promise<T>) => Promise<T>;
+} & (O["database"] extends { adapter: infer A }
+	? A extends { customOperations: infer C }
+		? C extends Record<string, any>
+			? C
+			: Record<string, never>
+		: Record<string, never>
+	: Record<string, never>);
 
 // Legacy alias for backward compatibility
 export type BetterCrud<

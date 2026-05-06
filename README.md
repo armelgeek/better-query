@@ -9,8 +9,6 @@ Better Query is a comprehensive TypeScript monorepo containing production-ready 
 | Package | Description | Version | Status |
 |---------|-------------|---------|--------|
 | [**better-query**](./packages/better-query) | Type-safe CRUD generator with auto-generated REST APIs | `0.0.1` | 🚧 Beta |
-| [**better-query-mcp**](./packages/better-query-mcp) | MCP server for AI assistant integration | `0.1.0` | ✨ New |
-| [**better-admin**](./packages/better-admin) | CLI for installing admin components with shadcn/ui dependencies | `0.0.1` | 🚧 Beta |
 | [**shared**](./packages/shared) | Shared utilities and types | `0.0.1` | 🚧 Beta |
 
 ## ✨ Key Features
@@ -27,6 +25,7 @@ const query = betterQuery({
       schema: z.object({
         name: z.string(),
         email: z.string().email(),
+        password: z.string(),
       })
     })
   ]
@@ -39,48 +38,6 @@ const query = betterQuery({
 // PUT    /api/query/user/:id - Update user  
 // DELETE /api/query/user/:id - Delete user
 ```
-
-### 🎨 **Better Admin** - Component CLI with Auto Dependencies
-```bash
-# Initialize Better Admin
-npx better-admin init
-
-# Install admin components with automatic shadcn/ui dependency resolution
-npx better-admin add data-table
-# Automatically installs: table, button, input, dropdown-menu, select
-# Plus: @tanstack/react-table
-
-# List all available components
-npx better-admin list
-```
-
-**Available Components:**
-- 📊 **data-table** - Sorting, filtering, pagination
-- 📝 **crud-form** - Form builder with validation
-- 📋 **resource-list** - Display resources with actions
-
-### 🤖 **Better Query MCP** - AI Assistant Integration
-```bash
-# Install the MCP server globally
-npm install -g better-query-mcp
-
-# Configure in your AI assistant (e.g., Claude Desktop)
-# Add to claude_desktop_config.json:
-{
-  "mcpServers": {
-    "better-query": {
-      "command": "npx",
-      "args": ["better-query-mcp"]
-    }
-  }
-}
-```
-
-**AI-Powered Features:**
-- 🔍 Resource discovery and schema exploration
-- 📊 Natural language CRUD operations
-- 🔗 Relationship navigation
-- 🧩 Plugin system integration
 
 ## 🚀 Quick Start
 
@@ -112,8 +69,6 @@ pnpm dev
 ## 📚 Documentation
 
 - 📖 **[Better Query Docs](./packages/better-query/README.md)** - CRUD operations and API generation
-- 🤖 **[Better Query MCP Docs](./packages/better-query-mcp/README.md)** - AI assistant integration via MCP
-- 🎨 **[Better Admin Docs](./packages/better-admin/README.md)** - Component CLI with dependency management
 - 📋 **[Complete Documentation](./documentation/README.md)** - Comprehensive guides
 - 💡 **[Examples](./examples/)** - Working code examples
 - 🎯 **[TODO List](./TODO.md)** - Planned improvements and features
@@ -125,7 +80,6 @@ pnpm dev
 better-query/
 ├── packages/
 │   ├── better-query/     # CRUD generator core
-│   ├── better-admin/     # Component CLI tool
 │   └── shared/           # Shared utilities
 ├── dev/                  # Development apps
 │   ├── next-app/         # Next.js example
@@ -190,6 +144,56 @@ For information about our release process, see [Release Documentation](./RELEASE
 | **MongoDB** | 🚧 Planned | - |
 | **Supabase** | 🚧 Planned | - |
 
+## ✨ Premium Features (Alpha)
+
+### 🔐 Pluggable Authentication
+Abstract any auth system (Better Auth, JWT, Clerk) using `AuthProvider`.
+```typescript
+const query = betterQuery({
+  auth: { provider: betterAuthProvider(auth) }
+});
+```
+
+### ⚛️ Atomic Transactions
+Run multiple operations safely in a single database transaction.
+```typescript
+await query.transaction(async (trx) => {
+  const user = await trx.createUser({ data: { name: "John" } });
+  await trx.createProfile({ data: { userId: user.id } });
+});
+```
+
+### 🔍 Deep Filtering & Global Search
+Filter by relationship using dot-notation and perform global searches effortlessly.
+```typescript
+// Filter by relation
+api.listPost({ where: { "author.name": { operator: "eq", value: "John" } } });
+
+// Global search
+api.listProduct({ q: "iphone" });
+```
+
+### ♻️ Soft Delete
+Mark records as deleted without removing them from the database.
+```typescript
+createResource({
+  name: "post",
+  softDelete: { enabled: true }
+});
+```
+
+### ⚡ Real-time Sync (Universal Client)
+Keep your client always up to date without worrying about the underlying protocol (WS or SSE).
+```typescript
+// 1. Create client
+const client = createClient({ url: "https://api.example.com" });
+
+// 2. Watch any resource or record
+const unwatch = client.watch("post", (change) => {
+  console.log("Real-time update!", change);
+});
+```
+
 ## 🔌 Plugin Ecosystem
 
 ### Built-in Plugins
@@ -213,9 +217,8 @@ For information about our release process, see [Release Documentation](./RELEASE
 - Database adapters
 - Plugin system foundation
 - File upload support
-
+p
 ### 🚧 Next (v0.1.0)
-- Complete admin component library
 - Better Auth integration
 - Enhanced documentation
 - Cloud storage integrations

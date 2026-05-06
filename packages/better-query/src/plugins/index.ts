@@ -29,15 +29,17 @@ export { cachePlugin } from "./cache";
 export type { CachePluginOptions } from "./cache";
 
 export { openApiPlugin } from "./openapi";
-export type { OpenAPIOptions } from "./openapi";
+export type { OpenAPIPluginOptions } from "./openapi";
 
-export { uploadPlugin } from "./upload";
-export type {
-	UploadPluginOptions,
-	FileMetadata,
-	StorageAdapter,
-} from "./upload";
-export { LocalStorageAdapter } from "./upload";
+export { storagePlugin } from "./storage";
+export type { StoragePluginOptions } from "./storage";
+export { LocalStorageProvider, S3StorageProvider } from "./storage/providers";
+
+export { webhookPlugin } from "./webhooks";
+export type { WebhookPluginOptions, WebhookConfig } from "./webhooks";
+
+export { historyPlugin } from "./history";
+export type { HistoryPluginOptions } from "./history";
 
 export { realtimePlugin } from "./realtime";
 export type {

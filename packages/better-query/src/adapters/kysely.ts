@@ -9,14 +9,20 @@ import {
 import { RelationshipManager } from "../utils/relationships";
 
 /**
- * Transform data before sending to SQLite database
- * Converts Date objects to ISO strings and complex objects/arrays to JSON strings
+ * Transform data before sending to database based on schema
  */
-function transformFromData(data: Record<string, any>): Record<string, any> {
+function transformFromData(
+	data: Record<string, any>,
+	modelSchema?: Record<string, FieldAttribute>,
+	config?: QueryAdapter["config"],
+): Record<string, any> {
 	const transformed = { ...data };
+	const transformBooleans = config?.transform?.boolean ?? true;
+	const transformDates = config?.transform?.date ?? true;
 
 	for (const key in transformed) {
 		const value = transformed[key];
+		const fieldSchema = modelSchema?.[key];
 
 		// Remove undefined values
 		if (value === undefined) {
@@ -24,21 +30,40 @@ function transformFromData(data: Record<string, any>): Record<string, any> {
 			continue;
 		}
 
-		// Convert Date objects to ISO strings
-		if (value instanceof Date) {
-			transformed[key] = value.toISOString();
-		}
-		// Convert booleans to integers (0 or 1) for SQLite compatibility
-		else if (typeof value === "boolean") {
-			transformed[key] = value ? 1 : 0;
-		}
-		// Convert arrays to JSON strings
-		else if (Array.isArray(value)) {
-			transformed[key] = JSON.stringify(value);
-		}
-		// Convert objects (but not null) to JSON strings
-		else if (value !== null && typeof value === "object") {
-			transformed[key] = JSON.stringify(value);
+		// Use schema information if available
+		if (fieldSchema) {
+			if (
+				fieldSchema.type === "date" &&
+				value instanceof Date &&
+				transformDates
+			) {
+				transformed[key] = value.toISOString();
+			} else if (
+				fieldSchema.type === "boolean" &&
+				typeof value === "boolean" &&
+				transformBooleans
+			) {
+				transformed[key] = value ? 1 : 0;
+			} else if (
+				fieldSchema.type === "json" &&
+				value !== null &&
+				typeof value === "object"
+			) {
+				transformed[key] = JSON.stringify(value);
+			}
+		} else {
+			// Fallback for fields not in schema (like timestamps added by adapter)
+			if (value instanceof Date && transformDates) {
+				transformed[key] = value.toISOString();
+			} else if (typeof value === "boolean" && transformBooleans) {
+				transformed[key] = value ? 1 : 0;
+			} else if (
+				value !== null &&
+				typeof value === "object" &&
+				!(value instanceof Date)
+			) {
+				transformed[key] = JSON.stringify(value);
+			}
 		}
 	}
 
@@ -76,42 +101,61 @@ function mapOperatorToKysely(operator?: string): string {
 }
 
 /**
- * Transform data after reading from SQLite database
- * Converts ISO strings back to Date objects and JSON strings back to objects/arrays
+ * Transform data after reading from database based on schema
  */
-function transformToData(data: Record<string, any>): Record<string, any> {
+function transformToData(
+	data: Record<string, any>,
+	modelSchema?: Record<string, FieldAttribute>,
+	config?: QueryAdapter["config"],
+): Record<string, any> {
 	const transformed = { ...data };
+	const transformBooleans = config?.transform?.boolean ?? true;
+	const transformDates = config?.transform?.date ?? true;
 
 	for (const key in transformed) {
 		const value = transformed[key];
+		const fieldSchema = modelSchema?.[key];
 
 		// Skip null/undefined values
 		if (value === null || value === undefined) {
 			continue;
 		}
 
-		// Convert ISO date strings back to Date objects for timestamp fields
-		if (
-			typeof value === "string" &&
-			(key === "createdAt" || key === "updatedAt" || key === "publishedAt")
-		) {
-			const dateValue = new Date(value);
-			if (!isNaN(dateValue.getTime())) {
-				transformed[key] = dateValue;
+		// Use schema information if available
+		if (fieldSchema) {
+			if (
+				fieldSchema.type === "date" &&
+				typeof value === "string" &&
+				transformDates
+			) {
+				const dateValue = new Date(value);
+				if (!isNaN(dateValue.getTime())) {
+					transformed[key] = dateValue;
+				}
+			} else if (fieldSchema.type === "json" && typeof value === "string") {
+				try {
+					transformed[key] = JSON.parse(value);
+				} catch {
+					// If parsing fails, keep as string
+				}
+			} else if (
+				fieldSchema.type === "boolean" &&
+				typeof value === "number" &&
+				transformBooleans
+			) {
+				transformed[key] = value === 1;
 			}
-		}
-		// Try to parse JSON strings back to objects/arrays for known complex fields
-		else if (
-			typeof value === "string" &&
-			(key === "tags" ||
-				key === "items" ||
-				key === "shippingAddress" ||
-				key === "profile")
-		) {
-			try {
-				transformed[key] = JSON.parse(value);
-			} catch {
-				// If parsing fails, keep as string
+		} else {
+			// Fallback/Legacy logic for known timestamp fields
+			if (
+				typeof value === "string" &&
+				transformDates &&
+				(key === "createdAt" || key === "updatedAt" || key === "publishedAt")
+			) {
+				const dateValue = new Date(value);
+				if (!isNaN(dateValue.getTime())) {
+					transformed[key] = dateValue;
+				}
 			}
 		}
 	}
@@ -141,14 +185,16 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		include?: IncludeOptions;
 	}) {
 		const { model, data, include } = params;
+		const schema =
+			this.relationshipManager?.relationshipContext.schemas.get(model)?.fields;
 
 		// Add timestamps if they don't exist
 		const now = new Date();
 		if (!data.createdAt) data.createdAt = now;
 		if (!data.updatedAt) data.updatedAt = now;
 
-		// Transform data for SQLite compatibility
-		const transformedData = transformFromData(data);
+		// Transform data for database compatibility
+		const transformedData = transformFromData(data, schema, this.config);
 
 		const result = await this.db
 			.insertInto(model)
@@ -159,7 +205,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		if (!result) return result;
 
 		// Transform result back to proper types
-		const transformedResult = transformToData(result);
+		const transformedResult = transformToData(result, schema, this.config);
 
 		// Include related data if requested
 		if (include && this.relationshipManager) {
@@ -169,6 +215,27 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		return transformedResult;
 	}
 
+	async createMany(params: { model: string; data: any[] }) {
+		const { model, data } = params;
+		const schema =
+			this.relationshipManager?.relationshipContext.schemas.get(model)?.fields;
+		const now = new Date();
+
+		const transformedData = data.map((item) => {
+			if (!item.createdAt) item.createdAt = now;
+			if (!item.updatedAt) item.updatedAt = now;
+			return transformFromData(item, schema, this.config);
+		});
+
+		const results = await this.db
+			.insertInto(model)
+			.values(transformedData as any)
+			.returningAll()
+			.execute();
+
+		return results.map((result) => transformToData(result, schema, this.config));
+	}
+
 	async findFirst(params: {
 		model: string;
 		where?: QueryWhere[];
@@ -176,23 +243,43 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		select?: string[];
 	}) {
 		const { model, where = [], include, select } = params;
+		const resourceConfig = this.relationshipManager?.relationshipContext.options.resources.find(
+			(r) => r.name === model,
+		);
+
+		// Apply soft delete filter if enabled
+		const activeWhere = [...where];
+		if (resourceConfig?.softDelete?.enabled !== false) {
+			const softDeleteField = resourceConfig?.softDelete?.field || "deletedAt";
+			// Only add if field exists in schema
+			if (resourceConfig?.schema) {
+				activeWhere.push({
+					field: softDeleteField,
+					operator: "eq",
+					value: null,
+				});
+			}
+		}
 
 		// If no includes, use simple query
 		if (!include || !this.relationshipManager) {
 			let query = this.db.selectFrom(model).selectAll();
 
-			for (const condition of where) {
+			for (const condition of activeWhere) {
 				const operator = mapOperatorToKysely(condition.operator);
 				query = query.where(condition.field, operator as any, condition.value);
 			}
 
 			const result = await query.executeTakeFirst();
-			return result ? transformToData(result) : result;
+			const schema =
+				this.relationshipManager?.relationshipContext.schemas.get(model)?.fields;
+			const transformed = result ? transformToData(result, schema, this.config) : result;
+			return await this.applyComputedFields(model, transformed);
 		}
 
 		// Use relationship-aware query
 		const results = await this.findWithRelations(model, {
-			where,
+			where: activeWhere,
 			include,
 			limit: 1,
 		});
@@ -207,7 +294,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		orderBy?: QueryOrderBy[];
 		include?: IncludeOptions;
 		select?: string[];
-	}) {
+	}): Promise<any[]> {
 		const {
 			model,
 			where = [],
@@ -218,12 +305,28 @@ export class KyselyQueryAdapter implements QueryAdapter {
 			select,
 		} = params;
 
+		const resourceConfig = this.relationshipManager?.relationshipContext.options.resources.find(
+			(r) => r.name === model,
+		);
+
+		// Apply soft delete filter if enabled
+		const activeWhere = [...where];
+		if (resourceConfig?.softDelete?.enabled !== false) {
+			const softDeleteField = resourceConfig?.softDelete?.field || "deletedAt";
+			// Check if field exists in schema or if we should just try anyway
+			activeWhere.push({
+				field: softDeleteField,
+				operator: "eq",
+				value: null,
+			});
+		}
+
 		// If no includes, use simple query
 		if (!include || !this.relationshipManager) {
 			let query = this.db.selectFrom(model).selectAll();
 
 			// Apply where conditions
-			for (const condition of where) {
+			for (const condition of activeWhere) {
 				const operator = mapOperatorToKysely(condition.operator);
 				query = query.where(condition.field, operator as any, condition.value);
 			}
@@ -241,12 +344,18 @@ export class KyselyQueryAdapter implements QueryAdapter {
 				query = query.offset(offset);
 			}
 
-			return (await query.execute()).map((item) => transformToData(item));
+			const schema =
+				this.relationshipManager?.relationshipContext.schemas.get(model)?.fields;
+			const results = await query.execute();
+			const transformed = results.map((item) =>
+				transformToData(item, schema, this.config),
+			);
+			return await Promise.all(transformed.map(r => this.applyComputedFields(model, r)));
 		}
 
 		// Use relationship-aware query
 		return await this.findWithRelations(model, {
-			where,
+			where: activeWhere,
 			limit,
 			offset,
 			orderBy,
@@ -261,12 +370,14 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		include?: IncludeOptions;
 	}) {
 		const { model, where, data, include } = params;
+		const schema =
+			this.relationshipManager?.relationshipContext.schemas.get(model)?.fields;
 
 		// Add updated timestamp
 		data.updatedAt = new Date();
 
-		// Transform data for SQLite compatibility
-		const transformedData = transformFromData(data);
+		// Transform data for database compatibility
+		const transformedData = transformFromData(data, schema, this.config);
 
 		let query = this.db.updateTable(model).set(transformedData);
 
@@ -280,7 +391,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		if (!result) return result;
 
 		// Transform result back to proper types
-		const transformedResult = transformToData(result);
+		const transformedResult = transformToData(result, schema, this.config);
 
 		// Include related data if requested
 		if (include && this.relationshipManager) {
@@ -296,6 +407,19 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		cascade?: boolean;
 	}) {
 		const { model, where, cascade = false } = params;
+
+		const resourceConfig = this.relationshipManager?.relationshipContext.options.resources.find(
+			(r) => r.name === model,
+		);
+
+		// Handle soft delete if enabled
+		if (resourceConfig?.softDelete?.enabled) {
+			const softDeleteField = resourceConfig.softDelete.field || "deletedAt";
+			const data = { [softDeleteField]: new Date() };
+			
+			await this.update({ model, where, data });
+			return;
+		}
 
 		// TODO: Implement cascade delete logic
 		if (cascade && this.relationshipManager) {
@@ -435,22 +559,34 @@ export class KyselyQueryAdapter implements QueryAdapter {
 			limit?: number;
 			offset?: number;
 			orderBy?: QueryOrderBy[];
-			include: IncludeOptions;
+			include?: IncludeOptions;
+			q?: string; // Global search query
 		},
 	): Promise<any[]> {
-		if (!this.relationshipManager) return [];
+		const { where = [], limit, offset, orderBy = [], include, q } = params;
 
-		const { where = [], limit, offset, orderBy = [], include } = params;
+		if (!this.relationshipManager) {
+			return await this.findMany({ model, where, limit, offset, orderBy });
+		}
 
-		// Resolve includes
-		const resolvedIncludes = this.relationshipManager.resolveIncludes(
+		// Detect dot notation paths in where and orderBy
+		const dotPaths = [
+			...where.map((w) => w.field),
+			...orderBy.map((o) => o.field),
+		].filter((f) => f.includes("."));
+
+		// Resolve both requested includes and those needed for filtering
+		let resolvedIncludes = this.relationshipManager.resolveIncludes(
 			model,
 			include,
 		);
 
-		if (resolvedIncludes.length === 0) {
-			// Fall back to simple query
-			return await this.findMany({ model, where, limit, offset, orderBy });
+		if (dotPaths.length > 0) {
+			resolvedIncludes = this.relationshipManager.resolveFilterRelations(
+				model,
+				dotPaths,
+				resolvedIncludes,
+			);
 		}
 
 		// Generate joins
@@ -472,8 +608,15 @@ export class KyselyQueryAdapter implements QueryAdapter {
 			}
 		}
 
-		// Add join selects
+		// Add join selects - only for explicitly requested includes
+		const requestedRelationNames = new Set([
+			...(include?.include || []),
+			...Object.keys(include?.select || {}),
+		]);
+
 		for (const include of resolvedIncludes) {
+			if (!requestedRelationNames.has(include.relationName)) continue;
+
 			const alias = `main_${include.relationName}`;
 			const targetSchema =
 				this.relationshipManager.relationshipContext.schemas.get(
@@ -485,6 +628,32 @@ export class KyselyQueryAdapter implements QueryAdapter {
 						`${alias}.${fieldName} as ${alias}_${fieldName}`,
 					);
 				}
+			}
+		}
+
+		// Apply Relational Aggregations
+		const resourceConfig = this.relationshipManager.relationshipContext.options.resources.find(r => r.name === model);
+		if (resourceConfig?.aggregations) {
+			for (const [aggName, aggConfig] of Object.entries(resourceConfig.aggregations)) {
+				const relation = this.relationshipManager.getRelationships(model)[aggConfig.relation];
+				if (!relation) continue;
+
+				// Add subquery for aggregation
+				query = query.select((eb: any) => {
+					const subQuery = eb.selectFrom(relation.target)
+						.whereRef(`${relation.target}.${relation.targetKey || "id"}`, "=", `main.${relation.foreignKey || "id"}`);
+					
+					switch (aggConfig.type) {
+						case "count":
+							return subQuery.select(eb.fn.countAll().as(aggName)).as(aggName);
+						case "sum":
+							return subQuery.select(eb.fn.sum(aggConfig.field!).as(aggName)).as(aggName);
+						case "avg":
+							return subQuery.select(eb.fn.avg(aggConfig.field!).as(aggName)).as(aggName);
+						default:
+							return subQuery.select(eb.fn.countAll().as(aggName)).as(aggName);
+					}
+				});
 			}
 		}
 
@@ -501,23 +670,51 @@ export class KyselyQueryAdapter implements QueryAdapter {
 			});
 		}
 
+		// Apply global search if 'q' is provided
+		if (q && resourceConfig?.search?.fields) {
+			const searchFields = resourceConfig.search.fields;
+			query = query.where((eb: any) =>
+				eb.or(
+					searchFields.map((field: string) =>
+						eb(`main.${field}`, "like", `%${q}%`),
+					),
+				),
+			);
+		}
+
 		// Apply where conditions
 		for (const condition of where) {
 			const operator = mapOperatorToKysely(condition.operator);
-			query = query.where(
-				`main.${condition.field}`,
-				operator as any,
-				condition.value,
-			);
+			
+			// Better alias mapping for nested fields
+			let finalField = condition.field;
+			if (condition.field.includes(".")) {
+				const parts = condition.field.split(".");
+				const fieldName = parts.pop();
+				const relationAlias = `main_${parts.join("_")}`;
+				finalField = `${relationAlias}.${fieldName}`;
+			} else {
+				finalField = `main.${condition.field}`;
+			}
+
+			query = query.where(finalField as any, operator as any, condition.value);
 		}
 
 		// Apply ordering
 		for (const order of orderBy) {
-			query = query.orderBy(`main.${order.field}`, order.direction);
+			let finalField = order.field;
+			if (order.field.includes(".")) {
+				const parts = order.field.split(".");
+				const fieldName = parts.pop();
+				const relationAlias = `main_${parts.join("_")}`;
+				finalField = `${relationAlias}.${fieldName}`;
+			} else {
+				finalField = `main.${order.field}`;
+			}
+			query = query.orderBy(finalField as any, order.direction);
 		}
 
-		// Apply pagination - but be careful with many-to-many relationships
-		// For many-to-many, we need to get all rows first then group, then limit
+		// Apply pagination
 		const hasManyToMany = resolvedIncludes.some(
 			(include) => include.relation.type === "belongsToMany",
 		);
@@ -532,19 +729,37 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		const results = await query.execute();
 
 		// Transform flat results into nested structure
-		const transformedResults = results.map(transformToData);
+		const schema = this.relationshipManager.relationshipContext.schemas.get(model)?.fields;
+		const transformedResults = results.map((item) => transformToData(item, schema, this.config));
+		
 		const nestedResults = this.relationshipManager.transformJoinedResults(
 			transformedResults,
-			resolvedIncludes,
+			resolvedIncludes.filter(r => requestedRelationNames.has(r.relationName)),
 			model,
 		);
 
 		// Apply limit after grouping for many-to-many relationships
 		if (limit && hasManyToMany) {
-			return nestedResults.slice(0, limit);
+			const limited = nestedResults.slice(0, limit);
+			return await Promise.all(limited.map(r => this.applyComputedFields(model, r)));
 		}
 
-		return limit === 1 ? [nestedResults[0]].filter(Boolean) : nestedResults;
+		return await Promise.all(nestedResults.map(r => this.applyComputedFields(model, r)));
+	}
+
+	private async applyComputedFields(model: string, record: any): Promise<any> {
+		if (!record) return record;
+		const resourceConfig = this.relationshipManager?.relationshipContext.options.resources.find(
+			(r) => r.name === model,
+		);
+
+		if (!resourceConfig?.computed) return record;
+
+		const computedRecord = { ...record };
+		for (const [field, computeFn] of Object.entries(resourceConfig.computed)) {
+			computedRecord[field] = await computeFn(record);
+		}
+		return computedRecord;
 	}
 
 	private async includeRelatedData(
@@ -666,6 +881,20 @@ export class KyselyQueryAdapter implements QueryAdapter {
 	}
 
 	/**
+	 * Execute operations in a transaction
+	 */
+	async transaction<T>(fn: (adapter: QueryAdapter) => Promise<T>): Promise<T> {
+		return await this.db.transaction().execute(async (trx) => {
+			const transactionalAdapter = new KyselyQueryAdapter(trx);
+			transactionalAdapter.config = this.config;
+			if (this.relationshipManager) {
+				transactionalAdapter.setRelationshipManager(this.relationshipManager);
+			}
+			return await fn(transactionalAdapter);
+		});
+	}
+
+	/**
 	 * Manage many-to-many relationships through junction tables
 	 */
 	async manageManyToMany(params: {
@@ -782,6 +1011,24 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		const createTableSQL = generateJunctionTableSQL(params, provider);
 
 		await sql`${sql.raw(createTableSQL)}`.execute(this.db);
+	}
+
+	private applyMultiTenancy(model: string, query: any, ctx?: any): any {
+		const resourceConfig = this.relationshipManager?.relationshipContext.options.resources.find(
+			(r) => r.name === model,
+		);
+
+		if (!resourceConfig?.multiTenancy?.enabled || !ctx?.user) return query;
+
+		const field = resourceConfig.multiTenancy.field || "tenantId";
+		const contextKey = resourceConfig.multiTenancy.contextKey || "tenantId";
+		const tenantId = ctx.user[contextKey];
+
+		if (tenantId) {
+			return query.where(`main.${field}`, "=", tenantId);
+		}
+
+		return query;
 	}
 }
 

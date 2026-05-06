@@ -2,6 +2,7 @@ import { Endpoint } from "better-call";
 import { ZodSchema, z } from "zod";
 import { QueryAdapter } from "./adapter";
 import { Plugin } from "./plugins";
+import { AuthOptions } from "./auth";
 
 export type QueryOperation = "create" | "read" | "update" | "delete" | "list";
 
@@ -98,12 +99,66 @@ export interface QueryResourceConfig {
 		fields?: Record<string, SanitizationRule[]>;
 		global?: SanitizationRule[];
 	};
+	/** Enable soft delete (sets deletedAt instead of physical delete) */
+	softDelete?: {
+		enabled?: boolean;
+		field?: string; // Default: "deletedAt"
+	};
+	/** Computed fields (virtual fields calculated at runtime) */
+	computed?: Record<string, (record: any) => any | Promise<any>>;
+	/** State machine configuration (for resource lifecycle) */
+	stateMachine?: {
+		field: string; // e.g., "status"
+		states: string[];
+		transitions: Array<{
+			from: string | string[];
+			to: string;
+			permission?: (ctx: QueryPermissionContext) => boolean | Promise<boolean>;
+		}>;
+	};
+	/** Field-level security and metadata */
+	fields?: Record<string, {
+		/** Visibility based on user context */
+		hidden?: boolean | ((ctx: QueryPermissionContext) => boolean | Promise<boolean>);
+		/** Whether the field is read-only */
+		readOnly?: boolean | ((ctx: QueryPermissionContext) => boolean | Promise<boolean>);
+		/** Default value generator */
+		defaultValue?: any | ((ctx: QueryHookContext) => any | Promise<any>);
+	}>;
+	/** Relational aggregations (count, sum, etc.) */
+	aggregations?: Record<string, {
+		relation: string;
+		type: "count" | "sum" | "avg" | "min" | "max";
+		field?: string; // Field to aggregate (for sum/avg/etc.)
+	}>;
 	/** Search configuration */
 	search?: {
-		fields: string[]; // Fields to search in
-		strategy: "contains" | "startsWith" | "exact" | "fuzzy";
+		/** Fields to include in global search */
+		fields: string[];
+		strategy?: "contains" | "startsWith" | "exact" | "fuzzy";
 		caseSensitive?: boolean;
 	};
+	/** Multi-tenancy configuration (SaaS isolation) */
+	multiTenancy?: {
+		enabled: boolean;
+		/** Field to filter by (default: "tenantId") */
+		field?: string;
+		/** Path to find tenantId in user context (default: "tenantId") */
+		contextKey?: string;
+	};
+	/** Custom resource actions (for complex business logic) */
+	actions?: Record<string, {
+		method?: "GET" | "POST" | "PUT" | "DELETE";
+		handler: (ctx: QueryActionContext) => Promise<any>;
+		permission?: (ctx: QueryPermissionContext) => boolean | Promise<boolean>;
+	}>;
+	/** Data masking (for GDPR/Privacy) */
+	masking?: Record<string, (value: any, ctx: QueryPermissionContext) => any>;
+}
+
+export interface QueryActionContext extends QueryHookContext {
+	/** Action parameters (from request body or query) */
+	params: any;
 }
 
 // Legacy alias
@@ -150,6 +205,10 @@ export interface QueryHookContext {
 	request?: any;
 	/** Adapter instance for custom queries - can be extended with context */
 	adapter: QueryAdapter & { context?: any };
+	/** Original query parameters */
+	params?: any;
+	/** Better Query instance context */
+	context: any;
 }
 
 // Legacy alias
@@ -179,6 +238,8 @@ export interface QueryOptions {
 	middlewares?: QueryMiddleware[];
 	/** Plugins to enable */
 	plugins?: Plugin[];
+	/** Authentication and session configuration */
+	auth?: AuthOptions;
 	/** Global lifecycle hooks that apply to all resources */
 	hooks?: {
 		// Before hooks (support both naming conventions)
@@ -282,6 +343,12 @@ export type CrudMiddleware = QueryMiddleware;
 export interface QueryContext {
 	/** Database instance */
 	db: any;
+	/** Current user (if authenticated) */
+	user?: any;
+	/** Impersonator (if any) */
+	impersonator?: any;
+	/** Current session (if authenticated) */
+	session?: any;
 	/** Database adapter */
 	adapter: QueryAdapter;
 	/** Query options */
@@ -348,21 +415,21 @@ export interface PaginationParams {
 /** Query parameters for list operations with relationships */
 export interface QueryParams extends PaginationParams {
 	/** Include related data */
-	include?: string[];
+	include?: string | string[];
 	/** Advanced select with nested includes */
 	select?: Record<string, any>;
-	/** Filter by related data and advanced conditions */
+	/** Filter by related data and advanced conditions (supports dot notation like 'author.name') */
 	where?: Record<string, any>;
+	/** Global search query */
+	q?: string;
 	/** Order by fields in current or related models */
 	orderBy?: Array<{
 		field: string;
 		direction: "asc" | "desc";
 		relation?: string;
 	}>;
-	/** Advanced search query */
-	q?: string;
 	/** Search in specific fields */
-	searchFields?: string[];
+	searchFields?: string | string[];
 	/** Filter operators for advanced filtering */
 	filters?: Record<
 		string,
@@ -419,6 +486,8 @@ export interface AuditEvent {
 export interface SecurityContext {
 	/** Current user */
 	user?: any;
+	/** User being impersonated (if any) */
+	impersonator?: any;
 	/** User scopes/roles */
 	scopes?: string[];
 	/** Request IP address */
@@ -450,3 +519,4 @@ export type QueryEndpoint = Endpoint<any>;
 
 // Legacy alias
 export type CrudEndpoint = QueryEndpoint;
+export * from "./auth";

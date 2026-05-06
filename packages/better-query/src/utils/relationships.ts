@@ -92,6 +92,59 @@ export class RelationshipManager {
 	}
 
 	/**
+	 * Resolve relations mentioned in dot notation (e.g. author.name)
+	 */
+	resolveFilterRelations(
+		resourceName: string,
+		dotPaths: string[],
+		existingIncludes: ResolvedInclude[] = [],
+	): ResolvedInclude[] {
+		const relationships = this.getRelationships(resourceName);
+		const resolved = [...existingIncludes];
+
+		for (const path of dotPaths) {
+			const parts = path.split(".");
+			if (parts.length < 2) continue;
+
+			const relationName = parts[0] as string;
+			const relation = relationships[relationName];
+
+			if (relation) {
+				// Check if already resolved
+				const existing = resolved.find((r) => r.relationName === relationName);
+				if (existing) {
+					// Handle deeper nested relations if needed
+					if (parts.length > 2) {
+						existing.nested = this.resolveFilterRelations(
+							relation.target,
+							[parts.slice(1).join(".")],
+							existing.nested,
+						);
+					}
+				} else {
+					const newInclude: ResolvedInclude = {
+						relationName,
+						relation,
+						nested: [],
+						maxDepth: 3,
+					};
+
+					if (parts.length > 2) {
+						newInclude.nested = this.resolveFilterRelations(
+							relation.target,
+							[parts.slice(1).join(".")],
+						);
+					}
+
+					resolved.push(newInclude);
+				}
+			}
+		}
+
+		return resolved;
+	}
+
+	/**
 	 * Validate relationship configuration
 	 */
 	validateRelationship(

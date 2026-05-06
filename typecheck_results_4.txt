@@ -1,0 +1,186 @@
+Scope: 8 of 9 workspace projects
+packages/better-query typecheck$ tsc --noEmit
+packages/better-query typecheck: src/adapters/adapter.test.ts(48,5): error TS2322: Type '{ create: () => Promise<{}>; findFirst: () => Promise<null>; findMany: () => Promise<never[]>; update: () => Promise<{}>; delete: () => Promise<void>; count: () => Promise<...>; }' is not assignable to type 'QueryAdapter'.
+packages/better-query typecheck:   The types returned by 'update(...)' are incompatible between these types.
+packages/better-query typecheck:     Type 'Promise<{}>' is not assignable to type 'Promise<void>'.
+packages/better-query typecheck:       Type '{}' is not assignable to type 'void'.
+packages/better-query typecheck: src/adapters/custom-adapter.test.ts(304,10): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+packages/better-query typecheck: src/adapters/custom-adapter.test.ts(305,10): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+packages/better-query typecheck: src/adapters/custom-adapter.test.ts(306,10): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+packages/better-query typecheck: src/adapters/custom-adapter.test.ts(314,25): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+packages/better-query typecheck: src/adapters/custom-adapter.test.ts(314,25): error TS18048: 'crud.customOperation' is possibly 'undefined'.
+packages/better-query typecheck: src/adapters/custom-adapter.test.ts(324,29): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+packages/better-query typecheck: src/adapters/custom-adapter.test.ts(324,29): error TS18048: 'crud.customOperation' is possibly 'undefined'.
+packages/better-query typecheck: src/adapters/custom-adapter.test.ts(331,22): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+packages/better-query typecheck: src/adapters/custom-adapter.test.ts(331,22): error TS18048: 'crud.getCustomOperations' is possibly 'undefined'.
+packages/better-query typecheck: src/adapters/data-transformation.test.ts(4,10): error TS2724: '"./kysely"' has no exported member named 'KyselyCrudAdapter'. Did you mean 'kyselyCrudAdapter'?
+packages/better-query typecheck: src/cli/commands/init.ts(66,34): error TS2345: Argument of type '{ type: string; name: string; message: string; choices: { title: string; value: string; }[]; initial: number; }[]' is not assignable to parameter of type 'PromptObject<string> | PromptObject<string>[]'.
+packages/better-query typecheck:   Type '{ type: string; name: string; message: string; choices: { title: string; value: string; }[]; initial: number; }[]' is not assignable to type 'PromptObject<string>[]'.
+packages/better-query typecheck:     Type '{ type: string; name: string; message: string; choices: { title: string; value: string; }[]; initial: number; }' is not assignable to type 'PromptObject<string>'.
+packages/better-query typecheck:       Types of property 'type' are incompatible.
+packages/better-query typecheck:         Type 'string' is not assignable to type 'PromptType | Falsy | PrevCaller<string, PromptType | Falsy>'.
+packages/better-query typecheck: src/cli/utils/type-generator.ts(32,5): error TS18048: 'resourceName' is possibly 'undefined'.
+packages/better-query typecheck: src/cli/utils/type-generator.ts(32,44): error TS18048: 'resourceName' is possibly 'undefined'.
+packages/better-query typecheck: src/cli/utils/type-generator.ts(66,5): error TS18048: 'resourceName' is possibly 'undefined'.
+packages/better-query typecheck: src/cli/utils/type-generator.ts(66,44): error TS18048: 'resourceName' is possibly 'undefined'.
+packages/better-query typecheck: src/client/react/hooks.ts(2,50): error TS2307: Cannot find module 'react' or its corresponding type declarations.
+packages/better-query typecheck: src/endpoints/index.ts(86,6): error TS2322: Type 'Request | undefined' is not assignable to type 'Request'.
+packages/better-query typecheck:   Type 'undefined' is not assignable to type 'Request'.
+packages/better-query typecheck: src/endpoints/index.ts(92,6): error TS2322: Type 'Request | undefined' is not assignable to type 'Request'.
+packages/better-query typecheck:   Type 'undefined' is not assignable to type 'Request'.
+packages/better-query typecheck: src/tests/client-path.test.ts(27,4): error TS2353: Object literal may only specify known properties, and 'baseURL' does not exist in type 'ClientOptions'.
+packages/better-query typecheck: src/tests/client-path.test.ts(31,16): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client-path.test.ts(48,16): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client-path.test.ts(58,16): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client-path.test.ts(73,16): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client-path.test.ts(83,16): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client-path.test.ts(96,4): error TS2353: Object literal may only specify known properties, and 'baseURL' does not exist in type 'ClientOptions'.
+packages/better-query typecheck: src/tests/client-path.test.ts(99,16): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client-plugins.integration.test.ts(3,37): error TS2724: '".."' has no exported member named 'createQueryClient'. Did you mean 'createClient'?
+packages/better-query typecheck: src/tests/client-plugins.integration.test.ts(202,5): error TS18048: 'atoms.testAtom' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/client-plugins.test.ts(3,37): error TS2724: '".."' has no exported member named 'createQueryClient'. Did you mean 'createClient'?
+packages/better-query typecheck: src/tests/client-plugins.test.ts(30,20): error TS2352: Conversion of type 'undefined' to type '{ foo: string; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+packages/better-query typecheck: src/tests/client-plugins.test.ts(152,11): error TS18048: 'atoms.myAtom' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/client-plugins.test.ts(153,11): error TS18048: 'atoms.counterAtom' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/client-plugins.test.ts(156,4): error TS18048: 'atoms.counterAtom' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/client-plugins.test.ts(157,11): error TS18048: 'atoms.counterAtom' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/client-plugins.test.ts(186,6): error TS18048: 'atoms.testAtom' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/client-plugins.test.ts(197,4): error TS18048: 'atoms.testAtom' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/client.e2e.test.ts(6,30): error TS2307: Cannot find module '@playwright/test' or its corresponding type declarations.
+packages/better-query typecheck: src/tests/client.e2e.test.ts(8,25): error TS2307: Cannot find module '../src/index' or its corresponding type declarations.
+packages/better-query typecheck: src/tests/client.e2e.test.ts(24,3): error TS2304: Cannot find name 'createResource'.
+packages/better-query typecheck: src/tests/client.e2e.test.ts(103,36): error TS2304: Cannot find name 'createCrudClient'.
+packages/better-query typecheck: src/tests/client.e2e.test.ts(106,16): error TS2304: Cannot find name 'createCrudClient'.
+packages/better-query typecheck: src/tests/client.e2e.test.ts(286,18): error TS2304: Cannot find name 'createCrudClient'.
+packages/better-query typecheck: src/tests/client.test.ts(28,4): error TS2353: Object literal may only specify known properties, and 'baseURL' does not exist in type 'ClientOptions'.
+packages/better-query typecheck: src/tests/client.test.ts(37,4): error TS2353: Object literal may only specify known properties, and 'baseURL' does not exist in type 'ClientOptions'.
+packages/better-query typecheck: src/tests/client.test.ts(41,24): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(42,24): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(43,24): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(44,24): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(45,24): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(50,4): error TS2353: Object literal may only specify known properties, and 'baseURL' does not exist in type 'ClientOptions'.
+packages/better-query typecheck: src/tests/client.test.ts(53,31): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(71,4): error TS2353: Object literal may only specify known properties, and 'baseURL' does not exist in type 'ClientOptions'.
+packages/better-query typecheck: src/tests/client.test.ts(74,31): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(86,4): error TS2353: Object literal may only specify known properties, and 'baseURL' does not exist in type 'ClientOptions'.
+packages/better-query typecheck: src/tests/client.test.ts(89,31): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(108,4): error TS2353: Object literal may only specify known properties, and 'baseURL' does not exist in type 'ClientOptions'.
+packages/better-query typecheck: src/tests/client.test.ts(111,31): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(122,4): error TS2353: Object literal may only specify known properties, and 'baseURL' does not exist in type 'ClientOptions'.
+packages/better-query typecheck: src/tests/client.test.ts(125,31): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(146,4): error TS2353: Object literal may only specify known properties, and 'baseURL' does not exist in type 'ClientOptions'.
+packages/better-query typecheck: src/tests/client.test.ts(150,24): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(151,24): error TS2339: Property 'category' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(152,24): error TS2339: Property 'user' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(155,17): error TS2339: Property 'product' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(155,42): error TS2339: Property 'category' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(156,17): error TS2339: Property 'category' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/client.test.ts(156,43): error TS2339: Property 'user' does not exist on type 'BetterQueryClient'.
+packages/better-query typecheck: src/tests/crud.test.ts(152,15): error TS2552: Cannot find name 'productSchema'. Did you mean 'testProductSchema'?
+packages/better-query typecheck: src/tests/date-parsing-fix.test.ts(53,43): error TS2345: Argument of type '{ user: { id: string; }; resource: string; operation: "create"; data: { title: string; description: string; priority: "medium"; dueDate: string; }; adapter: any; }' is not assignable to parameter of type 'QueryHookContext'.
+packages/better-query typecheck:   Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; data: { title: string; description: string; priority: "medium"; dueDate: string; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/date-parsing-fix.test.ts(57,27): error TS2339: Property 'createdAt' does not exist on type '{ title: string; description: string; priority: "medium"; dueDate: string; }'.
+packages/better-query typecheck: src/tests/date-parsing-fix.test.ts(58,27): error TS2339: Property 'updatedAt' does not exist on type '{ title: string; description: string; priority: "medium"; dueDate: string; }'.
+packages/better-query typecheck: src/tests/date-parsing-fix.test.ts(99,43): error TS2345: Argument of type '{ user: { id: string; }; resource: string; operation: "update"; data: { dueDate: string; }; adapter: any; }' is not assignable to parameter of type 'QueryHookContext'.
+packages/better-query typecheck:   Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "update"; data: { dueDate: string; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/date-parsing-fix.test.ts(103,27): error TS2339: Property 'updatedAt' does not exist on type '{ dueDate: string; }'.
+packages/better-query typecheck: src/tests/date-parsing-fix.test.ts(139,43): error TS2345: Argument of type '{ user: { id: string; }; resource: string; operation: "create"; data: { title: string; priority: "medium"; }; adapter: any; }' is not assignable to parameter of type 'QueryHookContext'.
+packages/better-query typecheck:   Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; data: { title: string; priority: "medium"; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/date-parsing-fix.test.ts(142,27): error TS2339: Property 'dueDate' does not exist on type '{ title: string; priority: "medium"; }'.
+packages/better-query typecheck: src/tests/hooks.test.ts(9,10): error TS2741: Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; data: { name: string; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/hooks.test.ts(22,10): error TS2741: Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; data: { name: string; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/hooks.test.ts(42,10): error TS2741: Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; data: { name: string; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/hooks.test.ts(63,10): error TS2741: Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; data: { name: string; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/hooks.test.ts(83,10): error TS2741: Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; data: { name: string; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/hooks.test.ts(101,10): error TS2741: Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "update"; data: { name: string; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/hooks.test.ts(118,10): error TS2741: Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "delete"; id: string; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/hooks.test.ts(137,10): error TS2741: Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "update"; data: { name: string; }; result: { id: string; name: string; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/hooks.test.ts(216,10): error TS2741: Property 'context' is missing in type '{ user: { id: string; email: string; }; resource: string; operation: "update"; id: string; data: { name: string; }; request: { ip: string; headers: { "user-agent": string; }; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/hooks.test.ts(255,11): error TS2741: Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; data: { name: string; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/hooks.test.ts(270,11): error TS2741: Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "update"; data: { name: string; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/hooks.test.ts(288,11): error TS2741: Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; data: { name: string; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/hooks.test.ts(303,11): error TS2741: Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "update"; data: { name: string; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/hooks.test.ts(322,11): error TS2741: Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; data: { name: string; price: number; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/hooks.test.ts(338,11): error TS2741: Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; data: { name: string; price: number; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/integration-hooks.test.ts(139,40): error TS2345: Argument of type '{ user: { id: string; }; resource: string; operation: "create"; data: { name: string; price: number; }; adapter: any; }' is not assignable to parameter of type 'QueryHookContext'.
+packages/better-query typecheck:   Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; data: { name: string; price: number; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/integration-hooks.test.ts(191,40): error TS2345: Argument of type '{ user: { id: string; }; resource: string; operation: "update"; data: { name: string; price: number; }; existingData: { name: string; price: number; }; adapter: any; }' is not assignable to parameter of type 'QueryHookContext'.
+packages/better-query typecheck:   Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "update"; data: { name: string; price: number; }; existingData: { name: string; price: number; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/integration-hooks.test.ts(227,39): error TS2345: Argument of type '{ user: { id: string; }; resource: string; operation: "create"; result: { id: string; name: string; price: number; }; adapter: any; }' is not assignable to parameter of type 'QueryHookContext'.
+packages/better-query typecheck:   Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; result: { id: string; name: string; price: number; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/issue-reproduction-middleware.test.ts(43,4): error TS2561: Object literal may only specify known properties, but 'middleware' does not exist in type 'QueryResourceConfig'. Did you mean to write 'middlewares'?
+packages/better-query typecheck: src/tests/issue-reproduction-middleware.test.ts(45,22): error TS7006: Parameter 'context' implicitly has an 'any' type.
+packages/better-query typecheck: src/tests/issue-reproduction-middleware.test.ts(158,4): error TS2561: Object literal may only specify known properties, but 'middleware' does not exist in type 'QueryResourceConfig'. Did you mean to write 'middlewares'?
+packages/better-query typecheck: src/tests/issue-reproduction-middleware.test.ts(160,22): error TS7006: Parameter 'context' implicitly has an 'any' type.
+packages/better-query typecheck: src/tests/issue-reproduction.test.ts(36,24): error TS18046: 'error' is of type 'unknown'.
+packages/better-query typecheck: src/tests/issue-reproduction.test.ts(37,27): error TS18046: 'error' is of type 'unknown'.
+packages/better-query typecheck: src/tests/issue-reproduction.test.ts(38,27): error TS18046: 'error' is of type 'unknown'.
+packages/better-query typecheck: src/tests/issue-reproduction.test.ts(39,23): error TS18046: 'error' is of type 'unknown'.
+packages/better-query typecheck: src/tests/issue-reproduction.test.ts(40,26): error TS18046: 'error' is of type 'unknown'.
+packages/better-query typecheck: src/tests/issue-reproduction.test.ts(47,27): error TS7006: Parameter 'data' implicitly has an 'any' type.
+packages/better-query typecheck: src/tests/issue-reproduction.test.ts(79,31): error TS18046: 'error' is of type 'unknown'.
+packages/better-query typecheck: src/tests/issue-reproduction.test.ts(79,52): error TS18046: 'error' is of type 'unknown'.
+packages/better-query typecheck: src/tests/jobs.test.ts(114,10): error TS18048: 'plugin.schema.job_history' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/jobs.test.ts(115,10): error TS18048: 'plugin.schema.job_history' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/jobs.test.ts(210,10): error TS18048: 'plugin.schema.jobs' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/jobs.test.ts(211,10): error TS18048: 'plugin.schema.jobs' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/jobs.test.ts(211,10): error TS18048: 'plugin.schema.jobs.fields.schedule' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/jobs.test.ts(217,10): error TS18048: 'plugin.schema.jobs' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/jobs.test.ts(218,10): error TS18048: 'plugin.schema.jobs' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/jobs.test.ts(218,10): error TS18048: 'plugin.schema.jobs.fields.schedule' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/middleware.test.ts(50,4): error TS2561: Object literal may only specify known properties, but 'middleware' does not exist in type 'QueryResourceConfig'. Did you mean to write 'middlewares'?
+packages/better-query typecheck: src/tests/middleware.test.ts(132,4): error TS2561: Object literal may only specify known properties, but 'middleware' does not exist in type 'QueryResourceConfig'. Did you mean to write 'middlewares'?
+packages/better-query typecheck: src/tests/middleware.test.ts(180,4): error TS2561: Object literal may only specify known properties, but 'middleware' does not exist in type 'QueryResourceConfig'. Did you mean to write 'middlewares'?
+packages/better-query typecheck: src/tests/middleware.test.ts(223,4): error TS2561: Object literal may only specify known properties, but 'middleware' does not exist in type 'QueryResourceConfig'. Did you mean to write 'middlewares'?
+packages/better-query typecheck: src/tests/migrations.test.ts(100,11): error TS2532: Object is possibly 'undefined'.
+packages/better-query typecheck: src/tests/migrations.test.ts(101,11): error TS2532: Object is possibly 'undefined'.
+packages/better-query typecheck: src/tests/migrations.test.ts(119,11): error TS2532: Object is possibly 'undefined'.
+packages/better-query typecheck: src/tests/migrations.test.ts(120,11): error TS2532: Object is possibly 'undefined'.
+packages/better-query typecheck: src/tests/migrations.test.ts(121,11): error TS2532: Object is possibly 'undefined'.
+packages/better-query typecheck: src/tests/migrations.test.ts(122,11): error TS2532: Object is possibly 'undefined'.
+packages/better-query typecheck: src/tests/migrations.test.ts(313,11): error TS2532: Object is possibly 'undefined'.
+packages/better-query typecheck: src/tests/openapi.test.ts(3,25): error TS2307: Cannot find module '../../crud' or its corresponding type declarations.
+packages/better-query typecheck: src/tests/plugins.test.ts(8,2): error TS2305: Module '"../index"' has no exported member 'uploadPlugin'.
+packages/better-query typecheck: src/tests/plugins.test.ts(148,4): error TS2353: Object literal may only specify known properties, and 'enabled' does not exist in type 'CachePluginOptions'.
+packages/better-query typecheck: src/tests/plugins.test.ts(211,18): error TS2353: Object literal may only specify known properties, and 'enabled' does not exist in type 'CachePluginOptions'.
+packages/better-query typecheck: src/tests/react-client.test.ts(2,40): error TS2307: Cannot find module './index' or its corresponding type declarations.
+packages/better-query typecheck: src/tests/react-client.test.ts(9,13): error TS2339: Property 'defaultOptions' does not exist on type 'Mock<any, any>'.
+packages/better-query typecheck: src/tests/react-client.test.ts(17,13): error TS2339: Property 'defaultOptions' does not exist on type 'Mock<any, any>'.
+packages/better-query typecheck: src/tests/react-client.test.ts(191,20): error TS2339: Property 'defaultOptions' does not exist on type 'Mock<any, any>'.
+packages/better-query typecheck: src/tests/realtime.integration.test.ts(86,6): error TS2353: Object literal may only specify known properties, and 'authenticate' does not exist in type 'RealtimePluginOptions'.
+packages/better-query typecheck: src/tests/realtime.test.ts(2,32): error TS2307: Cannot find module './realtime' or its corresponding type declarations.
+packages/better-query typecheck: src/tests/realtime.test.ts(127,56): error TS7006: Parameter 'state' implicitly has an 'any' type.
+packages/better-query typecheck: src/tests/relationships.test.ts(679,6): error TS7006: Parameter 'jt' implicitly has an 'any' type.
+packages/better-query typecheck: src/tests/search.test.ts(51,12): error TS2532: Object is possibly 'undefined'.
+packages/better-query typecheck: src/tests/search.test.ts(63,12): error TS2532: Object is possibly 'undefined'.
+packages/better-query typecheck: src/tests/search.test.ts(64,12): error TS2532: Object is possibly 'undefined'.
+packages/better-query typecheck: src/tests/search.test.ts(383,12): error TS2532: Object is possibly 'undefined'.
+packages/better-query typecheck: src/tests/sqlite-binding-fix.test.ts(2,10): error TS2305: Module '"../schemas"' has no exported member 'productSchema'.
+packages/better-query typecheck: src/tests/sqlite-binding-fix.test.ts(3,25): error TS2307: Cannot find module './crud' or its corresponding type declarations.
+packages/better-query typecheck: src/tests/sqlite-binding-fix.test.ts(48,30): error TS7006: Parameter 'col' implicitly has an 'any' type.
+packages/better-query typecheck: src/tests/sqlite-binding-fix.test.ts(49,32): error TS7006: Parameter 'col' implicitly has an 'any' type.
+packages/better-query typecheck: src/tests/sqlite-binding-fix.test.ts(135,30): error TS7006: Parameter 'col' implicitly has an 'any' type.
+packages/better-query typecheck: src/tests/sqlite-binding-fix.test.ts(136,32): error TS7006: Parameter 'col' implicitly has an 'any' type.
+packages/better-query typecheck: src/tests/upload.test.ts(54,12): error TS18048: 'plugin.schema.uploaded_files' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/upload.test.ts(55,12): error TS18048: 'plugin.schema.uploaded_files' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/upload.test.ts(56,12): error TS18048: 'plugin.schema.uploaded_files' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/upload.test.ts(296,12): error TS18048: 'schema.fields.id' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/upload.test.ts(297,12): error TS18048: 'schema.fields.filename' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/upload.test.ts(298,12): error TS18048: 'schema.fields.size' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/upload.test.ts(299,12): error TS18048: 'schema.fields.uploaded_at' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/upload.test.ts(300,12): error TS18048: 'schema.fields.metadata' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/upload.test.ts(312,12): error TS18048: 'schema.fields.id' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/upload.test.ts(313,12): error TS18048: 'schema.fields.filename' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/upload.test.ts(314,12): error TS18048: 'schema.fields.url' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/upload.test.ts(315,12): error TS18048: 'schema.fields.uploaded_by' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/upload.test.ts(327,12): error TS18048: 'schema.fields.uploaded_at' is possibly 'undefined'.
+packages/better-query typecheck: src/tests/user-example.test.ts(265,47): error TS2345: Argument of type '{ user: { id: string; }; resource: string; operation: "create"; data: { name: string; price: number; }; adapter: any; }' is not assignable to parameter of type 'QueryHookContext'.
+packages/better-query typecheck:   Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; data: { name: string; price: number; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/tests/user-example.test.ts(316,45): error TS2345: Argument of type '{ user: { id: string; }; resource: string; operation: "create"; data: { items: { price: number; quantity: number; }[]; tax: number; shipping: number; discount: number; }; adapter: any; }' is not assignable to parameter of type 'QueryHookContext'.
+packages/better-query typecheck:   Property 'context' is missing in type '{ user: { id: string; }; resource: string; operation: "create"; data: { items: { price: number; quantity: number; }[]; tax: number; shipping: number; discount: number; }; adapter: any; }' but required in type 'QueryHookContext'.
+packages/better-query typecheck: src/user-exact-example.ts(7,10): error TS2724: '"./index"' has no exported member named 'createQueryClient'. Did you mean 'createClient'?
+packages/better-query typecheck: Failed
+/home/armel/dev/packages/better-query/packages/better-query:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  better-query@0.1.0 typecheck: `tsc --noEmit`
+Exit status 2

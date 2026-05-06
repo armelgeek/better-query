@@ -67,13 +67,52 @@ function createFlexibleSchema(schema: ZodSchema, isPartial = false): ZodSchema {
  * Create Query-specific middleware that provides context
  */
 export const queryContextMiddleware = createMiddleware(async (ctx) => {
-	// Extract security context from request
+	// Extract basic security context
 	const securityContext = extractSecurityContext(ctx.request || ctx);
+	const queryContext = (ctx as any).context as QueryContext;
 
-	// Add security utilities to context
+	let user = securityContext.user;
+	let session = securityContext.session;
+
+	// Resolve session if auth configuration is provided
+	const authConfig = queryContext?.options?.auth;
+	if (authConfig) {
+		try {
+			let resolvedSession: any = null;
+
+			// Priority 1: Auth Provider
+			if (authConfig.provider?.getSession) {
+				resolvedSession = await authConfig.provider.getSession({
+					request: ctx.request as any,
+				});
+			}
+			// Priority 2: Shortcut getSession
+			else if (authConfig.getSession) {
+				resolvedSession = await authConfig.getSession({
+					request: ctx.request as any,
+				});
+			}
+
+			if (resolvedSession) {
+				// Handle both { user, session } and direct user object formats
+				user = resolvedSession.user || (resolvedSession.session ? resolvedSession.user : resolvedSession);
+				session = resolvedSession.session || resolvedSession;
+			}
+		} catch (error) {
+			console.error("[Auth] Failed to resolve session:", error);
+		}
+	}
+
+	// Add security utilities and resolved user to context
 	const enhancedContext = {
 		...({} as QueryContext),
-		security: securityContext,
+		user,
+		session,
+		security: {
+			...securityContext,
+			user,
+			session,
+		},
 		rateLimiter,
 		auditLogger: new AuditLogger(),
 	};
@@ -139,8 +178,8 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 				return false;
 			}
 		} else if (!config) {
-			// If no permission function and no config, default to allow
-			return true;
+			// SECURITY: Default to forbidden if no permission function or config is provided
+			return false;
 		}
 
 		// Check enhanced permissions (scopes, ownership) if config is provided
@@ -251,12 +290,10 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 					user,
 					resource: name,
 					operation: "create",
-					data: middlewareContext.data, // Use data potentially modified by middleware
-					request: ctx,
-					adapter: {
-						...adapter,
-						context: context, // Pass the full CRUD context
-					},
+					data: middlewareContext.data,
+					request: ctx.request,
+					adapter,
+					context,
 				};
 
 				try {
@@ -331,9 +368,13 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 					return ctx.json({ error: "Forbidden" }, { status: 403 });
 				}
 
-				// Generate ID if not present
+				// Generate ID if not present AND schema expects a string ID
 				if (!data.id) {
-					data.id = generateId();
+					const resourceSchema = context.schemas?.get(name);
+					const idField = resourceSchema?.fields?.id;
+					if (idField?.type === "string") {
+						data.id = generateId();
+					}
 				}
 
 				// Update hook context with final data
@@ -438,11 +479,9 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 					resource: name,
 					operation: "read",
 					id,
-					request: ctx,
-					adapter: {
-						...adapter,
-						context: context,
-					},
+					request: ctx.request,
+					adapter,
+					context,
 				};
 
 				try {
@@ -583,11 +622,9 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 					id,
 					data: middlewareContext.data, // Use data potentially modified by middleware
 					existingData: existing,
-					request: ctx,
-					adapter: {
-						...adapter,
-						context: context,
-					},
+					request: ctx.request,
+					adapter,
+					context,
 				};
 
 				try {
@@ -753,11 +790,9 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 					operation: "delete",
 					id,
 					existingData: existing,
-					request: ctx,
-					adapter: {
-						...adapter,
-						context: context,
-					},
+					request: ctx.request,
+					adapter,
+					context,
 				};
 
 				try {
@@ -890,16 +925,15 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 				}
 
 				// Execute before hooks AFTER middleware for list operations
-				const hookContext: QueryHookContext = {
-					user,
-					resource: name,
-					operation: "list",
-					request: ctx,
-					adapter: {
-						...adapter,
-						context: context,
-					},
-				};
+					const hookContext: QueryHookContext = {
+						user,
+						resource: name,
+						operation: "list",
+						request: ctx.request,
+						adapter,
+						context,
+						params: query,
+					};
 
 				try {
 					await HookExecutor.executeBefore(resourceConfig.hooks, hookContext);
@@ -1043,6 +1077,55 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 				}
 			},
 		);
+	}
+
+	// Merge custom actions
+	if (resourceConfig.actions) {
+		for (const [actionName, actionConfig] of Object.entries(resourceConfig.actions)) {
+			const actionEndpoint = createQueryEndpoint(
+				`/${name}/${actionName}`,
+				{ method: actionConfig.method || "POST" },
+				async (ctx) => {
+					const queryContext = (ctx as any).context as QueryContext;
+					const adapter = queryContext.adapter;
+					const security = (ctx as any).security;
+					const user = security?.user;
+
+					// Check action-level permission
+					if (actionConfig.permission) {
+						const isAuthorized = await actionConfig.permission({
+							user,
+							resource: name,
+							operation: "action" as any,
+							request: ctx.request,
+						});
+						if (!isAuthorized) {
+							return ctx.json({ error: "Unauthorized" }, { status: 403 });
+						}
+					}
+
+					try {
+						// Execute action handler with full context
+						const result = await actionConfig.handler({
+							resource: name,
+							operation: "action" as any,
+							params: (ctx as any).body || ctx.query,
+							context: queryContext,
+							user,
+							adapter,
+						} as any);
+
+						return ctx.json(result);
+					} catch (error) {
+						return ctx.json({ 
+							error: "Action failed", 
+							details: error instanceof Error ? error.message : String(error) 
+						}, { status: 500 });
+					}
+				}
+			);
+			queryEndpoints[`${actionName}${capitalize(name)}`] = actionEndpoint;
+		}
 	}
 
 	// Merge custom endpoints if provided

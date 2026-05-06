@@ -7,17 +7,14 @@ export { betterQuery as adiemus } from "./query";
 export { betterQuery as betterCrud } from "./query";
 
 // Client
-export { createQueryClient } from "./client";
-export type { QueryClient, QueryClientOptions } from "./client";
+export { createClient } from "./client";
+export type { BetterQueryClient as QueryClient, ClientOptions as QueryClientOptions } from "./client";
 
-// React Client exports are in better-query/react to avoid mixing server and client code
-// Import from 'better-query/react' for React hooks and components
-
-// Legacy client exports (non-React only)
-export { createQueryClient as createCrudClient } from "./client";
+// Legacy client exports
+export { createClient as createCrudClient } from "./client";
 export type {
-	QueryClient as CrudClient,
-	QueryClientOptions as CrudClientOptions,
+	BetterQueryClient as CrudClient,
+	ClientOptions as CrudClientOptions,
 } from "./client";
 
 // Types

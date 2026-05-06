@@ -76,13 +76,18 @@ export interface QueryAdapter {
 		select?: string[];
 	}): Promise<any[]>;
 
-	/** Update a record */
+	/** Update records */
 	update(params: {
 		model: string;
 		where: QueryWhere[];
-		data: Record<string, any>;
-		include?: IncludeOptions;
-	}): Promise<any>;
+		data: any;
+	}): Promise<void>;
+
+	/** Update multiple records with different data (if supported) */
+	updateMany?(params: {
+		model: string;
+		updates: Array<{ where: QueryWhere[]; data: any }>;
+	}): Promise<void>;
 
 	/** Delete a record */
 	delete(params: {
@@ -156,6 +161,9 @@ export interface QueryAdapter {
 		sourceTable: string;
 		targetTable: string;
 	}): Promise<void>;
+
+	/** Execute operations in a transaction */
+	transaction?<T>(fn: (adapter: QueryAdapter) => Promise<T>): Promise<T>;
 
 	/** Configuration specific to the adapter */
 	config?: {

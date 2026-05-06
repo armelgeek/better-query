@@ -63,7 +63,7 @@ export const initCommand = new Command("init")
 				});
 			}
 
-			const answers = await prompts(questions);
+			const answers = await prompts(questions as any);
 
 			const config = {
 				framework: options.framework || answers.framework,

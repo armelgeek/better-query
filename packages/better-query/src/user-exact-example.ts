@@ -4,7 +4,7 @@
  */
 
 import { z } from "zod";
-import { createQueryClient, createResource } from "./index";
+import { createClient, createResource } from "./index";
 import { betterQuery } from "./query";
 
 // Schemas exactly like in the user's example
@@ -352,8 +352,8 @@ export const query = betterQuery({
 });
 
 // Type-safe query client
-export const queryClient = createQueryClient({
-	// client config here
+export const queryClient = createClient({
+	url: "http://localhost:3000",
 });
 
 // This demonstrates that ALL the user's hook examples now work without any modifications!
