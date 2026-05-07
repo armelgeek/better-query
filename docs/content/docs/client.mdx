@@ -12,57 +12,43 @@ import { createClient } from "better-query/client";
 
 export const client = createClient({
   url: "http://localhost:3000/api/query",
-  tenantId: "my-tenant-id", // Optional global tenant
+  realtimeUrl: "ws://localhost:3001/realtime", // Optional: Custom realtime server
 });
 ```
 
 ### 2. Automatic Path Mapping
 
-The client automatically maps to the generated REST endpoints:
+The client automatically maps to the generated REST endpoints. It supports both property access (`client.project.list()`) and resource-based calls (`client("project").list()`).
 
 | Operation | Method | Path | Client Call |
 |-----------|--------|------|-------------|
 | **Create** | `POST` | `/:resource` | `client.project.create(data)` |
-| **Read** | `GET` | `/:resource/:id` | `client.project.read(id)` |
-| **Update** | `PATCH` | `/:resource/:id` | `client.project.update(id, data)` |
-| **Delete** | `DELETE` | `/:resource/:id` | `client.project.delete(id)` |
-| **List** | `GET` | `/:resource`s | `client.project.list(params)` |
+| **Read** | `GET` | `/:resource/read/:id` | `client.project.read(id)` |
+| **Update** | `PATCH` | `/:resource/update/:id` | `client.project.update(id, data)` |
+| **Delete** | `DELETE` | `/:resource/delete/:id` | `client.project.delete(id)` |
+| **List** | `GET` | `/:resource/list` | `client.project.list(params)` |
+| **Watch** | `WS` | - | `client.project.watch(callback)` |
 
-### 3. Plugin Integration
+### 3. Real-time Synchronization
 
-Plugins registered on the server can inject global endpoints or resource-specific actions.
-
-#### Global Plugin Endpoints
-Endpoints added by plugins (like the Storage plugin) are available directly on the client.
+Better Query client has built-in support for real-time updates. You don't need extra plugins for basic record and resource watching.
 
 ```typescript
-// The Storage plugin adds 'uploadFile'
-const formData = new FormData();
-formData.append("file", myFile);
+// Connect to the realtime server
+await client.connect();
 
-const { data } = await client.uploadFile(formData);
-console.log("File URL:", data.url);
-```
-
-#### Client Plugins (Rich Features)
-Some plugins provide extra frontend capabilities (like reactive state or complex socket logic).
-
-```typescript
-import { createClient } from "better-query/client";
-import { realtimeClient } from "better-query/client/plugins";
-
-const client = createClient({
-  url: "http://localhost:3000/api/query",
-  plugins: [
-    realtimeClient() // Adds advanced realtime methods
-  ]
+// Watch for changes on a specific resource
+const unwatch = client.todo.watch((change) => {
+  console.log("Something changed:", change);
 });
 
-// Access plugin-specific methods
-client.realtime.subscribe("project:123", (message) => {
-  console.log("Realtime update:", message);
+// Watch a specific record
+client.todo.watch("todo_123", (data) => {
+  console.log("Todo 123 updated:", data);
 });
 ```
+
+### 4. Plugin Integration
 
 ### 4. Per-Request Options
 

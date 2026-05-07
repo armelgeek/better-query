@@ -7,7 +7,7 @@ Better Query provides native support for complex requirements common in enterpri
 
 ### 🛡️ Multi-Tenancy
 
-Isolate data automatically between customers. When enabled, every query is automatically filtered by `tenantId`.
+Isolate data automatically between customers. When enabled, every query is automatically filtered based on the user's context.
 
 ```typescript
 export const invoice = createResource({
@@ -15,12 +15,48 @@ export const invoice = createResource({
   schema: z.object({ /* ... */ }),
   multiTenancy: {
     enabled: true,
-    column: "tenantId", // Database column name
+    field: "orgId",       // Database column name
+    contextKey: "orgId"   // Key in the user object (e.g. from JWT or session)
   }
 });
 ```
 
-The `tenantId` is extracted from the `x-tenant-id` header or your auth session.
+The system automatically injects the tenant ID from the user object into every query.
+
+### 📜 Policy-Based Access Control (PBAC)
+
+Policies provide a powerful way to implement Row-Level Security (RLS). A policy can return a boolean for simple access control, or a filter object for dynamic data isolation.
+
+```typescript
+export const todo = createResource({
+  name: "todo",
+  policies: {
+    read: async ({ user }) => {
+      if (user.role === "admin") return true; // Full access
+      return { ownerId: user.id };           // Automatic RLS filter
+    },
+    update: async ({ user, existingData }) => {
+      return existingData.ownerId === user.id; // Boolean check
+    }
+  }
+});
+```
+
+### 🗑️ Native Soft Delete
+
+Keep your data safe with automatic soft deletion. Records are marked as deleted instead of being removed from the database.
+
+```typescript
+export const user = createResource({
+  name: "user",
+  softDelete: {
+    enabled: true,
+    field: "deletedAt" // Optional, defaults to "deletedAt"
+  }
+});
+```
+
+Operations like `list`, `read`, `update`, and `delete` will automatically ignore records where the soft delete field is set.
 
 ### 🎭 User Impersonation
 

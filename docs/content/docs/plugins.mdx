@@ -99,24 +99,45 @@ export const { handler } = betterQuery({
 
 ### 🪝 Webhooks
 
-Trigger external services when your data changes.
+Trigger external services when your data changes. Perfect for CI/CD triggers, Slack notifications, or syncing with third-party APIs.
 
 ```typescript
 import { webhooksPlugin } from "better-query/plugins";
 
 export const { handler } = betterQuery({
   plugins: [
-    webhooksPlugin({
-      endpoints: [
-        {
-          url: "https://my-service.com/webhook",
-          events: ["project.create", "project.delete"]
-        }
-      ]
+    webhooksPlugin([
+      {
+        url: "https://my-service.com/webhook",
+        events: ["project.create", "project.update", "delete"],
+        secret: process.env.WEBHOOK_SECRET // Optional: Signs the payload
+      }
+    ])
+  ]
+});
+```
+
+---
+
+### ⚡ Real-time Synchronization
+
+Enable live data updates via WebSockets. The client can subscribe to resource-level or record-level changes automatically.
+
+```typescript
+import { realtimePlugin } from "better-query/plugins";
+
+export const { handler } = betterQuery({
+  plugins: [
+    realtimePlugin({
+      port: 3001, // Optional: Separate port for WebSockets
+      path: "/realtime",
+      broadcastPresence: true // Automatically share who else is watching
     })
   ]
 });
 ```
+
+Clients can then use `client.watch()` or `client.on()` to react to changes as they happen.
 
 ---
 
