@@ -92,7 +92,7 @@ export function openApiPlugin(options: OpenAPIPluginOptions = {}): Plugin {
 						const schema = zodToOpenAPI(resource.schema);
 
 						// List & Create
-						paths[`/${name}`] = {
+						paths[`/${name}/list`] = {
 							get: {
 								tags: [name],
 								summary: `List ${name}s`,
@@ -107,6 +107,9 @@ export function openApiPlugin(options: OpenAPIPluginOptions = {}): Plugin {
 									},
 								},
 							},
+						};
+
+						paths[`/${name}/create`] = {
 							post: {
 								tags: [name],
 								summary: `Create ${name}`,
@@ -120,7 +123,7 @@ export function openApiPlugin(options: OpenAPIPluginOptions = {}): Plugin {
 						};
 
 						// Read, Update, Delete
-						paths[`/${name}/{id}`] = {
+						paths[`/${name}/get/{id}`] = {
 							get: {
 								tags: [name],
 								summary: `Get ${name} by ID`,
@@ -139,6 +142,9 @@ export function openApiPlugin(options: OpenAPIPluginOptions = {}): Plugin {
 									},
 								},
 							},
+						};
+
+						paths[`/${name}/update/{id}`] = {
 							patch: {
 								tags: [name],
 								summary: `Update ${name}`,
@@ -153,6 +159,9 @@ export function openApiPlugin(options: OpenAPIPluginOptions = {}): Plugin {
 								requestBody: { content: { "application/json": { schema } } },
 								responses: { 200: { description: "Updated" } },
 							},
+						};
+
+						paths[`/${name}/delete/{id}`] = {
 							delete: {
 								tags: [name],
 								summary: `Delete ${name}`,

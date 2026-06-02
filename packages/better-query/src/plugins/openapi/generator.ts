@@ -89,6 +89,37 @@ export interface OpenAPIPath {
 			};
 		};
 	};
+	patch?: {
+		tags?: string[];
+		operationId?: string;
+		description?: string;
+		security?: [{ bearerAuth: string[] }];
+		parameters?: Array<{
+			name: string;
+			in: "query" | "path" | "header";
+			schema: {
+				type?: "string" | "number" | "boolean" | "array" | "object";
+			};
+			required?: boolean;
+		}>;
+		requestBody?: {
+			content: {
+				"application/json": {
+					schema: any;
+				};
+			};
+		};
+		responses?: {
+			[key in string]: {
+				description?: string;
+				content: {
+					"application/json": {
+						schema: any;
+					};
+				};
+			};
+		};
+	};
 	delete?: {
 		tags?: string[];
 		operationId?: string;
@@ -266,7 +297,7 @@ function getStandardResponses(): any {
 	};
 }
 
-function generateResourceSchema(resourceName: string, schema: ZodSchema): any {
+function generateResourceSchema(schema: ZodSchema): any {
 	const processedSchema = processZodType(schema);
 	return {
 		type: "object",
@@ -326,7 +357,6 @@ export async function generator(context: CrudContext): Promise<any> {
 
 		// Generate schema for the resource
 		const resourceSchema = generateResourceSchema(
-			resourceName,
 			resource.schema,
 		);
 		components.schemas[capitalizedName] = resourceSchema;
@@ -345,12 +375,15 @@ export async function generator(context: CrudContext): Promise<any> {
 		};
 
 		// Generate CRUD endpoints
-		const basePath = `/${resourceName}`;
-		const itemPath = `/${resourceName}/{id}`;
+		const listPath = `/${resourceName}/list`;
+		const createPath = `/${resourceName}/create`;
+		const getPath = `/${resourceName}/get/{id}`;
+		const updatePath = `/${resourceName}/update/{id}`;
+		const deletePath = `/${resourceName}/delete/{id}`;
 
 		// LIST endpoint
 		if (resource.endpoints?.list !== false) {
-			paths[basePath] = {
+			paths[listPath] = {
 				get: {
 					tags: [capitalizedName],
 					operationId: `list${capitalizedName}s`,
@@ -396,8 +429,8 @@ export async function generator(context: CrudContext): Promise<any> {
 
 		// CREATE endpoint
 		if (resource.endpoints?.create !== false) {
-			paths[basePath] = {
-				...paths[basePath],
+			paths[createPath] = {
+				...paths[createPath],
 				post: {
 					tags: [capitalizedName],
 					operationId: `create${capitalizedName}`,
@@ -430,7 +463,7 @@ export async function generator(context: CrudContext): Promise<any> {
 
 		// READ endpoint
 		if (resource.endpoints?.read !== false) {
-			paths[itemPath] = {
+			paths[getPath] = {
 				get: {
 					tags: [capitalizedName],
 					operationId: `get${capitalizedName}`,
@@ -467,9 +500,9 @@ export async function generator(context: CrudContext): Promise<any> {
 
 		// UPDATE endpoint
 		if (resource.endpoints?.update !== false) {
-			paths[itemPath] = {
-				...paths[itemPath],
-				put: {
+			paths[updatePath] = {
+				...paths[updatePath],
+				patch: {
 					tags: [capitalizedName],
 					operationId: `update${capitalizedName}`,
 					description: `Update a ${resourceName}`,
@@ -509,8 +542,8 @@ export async function generator(context: CrudContext): Promise<any> {
 
 		// DELETE endpoint
 		if (resource.endpoints?.delete !== false) {
-			paths[itemPath] = {
-				...paths[itemPath],
+			paths[deletePath] = {
+				...paths[deletePath],
 				delete: {
 					tags: [capitalizedName],
 					operationId: `delete${capitalizedName}`,

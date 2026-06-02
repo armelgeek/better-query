@@ -1,7 +1,12 @@
 import { Endpoint } from "better-call";
 import { ZodSchema, z } from "zod";
 import { QueryAdapter } from "./adapter";
-import { QueryPlugin, ExtendedQueryPlugin, Plugin, ExtendedPlugin } from "./plugins";
+import {
+	QueryPlugin,
+	ExtendedQueryPlugin,
+	Plugin,
+	ExtendedPlugin,
+} from "./plugins";
 export type { QueryPlugin, ExtendedQueryPlugin, Plugin, ExtendedPlugin };
 import { AuthOptions } from "./auth";
 

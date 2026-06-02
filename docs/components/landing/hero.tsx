@@ -90,7 +90,7 @@ export default function Hero() {
 										<p className=" relative inline tracking-tight opacity-90 md:text-sm text-xs dark:text-white font-mono text-black">
 											npm add{" "}
 											<span className="relative dark:text-fuchsia-100 text-fuchsia-950">
-												better-query better-admin
+												better-query
 												<span className="absolute h-2 bg-gradient-to-tr from-white via-stone-200 to-stone-300 blur-3xl w-full top-0 left-2"></span>
 											</span>
 										</p>

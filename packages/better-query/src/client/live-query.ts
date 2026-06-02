@@ -135,7 +135,10 @@ export class BetterLiveQuery<T extends { id: string } = any> {
 	private persistData() {
 		if (typeof window !== "undefined" && this.options.persistKey) {
 			try {
-				localStorage.setItem(this.options.persistKey, JSON.stringify(this.items));
+				localStorage.setItem(
+					this.options.persistKey,
+					JSON.stringify(this.items),
+				);
 			} catch (e) {
 				console.warn("[Live Query] Failed to persist data cache:", e);
 			}
@@ -287,7 +290,9 @@ export class BetterLiveQuery<T extends { id: string } = any> {
 			this.activeItem = item;
 
 			// Sync back to local items list if present
-			this.items = this.items.map((existing) => (existing.id === id ? item : existing));
+			this.items = this.items.map((existing) =>
+				existing.id === id ? item : existing,
+			);
 			this.persistData();
 
 			this.loading = false;
@@ -411,7 +416,9 @@ export class BetterLiveQuery<T extends { id: string } = any> {
 
 		// 1. Optimistic Update
 		if (this.options.optimistic) {
-			this.items = this.items.map((item) => (item.id === id ? updatedRecord : item));
+			this.items = this.items.map((item) =>
+				item.id === id ? updatedRecord : item,
+			);
 			if (this.activeItem?.id === id) {
 				this.activeItem = updatedRecord;
 			}
@@ -427,7 +434,9 @@ export class BetterLiveQuery<T extends { id: string } = any> {
 			const serverRecord = res?.data || res;
 
 			// Update store with finalized server state
-			this.items = this.items.map((item) => (item.id === id ? serverRecord : item));
+			this.items = this.items.map((item) =>
+				item.id === id ? serverRecord : item,
+			);
 			if (this.activeItem?.id === id) {
 				this.activeItem = serverRecord;
 			}
@@ -500,7 +509,11 @@ export class BetterLiveQuery<T extends { id: string } = any> {
 		} catch (err) {
 			if (this.options.optimistic) {
 				this.items = previousItems;
-				if (originalRecord && this.activeItem === null && previousItems.some(i => i.id === id)) {
+				if (
+					originalRecord &&
+					this.activeItem === null &&
+					previousItems.some((i) => i.id === id)
+				) {
 					this.activeItem = originalRecord;
 				}
 				this.persistData();
@@ -514,7 +527,10 @@ export class BetterLiveQuery<T extends { id: string } = any> {
 	/**
 	 * Retry handler helper
 	 */
-	private async executeWithRetry<R>(fn: () => Promise<R>, retries: number): Promise<R> {
+	private async executeWithRetry<R>(
+		fn: () => Promise<R>,
+		retries: number,
+	): Promise<R> {
 		try {
 			return await fn();
 		} catch (err) {
@@ -541,7 +557,9 @@ export class BetterLiveQuery<T extends { id: string } = any> {
 	private async processOfflineQueue() {
 		if (this.offlineQueue.length === 0) return;
 
-		log(`Processing offline mutation queue (${this.offlineQueue.length} items)...`);
+		log(
+			`Processing offline mutation queue (${this.offlineQueue.length} items)...`,
+		);
 		const queue = [...this.offlineQueue];
 		this.offlineQueue = [];
 		this.notify();
@@ -550,7 +568,10 @@ export class BetterLiveQuery<T extends { id: string } = any> {
 			try {
 				await task.execute();
 			} catch (e) {
-				console.error(`[Offline Sync] Mutation task ${task.operation} failed for id ${task.id}:`, e);
+				console.error(
+					`[Offline Sync] Mutation task ${task.operation} failed for id ${task.id}:`,
+					e,
+				);
 				// If a task hard-fails, trigger error state
 				this.error = e instanceof Error ? e : new Error(String(e));
 				this.notify();
@@ -573,7 +594,9 @@ export class BetterLiveQuery<T extends { id: string } = any> {
 				this.items = [...this.items, data];
 			}
 		} else if (operation === "update" && id) {
-			this.items = this.items.map((item) => (item.id === id ? { ...item, ...data } : item));
+			this.items = this.items.map((item) =>
+				item.id === id ? { ...item, ...data } : item,
+			);
 			if (this.activeItem?.id === id) {
 				this.activeItem = { ...this.activeItem, ...data };
 			}
@@ -592,15 +615,21 @@ export class BetterLiveQuery<T extends { id: string } = any> {
 	 * Bind background real-time hot-reloads over WebSocket or SSE
 	 */
 	private setupRealtimeSync() {
-		const actions = (this.client as any);
+		const actions = this.client as any;
 		if (typeof actions.subscribeToResource === "function") {
-			actions.subscribeToResource(this.resource, (event: any) => {
-				this.handleServerChange(event);
-			}).then((unsub: () => void) => {
-				this.unsubscribeRealtime = unsub;
-			}).catch((err: any) => {
-				console.warn(`[Live Query] Realtime sync registration failed for ${this.resource}:`, err);
-			});
+			actions
+				.subscribeToResource(this.resource, (event: any) => {
+					this.handleServerChange(event);
+				})
+				.then((unsub: () => void) => {
+					this.unsubscribeRealtime = unsub;
+				})
+				.catch((err: any) => {
+					console.warn(
+						`[Live Query] Realtime sync registration failed for ${this.resource}:`,
+						err,
+					);
+				});
 		}
 	}
 

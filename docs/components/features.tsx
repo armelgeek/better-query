@@ -14,7 +14,6 @@ import {
 import { cn } from "@/lib/utils";
 import { TechStackDisplay } from "./display-techstack";
 import { GithubStat } from "./github-stat";
-import { Testimonial } from "./landing/testimonials";
 import { Ripple } from "./ripple";
 const features = [
 	{

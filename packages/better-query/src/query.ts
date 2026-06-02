@@ -92,7 +92,9 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 
 	// 1. Auto-infer belongsTo relationships from foreign keys (e.g. projectId -> project)
 	for (const resourceConfig of allResources) {
-		const existingRelationships = relationshipManager.getRelationships(resourceConfig.name);
+		const existingRelationships = relationshipManager.getRelationships(
+			resourceConfig.name,
+		);
 		const resourceSchema = queryContext.schemas.get(resourceConfig.name);
 		if (resourceSchema?.fields) {
 			const autoRelationships = { ...existingRelationships };
@@ -112,18 +114,26 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 				}
 			}
 			if (inferred) {
-				relationshipManager.registerRelationships(resourceConfig.name, autoRelationships);
+				relationshipManager.registerRelationships(
+					resourceConfig.name,
+					autoRelationships,
+				);
 			}
 		}
 	}
 
 	// 2. Auto-infer hasMany relationships back to the source (e.g. user hasMany posts)
 	for (const resourceConfig of allResources) {
-		const existingBelongsTo = relationshipManager.getRelationships(resourceConfig.name);
-		for (const [relationName, relationConfig] of Object.entries(existingBelongsTo)) {
+		const existingBelongsTo = relationshipManager.getRelationships(
+			resourceConfig.name,
+		);
+		for (const [relationName, relationConfig] of Object.entries(
+			existingBelongsTo,
+		)) {
 			if (relationConfig.type === "belongsTo") {
 				const targetResource = relationConfig.target;
-				const targetRelationships = relationshipManager.getRelationships(targetResource);
+				const targetRelationships =
+					relationshipManager.getRelationships(targetResource);
 				const pluralName = pluralize(resourceConfig.name);
 
 				if (!targetRelationships[pluralName]) {
@@ -134,9 +144,12 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 							target: resourceConfig.name,
 							foreignKey: relationConfig.foreignKey,
 							targetKey: "id",
-						}
+						},
 					};
-					relationshipManager.registerRelationships(targetResource, updatedTargetRelationships);
+					relationshipManager.registerRelationships(
+						targetResource,
+						updatedTargetRelationships,
+					);
 				}
 			}
 		}

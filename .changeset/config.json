@@ -9,10 +9,6 @@
 	"updateInternalDependencies": "patch",
 	"ignore": [
 		"@better-query/shared",
-		"@better-query/docs",
-		"todo-hono-better-query",
-		"todo-next-better-query",
-		"todo-react-better-query",
-		"todo-vanilla-better-query"
+		"@better-query/docs"
 	]
 }

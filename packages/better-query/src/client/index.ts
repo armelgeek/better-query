@@ -151,7 +151,7 @@ type NestedAPI<T> = {
 	[K in keyof T as K extends `${infer Resource}.${infer Operation}`
 		? Resource
 		: K]: K extends `${infer Resource}.${infer Operation}`
-		? { [Op in Operation]: T[K] }
+		? { [Op in Operation extends "get" ? "get" | "read" : Operation]: T[K] }
 		: T[K];
 } extends infer O
 	? {
@@ -209,8 +209,8 @@ export class BetterQueryClient<API extends Record<string, any> = any> {
 						return this.watch(resource, args[0], args[1]);
 					}
 
-					// Map 'get' to 'read' for consistency with server endpoints
-					const actualOperation = operation === "get" ? "read" : operation;
+					// Map 'read' to 'get' for consistency with server endpoints
+					const actualOperation = operation === "read" ? "get" : operation;
 					let fullPath = `/${resource}/${actualOperation}`;
 
 					// Special case for get/read/update/delete which might need :id
@@ -245,7 +245,8 @@ export class BetterQueryClient<API extends Record<string, any> = any> {
 					// Fallback to property access if it somehow works
 					let fn = this.api;
 					for (const segment of path) {
-						fn = fn?.[segment];
+						const actualSegment = segment === "read" ? "get" : segment;
+						fn = fn?.[actualSegment];
 					}
 
 					if (typeof fn?.[method.toLowerCase()] === "function") {

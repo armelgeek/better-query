@@ -45,4 +45,3 @@ export {
 	createQueryEndpoints as createCrudEndpoints,
 	createQueryEndpoint as createCrudEndpoint,
 } from "./endpoints";
-

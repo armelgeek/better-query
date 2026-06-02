@@ -35,7 +35,7 @@ Thank you for your interest in contributing to Better Query! This guide will hel
    ```
 
 2. **Make your changes**
-   - Edit code in `packages/better-query/` or `packages/better-admin/`
+   - Edit code in `packages/better-query/`
    - Add tests if applicable
    - Update documentation if needed
 
@@ -172,15 +172,6 @@ packages/
 │   │   └── plugins/       # Plugin system
 │   ├── CHANGELOG.md       # Auto-generated changelog
 │   └── package.json
-│
-├── better-admin/          # Admin UI CLI
-│   ├── src/
-│   │   ├── index.ts       # Main entry point
-│   │   ├── cli/           # CLI tool
-│   │   └── registry/      # Component registry
-│   ├── CHANGELOG.md       # Auto-generated changelog
-│   └── package.json
-│
 └── shared/                # Shared utilities (not published)
 ```
 

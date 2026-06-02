@@ -1,14 +1,4 @@
-import { APIMethod } from "@/components/api-method";
-import { Features } from "@/components/blocks/features";
-import { DividerText } from "@/components/divider-text";
 import { DocsBody, DocsPage, DocsTitle } from "@/components/docs/page";
-import { Endpoint } from "@/components/endpoint";
-import { ForkButton } from "@/components/fork-button";
-import { GenerateAppleJwt } from "@/components/generate-apple-jwt";
-import { GenerateSecret } from "@/components/generate-secret";
-import { AddToCursor } from "@/components/mdx/add-to-cursor";
-import DatabaseTable from "@/components/mdx/database-tables";
-import { Callout } from "@/components/ui/callout";
 import {
 	CodeBlock,
 	CodeBlockTab,
@@ -16,20 +6,14 @@ import {
 	CodeBlockTabsList,
 	Pre,
 } from "@/components/ui/code-block";
-import { AnimatePresence } from "@/components/ui/fade-in";
 import { source } from "@/lib/source";
 import { absoluteUrl } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { AutoTypeTable } from "fumadocs-typescript/ui";
-import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
-import { File, Files, Folder } from "fumadocs-ui/components/files";
-import { Step, Steps } from "fumadocs-ui/components/steps";
-import { Tab, Tabs } from "fumadocs-ui/components/tabs";
-import { TypeTable } from "fumadocs-ui/components/type-table";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LLMCopyButton, ViewOptions } from "./page.client";
+
 export default async function Page({
 	params,
 }: {
@@ -116,43 +100,6 @@ export default async function Page({
 								{...props}
 							/>
 						),
-						Step,
-						Steps,
-						File,
-						Folder,
-						Files,
-						Tab,
-						Tabs,
-						AutoTypeTable,
-						GenerateSecret,
-						GenerateAppleJwt,
-						AnimatePresence,
-						TypeTable,
-						Features,
-						ForkButton,
-						AddToCursor,
-						DatabaseTable,
-						Accordion,
-						Accordions,
-						Endpoint,
-						APIMethod,
-						Callout: ({
-							children,
-							type,
-							...props
-						}: {
-							children: React.ReactNode;
-							type?: "info" | "warn" | "error" | "success" | "warning";
-							[key: string]: any;
-						}) => (
-							<Callout type={type} {...props}>
-								{children}
-							</Callout>
-						),
-						DividerText,
-						iframe: (props) => (
-							<iframe {...props} className="w-full h-[500px]" />
-						),
 					}}
 				/>
 			</DocsBody>
@@ -161,7 +108,11 @@ export default async function Page({
 }
 
 export async function generateStaticParams() {
-	return source.generateParams();
+	const params = source.generateParams();
+	return [
+		{ slug: [] },
+		...params,
+	];
 }
 
 export async function generateMetadata({
