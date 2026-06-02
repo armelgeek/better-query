@@ -136,12 +136,10 @@ export const user = createResource({
     salary: z.number(),
     role: z.string(),
   }),
-  security: {
-    fields: {
-      salary: {
-        read: ({ user }) => user.role === "admin",
-        write: false, // Read-only for everyone
-      }
+  fields: {
+    salary: {
+      hidden: ({ user }) => user.role !== "admin", // Hidden from read operations for non-admins
+      readOnly: true,                              // Read-only (cannot be mutated) for everyone
     }
   }
 });

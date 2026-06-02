@@ -265,7 +265,7 @@ export function uploadPlugin(options: UploadPluginOptions = {}): Plugin {
 						filename: z.string(),
 						mimeType: z.string(),
 						metadata: z.record(z.any()).optional(),
-					}),
+					}) as any,
 				},
 				async (ctx) => {
 					const { file, filename, mimeType, metadata } = ctx.body;
@@ -406,7 +406,7 @@ export function uploadPlugin(options: UploadPluginOptions = {}): Plugin {
 							mimeType: z.string().optional(),
 							uploadedBy: z.string().optional(),
 						})
-						.optional(),
+						.optional() as any,
 				},
 				async (ctx) => {
 					// In a real implementation, this would query the database

@@ -235,7 +235,9 @@ export class KyselyQueryAdapter implements QueryAdapter {
 			.returningAll()
 			.execute();
 
-		return results.map((result) => transformToData(result, schema, this.config));
+		return results.map((result) =>
+			transformToData(result, schema, this.config),
+		);
 	}
 
 	async findFirst(params: {
@@ -245,9 +247,10 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		select?: string[];
 	}) {
 		const { model, where = [], include, select } = params;
-		const resourceConfig = this.relationshipManager?.relationshipContext.options.resources.find(
-			(r) => r.name === model,
-		);
+		const resourceConfig =
+			this.relationshipManager?.relationshipContext.options.resources.find(
+				(r) => r.name === model,
+			);
 
 		// Apply soft delete filter if enabled
 		const activeWhere = [...where];
@@ -274,8 +277,12 @@ export class KyselyQueryAdapter implements QueryAdapter {
 
 			const result = await query.executeTakeFirst();
 			const schema =
-				this.relationshipManager?.relationshipContext.schemas.get(model)?.fields;
-			const transformed = result ? transformToData(result, schema, this.config) : result;
+				this.relationshipManager?.relationshipContext.schemas.get(
+					model,
+				)?.fields;
+			const transformed = result
+				? transformToData(result, schema, this.config)
+				: result;
 			return await this.applyComputedFields(model, transformed);
 		}
 
@@ -307,9 +314,10 @@ export class KyselyQueryAdapter implements QueryAdapter {
 			select,
 		} = params;
 
-		const resourceConfig = this.relationshipManager?.relationshipContext.options.resources.find(
-			(r) => r.name === model,
-		);
+		const resourceConfig =
+			this.relationshipManager?.relationshipContext.options.resources.find(
+				(r) => r.name === model,
+			);
 
 		// Apply soft delete filter if enabled
 		const activeWhere = [...where];
@@ -347,12 +355,16 @@ export class KyselyQueryAdapter implements QueryAdapter {
 			}
 
 			const schema =
-				this.relationshipManager?.relationshipContext.schemas.get(model)?.fields;
+				this.relationshipManager?.relationshipContext.schemas.get(
+					model,
+				)?.fields;
 			const results = await query.execute();
 			const transformed = results.map((item) =>
 				transformToData(item, schema, this.config),
 			);
-			return await Promise.all(transformed.map(r => this.applyComputedFields(model, r)));
+			return await Promise.all(
+				transformed.map((r) => this.applyComputedFields(model, r)),
+			);
 		}
 
 		// Use relationship-aware query
@@ -410,15 +422,16 @@ export class KyselyQueryAdapter implements QueryAdapter {
 	}) {
 		const { model, where, cascade = false } = params;
 
-		const resourceConfig = this.relationshipManager?.relationshipContext.options.resources.find(
-			(r) => r.name === model,
-		);
+		const resourceConfig =
+			this.relationshipManager?.relationshipContext.options.resources.find(
+				(r) => r.name === model,
+			);
 
 		// Handle soft delete if enabled
 		if (resourceConfig?.softDelete?.enabled) {
 			const softDeleteField = resourceConfig.softDelete.field || "deletedAt";
 			const data = { [softDeleteField]: new Date() };
-			
+
 			await this.update({ model, where, data });
 			return;
 		}
@@ -634,24 +647,39 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		}
 
 		// Apply Relational Aggregations
-		const resourceConfig = this.relationshipManager.relationshipContext.options.resources.find(r => r.name === model);
+		const resourceConfig =
+			this.relationshipManager.relationshipContext.options.resources.find(
+				(r) => r.name === model,
+			);
 		if (resourceConfig?.aggregations) {
-			for (const [aggName, aggConfig] of Object.entries(resourceConfig.aggregations)) {
-				const relation = this.relationshipManager.getRelationships(model)[aggConfig.relation];
+			for (const [aggName, aggConfig] of Object.entries(
+				resourceConfig.aggregations,
+			)) {
+				const relation =
+					this.relationshipManager.getRelationships(model)[aggConfig.relation];
 				if (!relation) continue;
 
 				// Add subquery for aggregation
 				query = query.select((eb: any) => {
-					const subQuery = eb.selectFrom(relation.target)
-						.whereRef(`${relation.target}.${relation.targetKey || "id"}`, "=", `main.${relation.foreignKey || "id"}`);
-					
+					const subQuery = eb
+						.selectFrom(relation.target)
+						.whereRef(
+							`${relation.target}.${relation.targetKey || "id"}`,
+							"=",
+							`main.${relation.foreignKey || "id"}`,
+						);
+
 					switch (aggConfig.type) {
 						case "count":
 							return subQuery.select(eb.fn.countAll().as(aggName)).as(aggName);
 						case "sum":
-							return subQuery.select(eb.fn.sum(aggConfig.field!).as(aggName)).as(aggName);
+							return subQuery
+								.select(eb.fn.sum(aggConfig.field!).as(aggName))
+								.as(aggName);
 						case "avg":
-							return subQuery.select(eb.fn.avg(aggConfig.field!).as(aggName)).as(aggName);
+							return subQuery
+								.select(eb.fn.avg(aggConfig.field!).as(aggName))
+								.as(aggName);
 						default:
 							return subQuery.select(eb.fn.countAll().as(aggName)).as(aggName);
 					}
@@ -687,7 +715,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		// Apply where conditions
 		for (const condition of where) {
 			const operator = mapOperatorToKysely(condition.operator);
-			
+
 			// Better alias mapping for nested fields
 			let finalField = condition.field;
 			if (condition.field.includes(".")) {
@@ -731,29 +759,39 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		const results = await query.execute();
 
 		// Transform flat results into nested structure
-		const schema = this.relationshipManager.relationshipContext.schemas.get(model)?.fields;
-		const transformedResults = results.map((item) => transformToData(item, schema, this.config));
-		
+		const schema =
+			this.relationshipManager.relationshipContext.schemas.get(model)?.fields;
+		const transformedResults = results.map((item) =>
+			transformToData(item, schema, this.config),
+		);
+
 		const nestedResults = this.relationshipManager.transformJoinedResults(
 			transformedResults,
-			resolvedIncludes.filter(r => requestedRelationNames.has(r.relationName)),
+			resolvedIncludes.filter((r) =>
+				requestedRelationNames.has(r.relationName),
+			),
 			model,
 		);
 
 		// Apply limit after grouping for many-to-many relationships
 		if (limit && hasManyToMany) {
 			const limited = nestedResults.slice(0, limit);
-			return await Promise.all(limited.map(r => this.applyComputedFields(model, r)));
+			return await Promise.all(
+				limited.map((r) => this.applyComputedFields(model, r)),
+			);
 		}
 
-		return await Promise.all(nestedResults.map(r => this.applyComputedFields(model, r)));
+		return await Promise.all(
+			nestedResults.map((r) => this.applyComputedFields(model, r)),
+		);
 	}
 
 	private async applyComputedFields(model: string, record: any): Promise<any> {
 		if (!record) return record;
-		const resourceConfig = this.relationshipManager?.relationshipContext.options.resources.find(
-			(r) => r.name === model,
-		);
+		const resourceConfig =
+			this.relationshipManager?.relationshipContext.options.resources.find(
+				(r) => r.name === model,
+			);
 
 		if (!resourceConfig?.computed) return record;
 
@@ -1016,9 +1054,10 @@ export class KyselyQueryAdapter implements QueryAdapter {
 	}
 
 	private applyMultiTenancy(model: string, query: any, ctx?: any): any {
-		const resourceConfig = this.relationshipManager?.relationshipContext.options.resources.find(
-			(r) => r.name === model,
-		);
+		const resourceConfig =
+			this.relationshipManager?.relationshipContext.options.resources.find(
+				(r) => r.name === model,
+			);
 
 		if (!resourceConfig?.multiTenancy?.enabled || !ctx?.user) return query;
 

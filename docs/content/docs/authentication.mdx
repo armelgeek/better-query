@@ -1,0 +1,115 @@
+---
+title: Authentication
+description: Secure your Better Query BaaS with Better Auth integration.
+---
+
+Better Query provides a first-class integration with [Better Auth](https://www.better-auth.com/), allowing you to quickly build a secure, multi-tenant Backend-as-a-Service (BaaS).
+
+### Server-Side Setup
+
+To enable authentication on your server, you need to provide a `betterAuthProvider` to your `betterQuery` instance.
+
+```typescript
+import { betterQuery, betterAuthProvider } from "better-query";
+import { auth } from "./auth"; // Your Better Auth instance
+
+const api = betterQuery({
+  auth: {
+    provider: betterAuthProvider(auth),
+    requireAuth: false, // Set to true to require auth globally
+  },
+  resources: [
+    {
+      name: "todo",
+      schema: todoSchema,
+    }
+  ]
+});
+```
+
+### Row-Level Security (RLS)
+
+The `betterAuthRLS` plugin allows you to automatically restrict access to data based on the authenticated user.
+
+```typescript
+import { betterQuery, betterAuthRLS } from "better-query";
+
+const api = betterQuery({
+  // ... auth config
+  plugins: [
+    betterAuthRLS({
+      ownershipField: "userId", // Default is "userId"
+      adminBypass: true,       // Admins can see all data
+    })
+  ]
+});
+```
+
+#### How it works:
+- **Filtering**: For resources with a `userId` field, `list`, `read`, `update`, and `delete` operations are automatically filtered to only include records belonging to the current user.
+- **Auto-assignment**: When creating a new record, the `userId` is automatically set to the ID of the authenticated user.
+- **Unauthorized access**: If a user tries to access a record they don't own, the API returns a `404 Not Found` (to avoid leaking resource existence) or `403 Forbidden` depending on the operation.
+
+### Impersonation Support
+
+Better Query natively supports Better Auth's impersonation feature. When an administrator is impersonating a user:
+- The `impersonator` information is available in the `QueryContext`.
+- **Audit Logs** will record both the user ID and the impersonator ID for full traceability.
+
+### 🔑 JWT Authentication
+
+For applications using standard JWT tokens instead of Better Auth, you can use the built-in `jwtProvider` to parse, decode, and map tokens directly from incoming headers.
+
+```typescript
+import { betterQuery, jwtProvider } from "better-query";
+
+const api = betterQuery({
+  auth: {
+    provider: jwtProvider({
+      secret: process.env.JWT_SECRET || "super-secret-key",
+      header: "authorization", // Optional: Header name to inspect (default: authorization)
+      mapPayload: (payload) => {
+        // Optional: Map decoded JWT payload to custom user object structure
+        return {
+          id: payload.sub,
+          email: payload.email,
+          role: payload.role || "user"
+        };
+      }
+    }),
+    requireAuth: true,
+  },
+  resources: [ /* ... */ ]
+});
+```
+
+When a request arrives:
+1. The provider checks the `Authorization` header for a `Bearer <token>` payload.
+2. It base64-decodes the payload and populates the `QueryContext.user` object automatically.
+3. RLS plugins (like `betterAuthRLS`) will recognize this user session seamlessly.
+
+### Client-Side Usage
+
+When creating your client, you can pass your Better Auth client instance to enable integrated authentication helpers.
+
+```typescript
+import { createClient } from "better-query/client";
+import { authClient } from "./auth-client";
+
+const client = createClient({
+  url: "http://localhost:3000/api",
+  auth: authClient, // Better Auth client
+});
+
+// Use auth helpers directly on the client
+await client.auth.signIn.email({
+  email: "user@example.com",
+  password: "password123"
+});
+
+// Subsequent requests will automatically include session cookies/headers
+const { data } = await client("todo").list();
+```
+
+> [!NOTE]
+> The Better Query client uses `credentials: "include"` by default when an `auth` client is provided, ensuring that session cookies are correctly sent to your API.

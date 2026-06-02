@@ -26,7 +26,13 @@ export interface RealtimePluginOptions {
  * WebSocket message structure
  */
 export interface RealtimeMessage {
-	type: "subscribe" | "unsubscribe" | "data_change" | "presence_update" | "heartbeat" | "error";
+	type:
+		| "subscribe"
+		| "unsubscribe"
+		| "data_change"
+		| "presence_update"
+		| "heartbeat"
+		| "error";
 	channel?: string;
 	payload?: any;
 }
@@ -44,9 +50,16 @@ export function realtimePlugin(options: RealtimePluginOptions = {}): Plugin {
 	} = options;
 
 	const channels = new Map<string, Set<WebSocket>>();
-	const clientMetadata = new Map<WebSocket, { userId?: string; channels: Set<string> }>();
+	const clientMetadata = new Map<
+		WebSocket,
+		{ userId?: string; channels: Set<string> }
+	>();
 
-	const broadcast = (channel: string, message: RealtimeMessage, excludeWs?: WebSocket) => {
+	const broadcast = (
+		channel: string,
+		message: RealtimeMessage,
+		excludeWs?: WebSocket,
+	) => {
 		const clients = channels.get(channel);
 		if (!clients) return;
 
@@ -84,27 +97,40 @@ export function realtimePlugin(options: RealtimePluginOptions = {}): Plugin {
 						if (!client) return;
 
 						if (msg.type === "subscribe" && msg.channel) {
-							if (!channels.has(msg.channel)) channels.set(msg.channel, new Set());
+							if (!channels.has(msg.channel))
+								channels.set(msg.channel, new Set());
 							channels.get(msg.channel)!.add(ws);
 							client.channels.add(msg.channel);
-							
-							ws.send(JSON.stringify({ type: "subscribed", channel: msg.channel }));
-							
+
+							ws.send(
+								JSON.stringify({ type: "subscribed", channel: msg.channel }),
+							);
+
 							if (broadcastPresence && client.userId) {
-								broadcast(msg.channel, { 
-									type: "presence_update", 
-									payload: { action: "join", userId: client.userId } 
-								}, ws);
+								broadcast(
+									msg.channel,
+									{
+										type: "presence_update",
+										payload: { action: "join", userId: client.userId },
+									},
+									ws,
+								);
 							}
 						} else if (msg.type === "unsubscribe" && msg.channel) {
 							channels.get(msg.channel)?.delete(ws);
 							client.channels.delete(msg.channel);
-							ws.send(JSON.stringify({ type: "unsubscribed", channel: msg.channel }));
+							ws.send(
+								JSON.stringify({ type: "unsubscribed", channel: msg.channel }),
+							);
 						} else if (msg.type === "heartbeat") {
-							ws.send(JSON.stringify({ type: "heartbeat", timestamp: Date.now() }));
+							ws.send(
+								JSON.stringify({ type: "heartbeat", timestamp: Date.now() }),
+							);
 						}
 					} catch (e) {
-						ws.send(JSON.stringify({ type: "error", payload: "Invalid message" }));
+						ws.send(
+							JSON.stringify({ type: "error", payload: "Invalid message" }),
+						);
 					}
 				});
 
@@ -114,9 +140,9 @@ export function realtimePlugin(options: RealtimePluginOptions = {}): Plugin {
 						for (const channel of client.channels) {
 							channels.get(channel)?.delete(ws);
 							if (broadcastPresence && client.userId) {
-								broadcast(channel, { 
-									type: "presence_update", 
-									payload: { action: "leave", userId: client.userId } 
+								broadcast(channel, {
+									type: "presence_update",
+									payload: { action: "leave", userId: client.userId },
 								});
 							}
 						}
@@ -124,7 +150,7 @@ export function realtimePlugin(options: RealtimePluginOptions = {}): Plugin {
 					clientMetadata.delete(ws);
 				});
 			});
-			
+
 			// Override context broadcast helper
 			context.broadcast = (message) => {
 				broadcast(message.channel, message as any);
@@ -135,38 +161,60 @@ export function realtimePlugin(options: RealtimePluginOptions = {}): Plugin {
 			afterCreate: async (ctx: QueryHookContext) => {
 				if (resources.length === 0 || resources.includes(ctx.resource)) {
 					const channel = `resource:${ctx.resource}`;
-					broadcast(channel, { type: "data_change", payload: { action: "create", data: ctx.result } });
+					broadcast(channel, {
+						type: "data_change",
+						payload: { action: "create", data: ctx.result },
+					});
 				}
 			},
 			afterUpdate: async (ctx: QueryHookContext) => {
 				if (resources.length === 0 || resources.includes(ctx.resource)) {
 					const id = ctx.result?.id || ctx.data?.id;
 					// Broadcast to resource channel
-					broadcast(`resource:${ctx.resource}`, { type: "data_change", payload: { action: "update", data: ctx.result } });
+					broadcast(`resource:${ctx.resource}`, {
+						type: "data_change",
+						payload: { action: "update", data: ctx.result },
+					});
 					// Broadcast to specific record channel
 					if (id) {
-						broadcast(`${ctx.resource}:${id}`, { type: "data_change", payload: { action: "update", data: ctx.result } });
+						broadcast(`${ctx.resource}:${id}`, {
+							type: "data_change",
+							payload: { action: "update", data: ctx.result },
+						});
 					}
 				}
 			},
 			afterDelete: async (ctx: QueryHookContext) => {
 				if (resources.length === 0 || resources.includes(ctx.resource)) {
 					const id = ctx.result?.id || ctx.data?.id;
-					broadcast(`resource:${ctx.resource}`, { type: "data_change", payload: { action: "delete", id } });
+					broadcast(`resource:${ctx.resource}`, {
+						type: "data_change",
+						payload: { action: "delete", id },
+					});
 					if (id) {
-						broadcast(`${ctx.resource}:${id}`, { type: "data_change", payload: { action: "delete", id } });
+						broadcast(`${ctx.resource}:${id}`, {
+							type: "data_change",
+							payload: { action: "delete", id },
+						});
 					}
 				}
-			}
+			},
 		},
 
 		endpoints: {
-			getRealtimeStats: createCrudEndpoint("/realtime/stats", { method: "GET" }, async (ctx) => {
-				return ctx.json({
-					activeConnections: clientMetadata.size,
-					activeChannels: Array.from(channels.keys()).map(k => ({ name: k, count: channels.get(k)!.size }))
-				});
-			})
-		}
+			getRealtimeStats: createCrudEndpoint(
+				"/realtime/stats",
+				{ method: "GET" },
+				async (ctx) => {
+					return ctx.json({
+						activeConnections: clientMetadata.size,
+						activeChannels: Array.from(channels.keys()).map((k) => ({
+							name: k,
+							count: channels.get(k)!.size,
+						})),
+					});
+				},
+			),
+		},
 	};
 }

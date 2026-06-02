@@ -80,7 +80,7 @@ const response = await fetch("http://localhost:3000/api/query/upload", {
 
 ### 🔍 Audit Trail
 
-Automatically track who changed what and when. This plugin records every create, update, and delete operation.
+Automatically track who changed what and when. This plugin records every create, update, and delete operation directly to the database and supports real-time queryable audit logs.
 
 ```typescript
 import { auditPlugin } from "better-query/plugins";
@@ -88,12 +88,56 @@ import { auditPlugin } from "better-query/plugins";
 export const { handler } = betterQuery({
   plugins: [
     auditPlugin({
-      tableName: "audit_logs", // Where to store logs
-      onAudit: (log) => console.log("New change:", log)
+      // Log requests and responses in audit payload
+      includeRequestData: true,
+      includeResponseData: true,
+      // Optional: Custom console logger hook alongside DB persistence
+      logger: (event) => console.log(`[AUDIT] Action: ${event.operation} on ${event.resource}`)
     })
   ]
 });
 ```
+
+#### Querying Audit Logs
+
+The plugin exposes a secure HTTP endpoint at `/audit/logs` where you can query, filter, and paginate through logs:
+
+```typescript
+// Query audit logs using the Better Query Client
+const logs = await client.audit.getAuditLogs({
+  query: {
+    resource: "project",
+    operation: "update",
+    page: 1,
+    limit: 20
+  }
+});
+```
+
+
+---
+
+### 🔒 Better Auth RLS (Row-Level Security)
+
+Automatically secure your data based on the authenticated user. This plugin is designed to work seamlessly with [Better Auth](/docs/authentication).
+
+```typescript
+import { betterAuthRLS } from "better-query/plugins";
+
+export const { handler } = betterQuery({
+  plugins: [
+    betterAuthRLS({
+      ownershipField: "userId", // The field that stores the owner ID
+      adminBypass: true         // Allow admins to access everything
+    })
+  ]
+});
+```
+
+#### Key Features
+- **Automatic Filtering**: Queries are modified on-the-fly to only include records belonging to the current user.
+- **Ownership Enforcement**: Prevents users from updating or deleting records that don't belong to them.
+- **Auto-Assignment**: New records automatically receive the current user's ID in the ownership field.
 
 ---
 
@@ -143,7 +187,7 @@ Clients can then use `client.watch()` or `client.on()` to react to changes as th
 
 ### ⚡ Caching
 
-Improve performance by caching list and read operations.
+Improve performance by caching list and read operations. By default, it caches in memory, but supports pluggable distributed cache stores (like Redis or Keyv) for production clusters.
 
 ```typescript
 import { cachePlugin } from "better-query/plugins";
@@ -151,14 +195,48 @@ import { cachePlugin } from "better-query/plugins";
 export const { handler } = betterQuery({
   plugins: [
     cachePlugin({
-      ttl: 600, // Time to live in seconds
-      invalidations: [
-        { resource: "project", invalidate: ["project.list"] }
-      ]
+      ttl: 5 * 60 * 1000, // Time to live in milliseconds (5 minutes)
+      resources: ["project", "task"] // Optional: limit caching to specific resources
     })
   ]
 });
 ```
+
+#### Distributed Caching (Redis Example)
+
+Simply supply a custom `store` implementation conforming to the `CacheStore` interface to swap in Redis:
+
+```typescript
+import { cachePlugin } from "better-query/plugins";
+import { createClient } from "redis";
+
+const redisClient = createClient();
+await redisClient.connect();
+
+export const { handler } = betterQuery({
+  plugins: [
+    cachePlugin({
+      ttl: 300000,
+      store: {
+        get: async (key) => {
+          const val = await redisClient.get(key);
+          return val ? JSON.parse(val) : null;
+        },
+        set: async (key, val, ttl) => {
+          await redisClient.set(key, JSON.stringify(val), { EX: ttl / 1000 });
+        },
+        delete: async (key) => {
+          await redisClient.del(key);
+        },
+        keys: async () => {
+          return await redisClient.keys("*");
+        }
+      }
+    })
+  ]
+});
+```
+
 ## 🕰️ Advanced History & Auditing
 
 The History plugin provides automated record versioning and a full audit trail of changes. It allows you to see who changed what and when, and provides a simple way to restore previous versions.
@@ -234,16 +312,142 @@ Example schema for `project_history`:
 Automatically generate API documentation for your resources and custom actions.
 
 ```typescript
-import { openAPIPlugin } from "better-query/plugins";
+import { openApiPlugin } from "better-query/plugins";
 
 export const { handler } = betterQuery({
   plugins: [
-    openAPIPlugin({
+    openApiPlugin({
       specPath: "/openapi.json",
       uiPath: "/docs", // Swagger UI will be available here
       info: {
         title: "My Enterprise API",
         version: "1.0.0"
+      }
+    })
+  ]
+});
+```
+
+---
+
+### ✦ Visual Admin Studio
+
+Get a gorgeous, real-time database management interface directly in your application! Auto-generates columns, dynamic modals, and input forms based on your Zod schemas. Features a pulsing status indicator that listens to active WebSocket changes, live-syncing database records onto the screen instantly.
+
+```typescript
+import { adminPlugin } from "better-query/plugins";
+
+export const { handler } = betterQuery({
+  plugins: [
+    adminPlugin({
+      path: "/admin", // Access GUI at /api/query/admin
+      title: "Better Query Studio"
+    })
+  ]
+});
+```
+
+#### Key Features
+- **Auto Schema Detection**: Automatically parses all Zod schemas and renders corresponding columns.
+- **Dynamic CRUD Forms**: Renders inputs (toggle switch for boolean, calendar for dates, textarea for JSON blocks) based on schema attributes.
+- **WebSocket Hot Reload**: Synchronizes live data changes optimistically when someone else updates a record.
+- **Interactive Console**: Supports search and full create, read, update, and delete actions directly from the browser.
+
+---
+
+### ⏳ Asynchronous Background Jobs
+
+The `jobsPlugin` provides an integrated scheduling and asynchronous execution system. It automatically registers system tables (`jobs` and `job_history`) in your database and spins up a background worker to run timed or manually-triggered tasks.
+
+```typescript
+import { jobsPlugin } from "better-query/plugins";
+
+export const { handler } = betterQuery({
+  plugins: [
+    jobsPlugin({
+      pollInterval: 60000,     // Poll for pending scheduled jobs every 60s
+      defaultMaxAttempts: 3,  // Retry failed tasks up to 3 times
+      enableHistory: true,    // Log execution times and results in database
+      autoStart: true,        // Start polling immediately when the server boots
+      handlers: {
+        sendNewsletter: async (data) => {
+          // Asynchronous job execution logic
+          await mailer.sendNewsletter(data.campaignId);
+        }
+      }
+    })
+  ]
+});
+```
+
+#### REST Endpoints Exposed
+*   `POST /api/query/jobs` : Queue/schedule a new task (e.g. `schedule: "*/10 * * * *"` or `"1d"`).
+*   `GET /api/query/jobs` : View planned or pending background jobs.
+*   `POST /api/query/jobs/:id/trigger` : Instantly execute a specific background job.
+*   `GET /api/query/jobs/:id/history` : Get task run execution history.
+
+---
+
+### 🌊 Server-Sent Events (SSE)
+
+The `ssePlugin` provides a lightweight, one-way real-time push mechanism. It is ideal for read-only live-sync requirements where you want immediate notifications for create, update, and delete operations without setting up full bi-directional WebSockets.
+
+```typescript
+import { ssePlugin } from "better-query/plugins";
+
+export const { handler } = betterQuery({
+  plugins: [
+    ssePlugin({
+      path: "/sse" // Streams will be accessible at /api/query/sse/:resource
+    })
+  ]
+});
+```
+
+#### Client Subscription Example
+```typescript
+const eventSource = new EventSource("/api/query/sse/todo");
+
+// Listen to creation events
+eventSource.addEventListener("create", (event) => {
+  const newTodo = JSON.parse(event.data);
+  console.log("Real-time Todo Created:", newTodo);
+});
+```
+
+---
+
+### 🛡️ Validation & Sanitization
+
+The `validationPlugin` allows you to enforce strict global validation, sanitize dangerous input fields, and register custom pre-operation validation rules.
+
+```typescript
+import { validationPlugin } from "better-query/plugins";
+import { z } from "zod";
+
+export const { handler } = betterQuery({
+  plugins: [
+    validationPlugin({
+      strict: true, // Throw ValidationError on fail. Set to false for warning-only logs.
+      globalRules: {
+        trimStrings: true,     // Automatically trims whitespace on all string values
+        sanitizeHtml: true,    // Strips dangerous <script>, iframe, and inline JS hooks
+        validateEmails: true,  // Validates any key containing the word 'email' against regex
+      },
+      rules: {
+        user: {
+          create: z.object({
+            role: z.enum(["admin", "user"])
+          }),
+          // Custom async validation check
+          customValidation: async (data, context) => {
+            const errors: string[] = [];
+            if (data.username === "admin") {
+              errors.push("Username 'admin' is reserved");
+            }
+            return errors;
+          }
+        }
       }
     })
   ]

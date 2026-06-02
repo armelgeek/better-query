@@ -572,7 +572,8 @@ export async function generator(context: CrudContext): Promise<any> {
 		openapi: "3.1.0",
 		info: {
 			title: "Better Query API",
-			description: "Auto-generated API documentation for Better Query resources",
+			description:
+				"Auto-generated API documentation for Better Query resources",
 			version: "1.0.0",
 		},
 		servers: [

@@ -48,9 +48,111 @@ client.todo.watch("todo_123", (data) => {
 });
 ```
 
-### 4. Plugin Integration
+### 4. ⚡ LiveQuery Store (State-of-the-Art Frontend Data Sync)
 
-### 4. Per-Request Options
+Better Query includes a lightweight, framework-agnostic client store called `LiveQuery`. It manages cached collection states, query parameters (search term, sorting field, filters), pagination metadata, next/prev page transitions, and optimistic UI updates, all synchronized in real-time with the backend WebSocket/SSE transport!
+
+```typescript
+import { createClient, createLiveQuery } from "better-query/client";
+
+const client = createClient({
+  url: "http://localhost:3000/api/query"
+});
+
+// Initialize LiveQuery for a resource
+const scenesQuery = createLiveQuery(client, "scenes", {
+  optimistic: true,   // Update local cache instantly on create/update/delete
+  realtimeSync: true  // Live update local state when other clients push changes
+});
+
+// 1. Subscribe to reactive state updates (perfect for binding with Zustand/React/Vue/Svelte)
+const unsubscribe = scenesQuery.subscribe((state) => {
+  console.log("Current cached items:", state.items);
+  console.log("Is loading:", state.loading);
+  console.log("Active page metadata:", state.pagination); // { page, limit, total, totalPages, hasNext, hasPrev }
+  console.log("Active query parameters:", state.queryParams); // { q, sortBy, sortOrder, ... }
+});
+
+// 2. Fetch/Query operations (auto-updates the store state)
+await scenesQuery.list({ page: 1, limit: 10 });
+
+// 3. Built-in Searching, Sorting, and Pagination
+await scenesQuery.search("introduction"); // Triggers server-side search
+await scenesQuery.sort("createdAt", "desc"); // Triggers server-side sorting
+await scenesQuery.paginate(2); // Goes to page 2
+
+// 4. Page-by-page Navigation Helpers
+await scenesQuery.next(); // Go to next page (if pagination.hasNext is true)
+await scenesQuery.prev(); // Go to previous page (if pagination.hasPrev is true)
+
+// 5. Optimistic Mutations (Instantly renders local change, rolls back automatically on API failure!)
+await scenesQuery.create({ title: "Scene 1" });
+await scenesQuery.update("scene_123", { title: "Updated Title" });
+await scenesQuery.delete("scene_123");
+
+// Clean up listeners and WS streams on component unmount
+unsubscribe();
+scenesQuery.destroy();
+```
+
+---
+
+### 🚀 Advanced LiveQuery Features
+
+The `BetterLiveQuery` store contains extremely powerful built-in methods for local-first operations, offline resiliency, and detail tracking.
+
+#### 1. In-Memory Local Operations (Zero Latency)
+If you want to filter or search through your current cache on the fly without making a round-trip to the server:
+
+```typescript
+// Filter local items instantly (returns a fresh array of matches)
+const draftScenes = scenesQuery.filterLocal(scene => scene.status === "draft");
+
+// Fuzzy-search through local cache strings
+const matches = scenesQuery.searchLocal("Climactic battle", ["title", "description"]);
+```
+
+#### 2. Active Detail Selection & Fetching
+Instead of instantiating separate query stores for list views and detail views, you can orchestrate them from the same store:
+
+```typescript
+// Mark a specific record as the "active" selected item (for detail modals/views)
+scenesQuery.select("scene_abc123");
+
+// Returns the full reactive object of the active item (auto-updated on WebSocket changes!)
+const activeItem = scenesQuery.activeItem; 
+
+// Fetch a single record explicitly from the server, insert it into the cache list, and select it
+await scenesQuery.fetchActive("scene_abc123");
+```
+
+#### 3. SWR Caching & Offline Resiliency
+You can configure `BetterLiveQuery` to persist cache items across browser reloads and queue operations when offline:
+
+```typescript
+const scenesQuery = createLiveQuery(client, "scene", {
+  // SWR persistent caching key (stores records in LocalStorage so they load instantly next time)
+  persistKey: "my_app_scenes_cache", 
+  
+  // Custom retry config for WebSocket/fetch transport glitches
+  retryAttempts: 5,
+  retryDelay: 1000,
+});
+
+// If the user loses internet connection during a mutation:
+await scenesQuery.update("scene_1", { title: "Offline edit" });
+
+// 1. The UI instantly updates (Optimistic Update)
+// 2. The store queues the mutation in local storage
+// 3. scenesQuery.isOfflinePending is set to true
+console.log(scenesQuery.isOfflinePending); // true
+
+// 4. As soon as the browser comes back online, the store replays the queue automatically!
+```
+
+---
+
+### 5. Per-Request Options
 
 Every method accepts an options object to override headers or tenant context.
 

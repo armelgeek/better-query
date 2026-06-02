@@ -36,7 +36,7 @@ export interface PluginHooks {
 /**
  * Core plugin interface - all plugins must implement this
  */
-export interface Plugin {
+export interface QueryPlugin {
 	/** Unique plugin identifier */
 	id: LiteralString;
 
@@ -104,7 +104,7 @@ export interface PluginInitContext {
 /**
  * Plugin factory function type
  */
-export type PluginFactory<T = any> = (options?: T) => Plugin;
+export type PluginFactory<T = any> = (options?: T) => QueryPlugin;
 
 /**
  * OpenAPI extension interface for plugins
@@ -121,7 +121,11 @@ export interface PluginOpenAPI {
 /**
  * Enhanced plugin interface with OpenAPI support
  */
-export interface ExtendedPlugin extends Plugin {
+export interface ExtendedQueryPlugin extends QueryPlugin {
 	/** OpenAPI documentation extensions */
 	openapi?: PluginOpenAPI;
 }
+
+// Backwards-compatible aliases to prevent global namespace collisions
+export type Plugin = QueryPlugin;
+export type ExtendedPlugin = ExtendedQueryPlugin;

@@ -27,7 +27,9 @@ function initQuery(options: QueryOptions): QueryContext {
 		broadcast: (message) => {
 			// This will be overridden by the realtime plugin if present
 			if (options.debug) {
-				console.log(`[Broadcast] No realtime plugin active for channel ${message.channel}`);
+				console.log(
+					`[Broadcast] No realtime plugin active for channel ${message.channel}`,
+				);
 			}
 		},
 	};
@@ -81,6 +83,64 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 	Object.assign(schema, pluginSchemas);
 
 	const relationshipManager = new RelationshipManager(queryContext);
+
+	const pluralize = (str: string) => {
+		if (str.endsWith("y")) return str.slice(0, -1) + "ies";
+		if (str.endsWith("s")) return str;
+		return str + "s";
+	};
+
+	// 1. Auto-infer belongsTo relationships from foreign keys (e.g. projectId -> project)
+	for (const resourceConfig of allResources) {
+		const existingRelationships = relationshipManager.getRelationships(resourceConfig.name);
+		const resourceSchema = queryContext.schemas.get(resourceConfig.name);
+		if (resourceSchema?.fields) {
+			const autoRelationships = { ...existingRelationships };
+			let inferred = false;
+			for (const fieldName of Object.keys(resourceSchema.fields)) {
+				if (fieldName.endsWith("Id") && fieldName !== "id") {
+					const target = fieldName.slice(0, -2);
+					if (queryContext.schemas.has(target) && !autoRelationships[target]) {
+						autoRelationships[target] = {
+							type: "belongsTo" as const,
+							target,
+							foreignKey: fieldName,
+							targetKey: "id",
+						};
+						inferred = true;
+					}
+				}
+			}
+			if (inferred) {
+				relationshipManager.registerRelationships(resourceConfig.name, autoRelationships);
+			}
+		}
+	}
+
+	// 2. Auto-infer hasMany relationships back to the source (e.g. user hasMany posts)
+	for (const resourceConfig of allResources) {
+		const existingBelongsTo = relationshipManager.getRelationships(resourceConfig.name);
+		for (const [relationName, relationConfig] of Object.entries(existingBelongsTo)) {
+			if (relationConfig.type === "belongsTo") {
+				const targetResource = relationConfig.target;
+				const targetRelationships = relationshipManager.getRelationships(targetResource);
+				const pluralName = pluralize(resourceConfig.name);
+
+				if (!targetRelationships[pluralName]) {
+					const updatedTargetRelationships = {
+						...targetRelationships,
+						[pluralName]: {
+							type: "hasMany" as const,
+							target: resourceConfig.name,
+							foreignKey: relationConfig.foreignKey,
+							targetKey: "id",
+						}
+					};
+					relationshipManager.registerRelationships(targetResource, updatedTargetRelationships);
+				}
+			}
+		}
+	}
 	for (const resourceConfig of allResources) {
 		if (resourceConfig.relationships) {
 			for (const [relationName, relationConfig] of Object.entries(
@@ -168,7 +228,9 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 			}
 			return await queryContext.adapter.transaction(async (trxAdapter) => {
 				const transactionalContext = { ...queryContext, adapter: trxAdapter };
-				const { endpoints: trxEndpoints } = createRouter(api, { extraContext: transactionalContext });
+				const { endpoints: trxEndpoints } = createRouter(api, {
+					extraContext: transactionalContext,
+				});
 				return await fn(trxEndpoints);
 			});
 		},
@@ -241,7 +303,9 @@ export type BetterQuery<
 	options: O;
 	context: QueryContext;
 	schema: Record<string, { fields: Record<string, any> }>;
-	transaction: <T>(fn: (api: Endpoints & PluginEndpoints) => Promise<T>) => Promise<T>;
+	transaction: <T>(
+		fn: (api: Endpoints & PluginEndpoints) => Promise<T>,
+	) => Promise<T>;
 } & (O["database"] extends { adapter: infer A }
 	? A extends { customOperations: infer C }
 		? C extends Record<string, any>

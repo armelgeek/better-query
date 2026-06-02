@@ -1,63 +1,164 @@
 ---
 title: Database Adapters
-description: Connecting Better Query to your database using Kysely.
+description: Connect Better Query to your SQL database using Kysely, Drizzle, or Prisma.
 ---
 
-Better Query uses **Kysely** under the hood, making it compatible with almost any SQL database.
+Better Query is database-agnostic and supports various ORMs and query builders. By default, it leverages **Kysely** for raw performance and high type safety, but also ships with first-class adapters for **Drizzle ORM** and **Prisma Client**.
 
-### 1. SQLite (Recommended for Dev)
+---
+
+## 🗄️ 1. Kysely Adapter
+
+Kysely is the default engine under the hood. You can configure Kysely in two ways:
+
+### A. Managed Connection (Simple)
+Simply pass the provider details, and Better Query will configure the connections, pool, and dialect automatically.
 
 ```typescript
+import { betterQuery } from "better-query";
+
+export const { handler } = betterQuery({
+  database: {
+    provider: "sqlite", // options: "sqlite" | "postgres" | "mysql"
+    url: "sqlite://db.sqlite",
+    autoMigrate: true,  // Automatically manages tables and schemas
+  },
+  resources: [ /* ... */ ]
+});
+```
+
+### B. Custom Kysely Instance (Advanced)
+If you already have a pre-configured Kysely database in your codebase, wrap it using the `kyselyQueryAdapter` helper from `better-query/adapters`.
+
+```typescript
+import { betterQuery } from "better-query";
+import { kyselyQueryAdapter } from "better-query/adapters";
 import { Kysely, SqliteDialect } from "kysely";
 import Database from "better-sqlite3";
 
-const db = new Kysely<any>({
+// Your existing Kysely instance
+export const db = new Kysely<any>({
   dialect: new SqliteDialect({
     database: new Database("db.sqlite"),
   }),
 });
-```
 
-### 2. PostgreSQL (Production)
-
-```typescript
-import { Kysely, PostgresDialect } from "kysely";
-import { Pool } from "pg";
-
-const db = new Kysely<any>({
-  dialect: new PostgresDialect({
-    pool: new Pool({
-      connectionString: process.env.DATABASE_URL,
-    }),
-  }),
+export const { handler } = betterQuery({
+  database: {
+    adapter: kyselyQueryAdapter(db, { provider: "sqlite" }),
+  },
+  resources: [ /* ... */ ]
 });
 ```
 
-### 3. MySQL
+---
+
+## 🌧️ 2. Drizzle ORM Adapter
+
+If you are using **Drizzle ORM**, you can use the built-in `DrizzleCrudAdapter` to run CRUD endpoints directly on your Drizzle schema and models.
+
+### Installation
+Ensure you have the required Drizzle packages installed:
+```bash
+npm install drizzle-orm
+```
+
+### Configuration
+Import `DrizzleCrudAdapter` and pass your Drizzle database instance and your schema definition:
 
 ```typescript
-import { Kysely, MysqlDialect } from "kysely";
-import { createPool } from "mysql2";
+import { betterQuery } from "better-query";
+import { DrizzleCrudAdapter } from "better-query/adapters";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import Database from "better-sqlite3";
+import * as schema from "./db/schema"; // Your Drizzle schema export
 
-const db = new Kysely<any>({
-  dialect: new MysqlDialect({
-    pool: createPool({
-      uri: process.env.DATABASE_URL,
-    }),
-  }),
+const sqlite = new Database("db.sqlite");
+const drizzleDb = drizzle(sqlite, { schema });
+
+export const { handler } = betterQuery({
+  database: {
+    adapter: new DrizzleCrudAdapter(drizzleDb, schema),
+  },
+  resources: [ /* ... */ ]
 });
 ```
 
-### Advanced: Custom Adapter
+---
 
-If you need to use a non-SQL database or a custom layer, you can implement the `QueryAdapter` interface.
+## ◭ 3. Prisma Adapter
+
+Better Query supports **Prisma Client** through the native `PrismaCrudAdapter`, allowing you to run powerful search, pagination, and real-time synchronizations directly on top of your Prisma client instance.
+
+### Installation
+Ensure Prisma is initialized and client dependencies are installed:
+```bash
+npm install @prisma/client
+```
+
+### Configuration
+Pass your generated `PrismaClient` instance directly to `PrismaCrudAdapter`:
 
 ```typescript
-import { QueryAdapter } from "better-query";
+import { betterQuery } from "better-query";
+import { PrismaCrudAdapter } from "better-query/adapters";
+import { PrismaClient } from "@prisma/client";
 
-const myAdapter: QueryAdapter = {
-  find: async (params) => { /* ... */ },
-  create: async (params) => { /* ... */ },
-  // ...
+const prisma = new PrismaClient();
+
+export const { handler } = betterQuery({
+  database: {
+    adapter: new PrismaCrudAdapter(prisma),
+  },
+  resources: [ /* ... */ ]
+});
+```
+
+---
+
+## 🛠️ Advanced: Implementing a Custom Adapter
+
+If you are using an unsupported database (such as MongoDB or DynamoDB) or wish to build a custom caching/routing proxy, you can implement the `QueryAdapter` interface:
+
+```typescript
+import { QueryAdapter, QueryWhere, QueryOrderBy, IncludeOptions } from "better-query";
+
+const customAdapter: QueryAdapter = {
+  // Create a new record
+  create: async ({ model, data, include }) => {
+    // ... custom create database call
+  },
+
+  // Read a single record
+  findFirst: async ({ model, where, include, select }) => {
+    // ... custom read database call
+  },
+
+  // Read multiple records (with filtering and ordering)
+  findMany: async ({ model, where, limit, offset, orderBy, include, select }) => {
+    // ... custom list database call
+  },
+
+  // Update records
+  update: async ({ model, where, data, include }) => {
+    // ... custom update database call
+  },
+
+  // Delete records
+  delete: async ({ model, where, cascade }) => {
+    // ... custom delete database call
+  },
+
+  // Count records matching criteria
+  count: async ({ model, where }) => {
+    // ... custom count query
+  }
 };
+
+export const { handler } = betterQuery({
+  database: {
+    adapter: customAdapter
+  },
+  resources: [ /* ... */ ]
+});
 ```

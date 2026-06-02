@@ -8,13 +8,13 @@ export {
 
 // Plugin types
 export type {
-	Plugin,
+	QueryPlugin,
 	PluginFactory,
 	PluginHooks,
 	PluginInitContext,
 	PluginSchema,
 	PluginOpenAPI,
-	ExtendedPlugin,
+	ExtendedQueryPlugin,
 } from "../types/plugins";
 
 // Built-in plugins
@@ -35,8 +35,11 @@ export { storagePlugin } from "./storage";
 export type { StoragePluginOptions } from "./storage";
 export { LocalStorageProvider, S3StorageProvider } from "./storage/providers";
 
-export { webhookPlugin } from "./webhooks";
-export type { WebhookPluginOptions, WebhookConfig } from "./webhooks";
+export { uploadPlugin } from "./upload";
+export type { UploadPluginOptions } from "./upload";
+
+export { webhooks as webhookPlugin } from "./webhooks";
+export type { WebhookOptions as WebhookPluginOptions } from "./webhooks";
 
 export { historyPlugin } from "./history";
 export type { HistoryPluginOptions } from "./history";
@@ -56,6 +59,12 @@ export type {
 	JobStatus,
 	JobContext,
 } from "./jobs";
+
+export { betterAuthRLS } from "./better-auth-rls";
+export type { BetterAuthRLSOptions } from "./better-auth-rls";
+
+export { adminPlugin } from "./admin";
+export type { AdminPluginOptions } from "./admin";
 
 // Plugin utilities
 export { createCrudEndpoint } from "../endpoints/crud-endpoint";

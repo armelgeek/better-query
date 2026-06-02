@@ -21,7 +21,9 @@ export class SearchBuilder {
 		// Handle basic search
 		if (query.search || query.q) {
 			const searchTerm = query.search || query.q || "";
-			const searchFields = this.parseStringArray(query.searchFields || searchConfig?.fields || ["name"]);
+			const searchFields = this.parseStringArray(
+				query.searchFields || searchConfig?.fields || ["name"],
+			);
 			const strategy = searchConfig?.strategy || "contains";
 			const caseSensitive = searchConfig?.caseSensitive || false;
 

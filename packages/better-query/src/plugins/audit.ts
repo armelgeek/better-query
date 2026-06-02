@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createQueryEndpoint } from "../endpoints";
 import { CrudHookContext } from "../types";
 import { Plugin } from "../types/plugins";
+import { generateId } from "../utils/schema";
 
 /**
  * Audit plugin options
@@ -28,6 +29,7 @@ export interface AuditEvent {
 	resource: string;
 	recordId?: string;
 	user?: any;
+	impersonator?: any;
 	ipAddress?: string;
 	userAgent?: string;
 	requestData?: any;
@@ -46,6 +48,7 @@ const defaultAuditLogger = (event: AuditEvent) => {
 		{
 			recordId: event.recordId,
 			user: event.user?.id || "anonymous",
+			impersonatedBy: event.impersonator?.id,
 			ipAddress: event.ipAddress,
 			error: event.error,
 		},
@@ -71,6 +74,8 @@ export function auditPlugin(options: AuditPluginOptions = {}): Plugin {
 		};
 	}
 
+	let adapter: any;
+
 	const createAuditLog = async (context: CrudHookContext, error?: string) => {
 		if (!operations.includes(context.operation as any)) {
 			return;
@@ -82,6 +87,7 @@ export function auditPlugin(options: AuditPluginOptions = {}): Plugin {
 			resource: context.resource,
 			recordId: context.id,
 			user: context.user,
+			impersonator: (context as any).context?.impersonator,
 			ipAddress:
 				context.request?.headers?.get?.("x-forwarded-for") ||
 				context.request?.headers?.get?.("x-real-ip") ||
@@ -94,6 +100,31 @@ export function auditPlugin(options: AuditPluginOptions = {}): Plugin {
 
 		try {
 			await logger(event);
+
+			if (adapter) {
+				await adapter.create({
+					model: "audit_logs",
+					data: {
+						id: generateId(),
+						timestamp: event.timestamp,
+						operation: event.operation,
+						resource: event.resource,
+						record_id: event.recordId,
+						user_id: event.user?.id || "anonymous",
+						impersonated_by: event.impersonator?.id,
+						ip_address: event.ipAddress,
+						user_agent: event.userAgent,
+						request_data: event.requestData
+							? JSON.stringify(event.requestData)
+							: undefined,
+						response_data: event.responseData
+							? JSON.stringify(event.responseData)
+							: undefined,
+						error: event.error,
+						created_at: new Date(),
+					},
+				});
+			}
 		} catch (logError) {
 			console.error("Failed to write audit log:", logError);
 		}
@@ -101,6 +132,10 @@ export function auditPlugin(options: AuditPluginOptions = {}): Plugin {
 
 	return {
 		id: "audit",
+
+		init: (ctx) => {
+			adapter = ctx.adapter;
+		},
 
 		endpoints: {
 			getAuditLogs: createQueryEndpoint(
@@ -124,12 +159,100 @@ export function auditPlugin(options: AuditPluginOptions = {}): Plugin {
 					}) as any,
 				},
 				async (ctx) => {
-					// This would typically query an audit table
-					// For now, return a placeholder response
+					if (!adapter) {
+						return ctx.json({
+							items: [],
+							pagination: { total: 0 },
+						});
+					}
+
+					const queryParams = ctx.query || {};
+					const where = [];
+
+					if (queryParams.resource) {
+						where.push({
+							field: "resource",
+							operator: "eq",
+							value: queryParams.resource,
+						});
+					}
+					if (queryParams.operation) {
+						where.push({
+							field: "operation",
+							operator: "eq",
+							value: queryParams.operation,
+						});
+					}
+					if (queryParams.user) {
+						where.push({
+							field: "user_id",
+							operator: "eq",
+							value: queryParams.user,
+						});
+					}
+					if (queryParams.startDate) {
+						where.push({
+							field: "timestamp",
+							operator: "gte",
+							value: queryParams.startDate,
+						});
+					}
+					if (queryParams.endDate) {
+						where.push({
+							field: "timestamp",
+							operator: "lte",
+							value: queryParams.endDate,
+						});
+					}
+
+					const page = queryParams.page || 1;
+					const limit = queryParams.limit || 50;
+					const offset = (page - 1) * limit;
+
+					const items = await adapter.findMany({
+						model: "audit_logs",
+						where,
+						limit,
+						offset,
+						orderBy: [{ field: "timestamp", direction: "desc" }],
+					});
+
+					const total = await adapter.count({
+						model: "audit_logs",
+						where,
+					});
+
+					// Parse JSON request_data and response_data
+					const parsedItems = items.map((item: any) => {
+						let request_data = item.request_data;
+						if (typeof request_data === "string") {
+							try {
+								request_data = JSON.parse(request_data);
+							} catch (_) {}
+						}
+						let response_data = item.response_data;
+						if (typeof response_data === "string") {
+							try {
+								response_data = JSON.parse(response_data);
+							} catch (_) {}
+						}
+						return {
+							...item,
+							request_data,
+							response_data,
+						};
+					});
+
 					return ctx.json({
-						message:
-							"Audit logs endpoint - requires audit table implementation",
-						query: ctx.query,
+						items: parsedItems,
+						pagination: {
+							page,
+							limit,
+							total,
+							totalPages: Math.ceil(total / limit),
+							hasNext: page * limit < total,
+							hasPrev: page > 1,
+						},
 					});
 				},
 			),
@@ -159,6 +282,10 @@ export function auditPlugin(options: AuditPluginOptions = {}): Plugin {
 						required: false,
 					},
 					user_id: {
+						type: "string",
+						required: false,
+					},
+					impersonated_by: {
 						type: "string",
 						required: false,
 					},

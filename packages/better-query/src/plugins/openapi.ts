@@ -30,7 +30,10 @@ function zodToOpenAPI(schema: z.ZodType<any>): any {
 
 		for (const [key, value] of Object.entries(shape)) {
 			properties[key] = zodToOpenAPI(value as z.ZodType<any>);
-			if (!(value instanceof z.ZodOptional) && !(value instanceof z.ZodDefault)) {
+			if (
+				!(value instanceof z.ZodOptional) &&
+				!(value instanceof z.ZodDefault)
+			) {
 				required.push(key);
 			}
 		}
@@ -74,7 +77,7 @@ export function openApiPlugin(options: OpenAPIPluginOptions = {}): Plugin {
 
 	return {
 		id: "openapi",
-		init: () => { },
+		init: () => {},
 		endpoints: {
 			// OpenAPI JSON Spec
 			getOpenApiSpec: createCrudEndpoint(
@@ -96,20 +99,24 @@ export function openApiPlugin(options: OpenAPIPluginOptions = {}): Plugin {
 								responses: {
 									200: {
 										description: "Successful response",
-										content: { "application/json": { schema: { type: "array", items: schema } } }
-									}
-								}
+										content: {
+											"application/json": {
+												schema: { type: "array", items: schema },
+											},
+										},
+									},
+								},
 							},
 							post: {
 								tags: [name],
 								summary: `Create ${name}`,
 								requestBody: {
-									content: { "application/json": { schema } }
+									content: { "application/json": { schema } },
 								},
 								responses: {
-									201: { description: "Created" }
-								}
-							}
+									201: { description: "Created" },
+								},
+							},
 						};
 
 						// Read, Update, Delete
@@ -117,22 +124,48 @@ export function openApiPlugin(options: OpenAPIPluginOptions = {}): Plugin {
 							get: {
 								tags: [name],
 								summary: `Get ${name} by ID`,
-								parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
-								responses: { 200: { description: "OK", content: { "application/json": { schema } } } }
+								parameters: [
+									{
+										name: "id",
+										in: "path",
+										required: true,
+										schema: { type: "string" },
+									},
+								],
+								responses: {
+									200: {
+										description: "OK",
+										content: { "application/json": { schema } },
+									},
+								},
 							},
 							patch: {
 								tags: [name],
 								summary: `Update ${name}`,
-								parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+								parameters: [
+									{
+										name: "id",
+										in: "path",
+										required: true,
+										schema: { type: "string" },
+									},
+								],
 								requestBody: { content: { "application/json": { schema } } },
-								responses: { 200: { description: "Updated" } }
+								responses: { 200: { description: "Updated" } },
 							},
 							delete: {
 								tags: [name],
 								summary: `Delete ${name}`,
-								parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
-								responses: { 204: { description: "Deleted" } }
-							}
+								parameters: [
+									{
+										name: "id",
+										in: "path",
+										required: true,
+										schema: { type: "string" },
+									},
+								],
+								responses: { 204: { description: "Deleted" } },
+							},
 						};
 					}
 
@@ -141,7 +174,7 @@ export function openApiPlugin(options: OpenAPIPluginOptions = {}): Plugin {
 						info,
 						paths,
 					});
-				}
+				},
 			),
 
 			// Swagger UI (HTML)
@@ -174,9 +207,11 @@ export function openApiPlugin(options: OpenAPIPluginOptions = {}): Plugin {
 						</body>
 						</html>
 					`;
-					return new Response(html, { headers: { "Content-Type": "text/html" } });
-				}
-			)
-		}
+					return new Response(html, {
+						headers: { "Content-Type": "text/html" },
+					});
+				},
+			),
+		},
 	};
 }

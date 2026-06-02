@@ -27,7 +27,7 @@ export function ssePlugin(options: SSEPluginOptions = {}): Plugin {
 		if (!resourceConnections) return;
 
 		const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
-		
+
 		for (const res of resourceConnections) {
 			try {
 				res.write(message);
@@ -55,12 +55,12 @@ export function ssePlugin(options: SSEPluginOptions = {}): Plugin {
 				{ method: "GET" },
 				async (ctx) => {
 					const { resource } = ctx.params;
-					
+
 					// Set headers for SSE
 					const headers = {
 						"Content-Type": "text/event-stream",
 						"Cache-Control": "no-cache",
-						"Connection": "keep-alive",
+						Connection: "keep-alive",
 						"Access-Control-Allow-Origin": "*",
 					};
 
@@ -70,9 +70,15 @@ export function ssePlugin(options: SSEPluginOptions = {}): Plugin {
 						new ReadableStream({
 							start(controller) {
 								const encoder = new TextEncoder();
-								
+
 								// Send initial connection message
-								controller.enqueue(encoder.encode(`event: connected\ndata: ${JSON.stringify({ resource })}\n\n`));
+								controller.enqueue(
+									encoder.encode(
+										`event: connected\ndata: ${JSON.stringify({
+											resource,
+										})}\n\n`,
+									),
+								);
 
 								// Setup keep-alive heartbeat
 								const timer = setInterval(() => {
@@ -90,12 +96,12 @@ export function ssePlugin(options: SSEPluginOptions = {}): Plugin {
 							},
 							cancel() {
 								// Cleanup
-							}
+							},
 						}),
-						{ headers }
+						{ headers },
 					);
-				}
-			)
+				},
+			),
 		},
 		hooks: {
 			afterCreate: async (context: CrudHookContext) => {
@@ -106,7 +112,7 @@ export function ssePlugin(options: SSEPluginOptions = {}): Plugin {
 			},
 			afterDelete: async (context: CrudHookContext) => {
 				broadcast(context.resource, "delete", { id: context.id });
-			}
-		}
+			},
+		},
 	};
 }

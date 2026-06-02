@@ -24,9 +24,12 @@ export const project = createResource({
 
 ### Relationships
 
-Better Query handles relationships automatically, including deep nesting.
+Better Query handles relationships automatically. Instead of writing verbose configuration objects, you can use the elegant built-in relationship helpers:
 
 ```typescript
+import { createResource, belongsTo, hasMany } from "better-query";
+import { z } from "zod";
+
 export const task = createResource({
   name: "task",
   schema: z.object({
@@ -35,18 +38,98 @@ export const task = createResource({
     projectId: z.string(),
   }),
   relationships: {
-    project: {
-      type: "belongsTo",
-      target: "project",
-      foreignKey: "projectId",
+    // Beautiful, autocomplete-friendly relationship helpers
+    project: belongsTo("project", "projectId"),
+  },
+});
+```
+
+### 🪄 Zero-Config Automatic Relationship Inference
+
+To make the syntax as light and painless as possible, **Better Query automatically infers standard database relationships in both directions!**
+
+If you name your foreign key fields using standard `${resourceName}Id` (e.g., `projectId` in a `task` schema), Better Query will automatically register:
+1. A **`belongsTo`** relationship from the task to the project under `task.project`.
+2. A **`hasMany`** relationship from the project back to the tasks under `project.tasks` (pluralized automatically).
+
+This means you can omit the `relationships` configuration completely!
+
+```typescript
+import { createResource } from "better-query";
+import { z } from "zod";
+
+// 1. Declare the main resource
+export const project = createResource({
+  name: "project",
+  schema: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
+});
+
+// 2. Declare the child resource with a matching foreign key field
+export const task = createResource({
+  name: "task",
+  schema: z.object({
+    id: z.string(),
+    title: z.string(),
+    projectId: z.string(), // Automatically infers task -> project AND project -> tasks relationships!
+  }),
+});
+
+// That's it! You can immediately use relational joins on your client:
+// const { data } = await client("project").list({ include: ["tasks"] });
+// const { data } = await client("task").list({ include: ["project"] });
+```
+
+### ⚡ Relational Aggregations
+
+Better Query supports automatic, database-level relational aggregations. It automatically generates SQL subqueries to aggregate child resource data without loading entire arrays into memory:
+
+```typescript
+export const project = createResource({
+  name: "project",
+  schema: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
+  relationships: {
+    tasks: hasMany("task", "projectId"),
+  },
+  aggregations: {
+    // Automatically calculates total tasks using count(*) subquery
+    totalTasks: {
+      relation: "tasks",
+      type: "count",
     },
   },
 });
 ```
 
+### 🔮 Dynamic & Async Default Values
+
+You can hook dynamic, runtime-evaluated, or asynchronous functions to assign default values to fields during record creation:
+
+```typescript
+export const invoice = createResource({
+  name: "invoice",
+  schema: z.object({
+    id: z.string(),
+    code: z.string(),
+    amount: z.number(),
+  }),
+  fields: {
+    code: {
+      // Dynamic value evaluated on creation (can also be async!)
+      defaultValue: async (ctx) => `INV-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+    }
+  }
+});
+```
+
 ### Computed Fields
 
-You can define virtual fields that are calculated on the fly.
+You can define virtual fields that are calculated on the fly. These functions support both synchronous and asynchronous operations:
 
 ```typescript
 export const user = createResource({
@@ -57,7 +140,30 @@ export const user = createResource({
   }),
   computed: {
     fullName: (user) => `${user.firstName} ${user.lastName}`,
+    // Supports asynchronous resolutions (e.g. database lookups, third-party calls)
+    externalProfile: async (user) => await fetchProfile(user.id),
   },
+});
+```
+
+### 🛡️ Dynamic GDPR Data Masking
+
+Better Query has native support for dynamic, permission-aware data masking to instantly sanitize sensitive information:
+
+```typescript
+export const customer = createResource({
+  name: "customer",
+  schema: z.object({
+    name: z.string(),
+    creditCard: z.string(),
+  }),
+  masking: {
+    // Dynamically mask field values based on request permissions
+    creditCard: (value, ctx) => {
+      if (ctx.user?.role === "billing-admin") return value;
+      return `••••-••••-••••-${value.slice(-4)}`;
+    }
+  }
 });
 ```
 
@@ -68,7 +174,8 @@ Better Query can automatically manage your database tables based on your Zod sch
 ```typescript
 export const { handler } = betterQuery({
   database: {
-    connection: db,
+    provider: "sqlite",
+    url: "sqlite://db.sqlite",
     autoMigrate: true, // Automatically create/update tables
   },
   resources: [ /* ... */ ]
@@ -88,7 +195,7 @@ Better Query includes a powerful built-in `SearchBuilder` that allows for comple
 You can configure how the search behaves for each resource:
 
 ```typescript
-const project = defineResource({
+const project = createResource({
   name: "project",
   search: {
     fields: ["title", "description"],

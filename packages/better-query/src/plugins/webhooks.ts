@@ -1,5 +1,5 @@
-import { Plugin } from "../types/plugins";
 import { QueryHookContext } from "../types";
+import { Plugin } from "../types/plugins";
 
 export interface WebhookOptions {
 	url: string;
@@ -14,7 +14,7 @@ export interface WebhookOptions {
  */
 export const webhooks = (options: WebhookOptions[]): Plugin => {
 	return {
-		name: "webhooks",
+		id: "webhooks",
 		hooks: {
 			afterCreate: async (context: QueryHookContext) => {
 				await triggerWebhooks("create", context, options);
@@ -47,7 +47,7 @@ async function triggerWebhooks(
 					? {
 							id: context.user.id,
 							email: context.user.email,
-					  }
+						}
 					: null,
 			};
 
@@ -61,7 +61,10 @@ async function triggerWebhooks(
 				body: JSON.stringify(payload),
 			});
 		} catch (error) {
-			console.error(`[Webhook] Failed to trigger webhook for ${webhook.url}:`, error);
+			console.error(
+				`[Webhook] Failed to trigger webhook for ${webhook.url}:`,
+				error,
+			);
 		}
 	}
 }

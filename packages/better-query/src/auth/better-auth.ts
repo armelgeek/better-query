@@ -13,9 +13,21 @@ export function betterAuthProvider(betterAuthInstance: any): AuthProvider {
 			}
 
 			// Better Auth's getSession expects headers or the request object
-			return await betterAuthInstance.api.getSession({
+			const session = await betterAuthInstance.api.getSession({
 				headers: request.headers,
 			});
+
+			if (!session) {
+				return null;
+			}
+
+			return {
+				user: session.user,
+				session: session.session,
+				impersonator: session.session?.impersonatedBy
+					? { id: session.session.impersonatedBy }
+					: null,
+			};
 		},
 	};
 }

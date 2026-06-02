@@ -13,14 +13,32 @@ npm install better-query kysely zod
 
 ### 2. Initialize the Engine
 
-Create a `lib/query.ts` file to initialize the engine with your database.
+Create a `lib/query.ts` file to initialize the engine with your database. You can either use a **managed provider** configuration (recommanded) or hook an **existing Kysely/ORM connection** via database adapters.
 
+#### **Option A: Auto-Managed Database (Recommended)**
 ```typescript
 import { betterQuery } from "better-query";
+
+export const { handler, api } = betterQuery({
+  database: {
+    provider: "sqlite",
+    url: "sqlite://db.sqlite",
+    autoMigrate: true, // Automatically creates & syncs your tables based on Zod schemas
+  },
+  resources: [
+    // We will define resources in the next section
+  ],
+});
+```
+
+#### **Option B: Using an Existing Kysely Instance**
+```typescript
+import { betterQuery } from "better-query";
+import { kyselyQueryAdapter } from "better-query/adapters";
 import { Kysely, SqliteDialect } from "kysely";
 import Database from "better-sqlite3";
 
-// Your Kysely DB instance
+// Your existing Kysely DB instance
 const db = new Kysely<any>({
   dialect: new SqliteDialect({
     database: new Database("db.sqlite"),
@@ -28,7 +46,9 @@ const db = new Kysely<any>({
 });
 
 export const { handler, api } = betterQuery({
-  database: db,
+  database: {
+    adapter: kyselyQueryAdapter(db, { provider: "sqlite" }),
+  },
   resources: [
     // We will define resources in the next section
   ],

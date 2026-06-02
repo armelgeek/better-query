@@ -7,9 +7,9 @@ export interface StorageProvider {
 		path: string;
 		filename?: string;
 	}): Promise<{ url: string; key: string; size: number }>;
-	
+
 	delete(key: string): Promise<void>;
-	
+
 	getSignedUrl(key: string, expiresIn?: number): Promise<string>;
 }
 
@@ -24,7 +24,7 @@ export class LocalStorageProvider implements StorageProvider {
 		const filename = params.filename || `file-${Date.now()}`;
 		const key = `${params.path}/${filename}`;
 		const url = `${this.options.baseUrl}/${key}`;
-		
+
 		return { url, key, size: (params.file as any).size || 0 };
 	}
 
@@ -41,12 +41,14 @@ export class LocalStorageProvider implements StorageProvider {
  * S3 / Cloudflare R2 Storage Provider
  */
 export class S3StorageProvider implements StorageProvider {
-	constructor(private options: { 
-		bucket: string; 
-		region: string; 
-		endpoint?: string;
-		credentials: { accessKeyId: string; secretAccessKey: string }
-	}) {}
+	constructor(
+		private options: {
+			bucket: string;
+			region: string;
+			endpoint?: string;
+			credentials: { accessKeyId: string; secretAccessKey: string };
+		},
+	) {}
 
 	async upload(params: { file: File | Blob; path: string; filename?: string }) {
 		// Implementation using @aws-sdk/client-s3

@@ -130,10 +130,9 @@ export class RelationshipManager {
 					};
 
 					if (parts.length > 2) {
-						newInclude.nested = this.resolveFilterRelations(
-							relation.target,
-							[parts.slice(1).join(".")],
-						);
+						newInclude.nested = this.resolveFilterRelations(relation.target, [
+							parts.slice(1).join("."),
+						]);
 					}
 
 					resolved.push(newInclude);

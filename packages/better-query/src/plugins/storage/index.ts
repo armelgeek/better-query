@@ -39,22 +39,22 @@ export function storagePlugin(options: StoragePluginOptions): Plugin {
 					});
 
 					return ctx.json(result);
-				}
+				},
 			),
 
 			// Get signed URL
 			getSignedUrl: createQueryEndpoint(
 				`${uploadPath}/signed-url`,
-				{ 
+				{
 					method: "GET",
-					query: z.object({ key: z.string() }) as any
+					query: z.object({ key: z.string() }) as any,
 				},
 				async (ctx) => {
 					const { key } = ctx.query;
 					const url = await provider.getSignedUrl(key);
 					return ctx.json({ url });
-				}
-			)
-		}
+				},
+			),
+		},
 	};
 }

@@ -1,14 +1,22 @@
 export { betterQuery } from "./query";
 export type { BetterQuery, BetterCrud } from "./query";
 
-export { createClient } from "./client";
-export type { BetterQueryClient as QueryClient, ClientOptions as QueryClientOptions } from "./client";
+export { createClient, BetterLiveQuery, createLiveQuery } from "./client";
+export type {
+	BetterQueryClient as QueryClient,
+	ClientOptions as QueryClientOptions,
+	LiveQueryOptions,
+	LiveQueryListener,
+} from "./client";
 
 export * from "./types";
 export * from "./types/adapter";
 export * from "./types/plugins";
 export * from "./types/better-auth";
 export * from "./types/client-plugins";
+
+export { betterAuthProvider } from "./auth/better-auth";
+export { jwtProvider } from "./auth/jwt";
 
 export type { CustomOperation, CustomOperations } from "./types/adapter";
 
@@ -38,5 +46,3 @@ export {
 	createQueryEndpoint as createCrudEndpoint,
 } from "./endpoints";
 
-export { templateManager } from "./cli/templates";
-export type { ProjectConfig } from "./cli/templates";

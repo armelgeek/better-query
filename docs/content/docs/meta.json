@@ -4,6 +4,7 @@
 	"pages": [
 		"introduction",
 		"installation",
+		"authentication",
 		"adapters",
 		"resources",
 		"enterprise",

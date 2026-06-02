@@ -1,18 +1,18 @@
 import { CrudContext, CrudHookContext } from "../types";
-import { Plugin, PluginHooks, PluginInitContext } from "../types/plugins";
+import { QueryPlugin, PluginHooks, PluginInitContext } from "../types/plugins";
 
 /**
  * Plugin manager handles plugin registration, initialization, and lifecycle
  */
 export class PluginManager {
-	private plugins: Map<string, Plugin> = new Map();
+	private plugins: Map<string, QueryPlugin> = new Map();
 	private globalHooks: PluginHooks = {};
 	private initialized = false;
 
 	/**
 	 * Register a plugin
 	 */
-	registerPlugin(plugin: Plugin): void {
+	registerPlugin(plugin: QueryPlugin): void {
 		if (this.plugins.has(plugin.id)) {
 			throw new Error(`Plugin with id '${plugin.id}' is already registered`);
 		}
@@ -28,7 +28,7 @@ export class PluginManager {
 	/**
 	 * Register multiple plugins
 	 */
-	registerPlugins(plugins: Plugin[]): void {
+	registerPlugins(plugins: QueryPlugin[]): void {
 		for (const plugin of plugins) {
 			this.registerPlugin(plugin);
 		}
@@ -59,14 +59,14 @@ export class PluginManager {
 	/**
 	 * Get all registered plugins
 	 */
-	getPlugins(): Plugin[] {
+	getPlugins(): QueryPlugin[] {
 		return Array.from(this.plugins.values());
 	}
 
 	/**
 	 * Get plugin by id
 	 */
-	getPlugin(id: string): Plugin | undefined {
+	getPlugin(id: string): QueryPlugin | undefined {
 		return this.plugins.get(id);
 	}
 
@@ -221,7 +221,7 @@ export function shimPluginContext<T extends Record<string, any>>(
 /**
  * Create a simple plugin
  */
-export function createPlugin(plugin: Plugin): Plugin {
+export function createPlugin(plugin: QueryPlugin): QueryPlugin {
 	return plugin;
 }
 

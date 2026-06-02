@@ -18,7 +18,11 @@ import { betterQuery, createResource } from "better-query";
 import { z } from "zod";
 
 export const { handler } = betterQuery({
-  database: myKyselyDb,
+  database: {
+    provider: "sqlite",
+    url: "sqlite://db.sqlite",
+    autoMigrate: true
+  },
   resources: [
     createResource({
       name: "project",

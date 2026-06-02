@@ -1,7 +1,7 @@
-import { createQueryEndpoint } from "../endpoints";
 import { z } from "zod";
-import { Plugin } from "../types/plugins";
+import { createQueryEndpoint } from "../endpoints";
 import { QueryHookContext } from "../types";
+import { Plugin } from "../types/plugins";
 
 export interface HistoryPluginOptions {
 	tableNamePattern?: (model: string) => string;
@@ -21,11 +21,14 @@ export function historyPlugin(options: HistoryPluginOptions = {}): Plugin {
 		return resources.length === 0 || resources.includes(resource);
 	};
 
-	const saveSnapshot = async (ctx: QueryHookContext, action: "create" | "update" | "delete") => {
+	const saveSnapshot = async (
+		ctx: QueryHookContext,
+		action: "create" | "update" | "delete",
+	) => {
 		if (!shouldTrack(ctx.resource)) return;
 
 		const historyTable = tableNamePattern(ctx.resource);
-		
+
 		const dataToSnapshot = action === "create" ? ctx.data : ctx.existingData;
 		if (!dataToSnapshot) return;
 
@@ -38,81 +41,92 @@ export function historyPlugin(options: HistoryPluginOptions = {}): Plugin {
 					action,
 					changedBy: (ctx as any).user?.id || "system",
 					timestamp: new Date(),
-					version: action === "create" ? 1 : undefined
-				}
+					version: action === "create" ? 1 : undefined,
+				},
 			});
 		} catch (e) {
-			console.error(`[History] Failed to save snapshot for ${ctx.resource}:`, e);
+			console.error(
+				`[History] Failed to save snapshot for ${ctx.resource}:`,
+				e,
+			);
 		}
 	};
 
 	return {
 		id: "history",
-		
+
 		init: (ctx) => {
 			adapter = ctx.adapter;
 		},
 
 		endpoints: {
-			getHistory: createQueryEndpoint("/:resource/:id/history", {
-				method: "GET",
-				params: z.object({
-					resource: z.string(),
-					id: z.string()
-				}) as any,
-			}, async (ctx: any) => {
-				const { resource, id } = ctx.params;
-				const historyTable = tableNamePattern(resource);
-				
-				const history = await adapter.findMany({
-					model: historyTable,
-					where: [{ field: "originalId", value: id, operator: "eq" }],
-					orderBy: [{ field: "timestamp", direction: "desc" }]
-				});
+			getHistory: createQueryEndpoint(
+				"/:resource/:id/history",
+				{
+					method: "GET",
+					params: z.object({
+						resource: z.string(),
+						id: z.string(),
+					}) as any,
+				},
+				async (ctx: any) => {
+					const { resource, id } = ctx.params;
+					const historyTable = tableNamePattern(resource);
 
-				return history.map((item: any) => ({
-					...item,
-					snapshotData: JSON.parse(item.snapshotData)
-				}));
-			}),
+					const history = await adapter.findMany({
+						model: historyTable,
+						where: [{ field: "originalId", value: id, operator: "eq" }],
+						orderBy: [{ field: "timestamp", direction: "desc" }],
+					});
 
-			restoreVersion: createQueryEndpoint("/:resource/:id/restore", {
-				method: "POST",
-				params: z.object({
-					resource: z.string(),
-					id: z.string()
-				}) as any,
-				body: z.object({
-					historyId: z.string()
-				}) as any,
-			}, async (ctx: any) => {
-				const { resource, id } = ctx.params;
-				const { historyId } = ctx.body;
-				const historyTable = tableNamePattern(resource);
+					return history.map((item: any) => ({
+						...item,
+						snapshotData: JSON.parse(item.snapshotData),
+					}));
+				},
+			),
 
-				const version = await adapter.findFirst({
-					model: historyTable,
-					where: [{ field: "id", value: historyId, operator: "eq" }]
-				});
+			restoreVersion: createQueryEndpoint(
+				"/:resource/:id/restore",
+				{
+					method: "POST",
+					params: z.object({
+						resource: z.string(),
+						id: z.string(),
+					}) as any,
+					body: z.object({
+						historyId: z.string(),
+					}) as any,
+				},
+				async (ctx: any) => {
+					const { resource, id } = ctx.params;
+					const { historyId } = ctx.body;
+					const historyTable = tableNamePattern(resource);
 
-				if (!version) {
-					throw new Error("Version not found");
-				}
+					const version = await adapter.findFirst({
+						model: historyTable,
+						where: [{ field: "id", value: historyId, operator: "eq" }],
+					});
 
-				const snapshot = JSON.parse(version.snapshotData);
-				
-				return await adapter.update({
-					model: resource,
-					where: [{ field: "id", value: id, operator: "eq" }],
-					data: snapshot
-				});
-			})
+					if (!version) {
+						throw new Error("Version not found");
+					}
+
+					const snapshot = JSON.parse(version.snapshotData);
+
+					return await adapter.update({
+						model: resource,
+						where: [{ field: "id", value: id, operator: "eq" }],
+						data: snapshot,
+					});
+				},
+			),
 		},
 
 		hooks: {
 			afterCreate: async (ctx) => saveSnapshot(ctx, "create"),
 			beforeUpdate: async (ctx) => saveSnapshot(ctx, "update"),
 			beforeDelete: async (ctx) => saveSnapshot(ctx, "delete"),
-		}
+		},
 	};
 }

@@ -74,13 +74,12 @@ export const queryContextMiddleware = createMiddleware(async (ctx) => {
 
 	let user = securityContext.user;
 	let session = securityContext.session;
+	let resolvedSession: any = null;
 
 	// Resolve session if auth configuration is provided
 	const authConfig = queryContext?.options?.auth;
 	if (authConfig) {
 		try {
-			let resolvedSession: any = null;
-
 			// Priority 1: Auth Provider
 			if (authConfig.provider?.getSession) {
 				resolvedSession = await authConfig.provider.getSession({
@@ -96,7 +95,9 @@ export const queryContextMiddleware = createMiddleware(async (ctx) => {
 
 			if (resolvedSession) {
 				// Handle both { user, session } and direct user object formats
-				user = resolvedSession.user || (resolvedSession.session ? resolvedSession.user : resolvedSession);
+				user =
+					resolvedSession.user ||
+					(resolvedSession.session ? resolvedSession.user : resolvedSession);
 				session = resolvedSession.session || resolvedSession;
 			}
 		} catch (error) {
@@ -109,10 +110,12 @@ export const queryContextMiddleware = createMiddleware(async (ctx) => {
 		...({} as QueryContext),
 		user,
 		session,
+		impersonator: resolvedSession?.impersonator || null,
 		security: {
 			...securityContext,
 			user,
 			session,
+			impersonator: resolvedSession?.impersonator || null,
 		},
 		rateLimiter,
 		auditLogger: new AuditLogger(),
@@ -182,7 +185,10 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 				policyResult = await policyFn(context);
 				if (policyResult === false) return false;
 			} catch (e) {
-				console.error(`[Policy] Error executing policy for ${name}.${operation}:`, e);
+				console.error(
+					`[Policy] Error executing policy for ${name}.${operation}:`,
+					e,
+				);
 				return false;
 			}
 		}
@@ -240,7 +246,9 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 		// 2. Handle Soft Delete (Global)
 		if (resourceConfig.softDelete?.enabled) {
 			const softDeleteField = resourceConfig.softDelete.field || "deletedAt";
-			const hasSoftDeleteFilter = where.some((w) => w.field === softDeleteField);
+			const hasSoftDeleteFilter = where.some(
+				(w) => w.field === softDeleteField,
+			);
 			if (!hasSoftDeleteFilter) {
 				where.push({
 					field: softDeleteField,
@@ -295,7 +303,6 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 					.optional() as any,
 			},
 			async (ctx: any) => {
-				
 				const { body, context, query } = ctx;
 				const { adapter } = context;
 
@@ -429,7 +436,8 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 				// Automatically set tenantId if multiTenancy is enabled
 				if (resourceConfig.multiTenancy?.enabled) {
 					const field = resourceConfig.multiTenancy.field || "tenantId";
-					const contextKey = resourceConfig.multiTenancy.contextKey || "tenantId";
+					const contextKey =
+						resourceConfig.multiTenancy.contextKey || "tenantId";
 					if (user?.[contextKey] && !data[field]) {
 						data[field] = user[contextKey];
 					}
@@ -577,15 +585,20 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 					return ctx.json({ error: "Forbidden" }, { status: 403 });
 				}
 
-				const policyFilter = typeof prePermissionResult === "object" ? prePermissionResult : {};
+				const policyFilter =
+					typeof prePermissionResult === "object" ? prePermissionResult : {};
 
 				try {
 					// Build where clause with ID, policy filters, and global filters
-					let whereConditions: Array<{ field: string; value: any; operator?: string }> = [{ field: "id", value: id }];
+					let whereConditions: Array<{
+						field: string;
+						value: any;
+						operator?: string;
+					}> = [{ field: "id", value: id }];
 					for (const [field, value] of Object.entries(policyFilter)) {
 						whereConditions.push({ field, value, operator: "eq" });
 					}
-					
+
 					// Apply global filters (Multi-Tenancy, Soft Delete)
 					whereConditions = applyGlobalFilters(whereConditions, user);
 
@@ -676,16 +689,24 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 					return ctx.json({ error: "Forbidden" }, { status: 403 });
 				}
 
-				const policyFilter = typeof prePermissionResult === "object" ? prePermissionResult : {};
+				const policyFilter =
+					typeof prePermissionResult === "object" ? prePermissionResult : {};
 
 				// Apply global filters (Multi-Tenancy, Soft Delete)
 				// Build where clause with ID and policy filters
-				const whereConditions: Array<{ field: string; value: any; operator?: string }> = [{ field: "id", value: id }];
+				const whereConditions: Array<{
+					field: string;
+					value: any;
+					operator?: string;
+				}> = [{ field: "id", value: id }];
 				for (const [field, value] of Object.entries(policyFilter)) {
 					whereConditions.push({ field, value, operator: "eq" });
 				}
 
-				const finalWhereConditions = applyGlobalFilters([...whereConditions], user);
+				const finalWhereConditions = applyGlobalFilters(
+					[...whereConditions],
+					user,
+				);
 
 				const existing = await adapter.findFirst({
 					model: actualTableName,
@@ -871,16 +892,23 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 					return ctx.json({ error: "Forbidden" }, { status: 403 });
 				}
 
-				const policyFilter = typeof prePermissionResult === "object" ? prePermissionResult : {};
+				const policyFilter =
+					typeof prePermissionResult === "object" ? prePermissionResult : {};
 				// Build where clause with ID and policy filters
-				const whereConditions: Array<{ field: string; value: any; operator?: string }> = [{ field: "id", value: id }];
+				const whereConditions: Array<{
+					field: string;
+					value: any;
+					operator?: string;
+				}> = [{ field: "id", value: id }];
 				for (const [field, value] of Object.entries(policyFilter)) {
 					whereConditions.push({ field, value, operator: "eq" });
 				}
 
-
 				// Apply global filters (Multi-Tenancy, Soft Delete)
-				const finalWhereConditions = applyGlobalFilters([...whereConditions], user);
+				const finalWhereConditions = applyGlobalFilters(
+					[...whereConditions],
+					user,
+				);
 
 				const existing = await adapter.findFirst({
 					model: actualTableName,
@@ -1139,7 +1167,8 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 				}
 
 				// Extract policy filter if any
-				const policyFilter = typeof permissionResult === "object" ? permissionResult : {};
+				const policyFilter =
+					typeof permissionResult === "object" ? permissionResult : {};
 
 				try {
 					// Build search conditions
@@ -1160,8 +1189,12 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 						SearchBuilder.buildIncludeOptions(enhancedQuery);
 
 					// Combine conditions: search + policy filter + ownership
-					let whereConditions: Array<{ field: string; value: any; operator?: string }> = [...searchConditions];
-					
+					let whereConditions: Array<{
+						field: string;
+						value: any;
+						operator?: string;
+					}> = [...searchConditions];
+
 					// Add policy filter
 					for (const [field, value] of Object.entries(policyFilter)) {
 						whereConditions.push({
@@ -1249,7 +1282,9 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 
 	// Merge custom actions
 	if (resourceConfig.actions) {
-		for (const [actionName, actionConfig] of Object.entries(resourceConfig.actions)) {
+		for (const [actionName, actionConfig] of Object.entries(
+			resourceConfig.actions,
+		)) {
 			const actionEndpoint = createQueryEndpoint(
 				`/${name}/${actionName}`,
 				{ method: actionConfig.method || "POST" },
@@ -1291,18 +1326,21 @@ export function createQueryEndpoints(resourceConfig: QueryResourceConfig) {
 								action: actionName,
 								resource: name,
 								result,
-								user: user ? { id: user.id, email: user.email } : null
-							}
+								user: user ? { id: user.id, email: user.email } : null,
+							},
 						});
 
 						return ctx.json(result);
 					} catch (error) {
-						return ctx.json({ 
-							error: "Action failed", 
-							details: error instanceof Error ? error.message : String(error) 
-						}, { status: 500 });
+						return ctx.json(
+							{
+								error: "Action failed",
+								details: error instanceof Error ? error.message : String(error),
+							},
+							{ status: 500 },
+						);
 					}
-				}
+				},
 			);
 			queryEndpoints[`${actionName}${capitalize(name)}`] = actionEndpoint;
 		}

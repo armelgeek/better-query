@@ -15,7 +15,11 @@ export interface ClientOptions {
 	reconnect?: boolean;
 	webSocket?: any;
 	eventSource?: any;
-	headers?: Record<string, string> | (() => Record<string, string> | Promise<Record<string, string>>);
+	headers?:
+		| Record<string, string>
+		| (() => Record<string, string> | Promise<Record<string, string>>);
+	/** Better Auth client instance */
+	auth?: any;
 }
 
 class WebSocketTransport implements RealtimeTransport {
@@ -23,14 +27,20 @@ class WebSocketTransport implements RealtimeTransport {
 	private callbacks = new Map<string, Set<(data: any) => void>>();
 	public status: "connecting" | "open" | "closed" = "closed";
 
-	constructor(private url: string, private WSImpl?: any) {}
+	constructor(
+		private url: string,
+		private WSImpl?: any,
+	) {}
 
 	async connect(): Promise<void> {
 		this.status = "connecting";
-		const WebSocketClass = this.WSImpl || (typeof WebSocket !== 'undefined' ? WebSocket : null);
-		
+		const WebSocketClass =
+			this.WSImpl || (typeof WebSocket !== "undefined" ? WebSocket : null);
+
 		if (!WebSocketClass) {
-			throw new Error("WebSocket implementation not found. Please provide one in options.");
+			throw new Error(
+				"WebSocket implementation not found. Please provide one in options.",
+			);
 		}
 
 		this.ws = new WebSocketClass(this.url);
@@ -89,18 +99,24 @@ class SSETransport implements RealtimeTransport {
 	private callbacks = new Map<string, Set<(data: any) => void>>();
 	public status: "connecting" | "open" | "closed" = "closed";
 
-	constructor(private url: string, private SSEImpl?: any) {}
+	constructor(
+		private url: string,
+		private SSEImpl?: any,
+	) {}
 
 	async connect(): Promise<void> {
 		this.status = "connecting";
-		const EventSourceClass = this.SSEImpl || (typeof EventSource !== 'undefined' ? EventSource : null);
-		
+		const EventSourceClass =
+			this.SSEImpl || (typeof EventSource !== "undefined" ? EventSource : null);
+
 		if (!EventSourceClass) {
-			throw new Error("EventSource implementation not found. Please provide one in options.");
+			throw new Error(
+				"EventSource implementation not found. Please provide one in options.",
+			);
 		}
 
 		this.es = new EventSourceClass(this.url);
-		
+
 		this.es.onopen = () => {
 			this.status = "open";
 		};
@@ -132,26 +148,36 @@ class SSETransport implements RealtimeTransport {
 }
 
 type NestedAPI<T> = {
-	[K in keyof T as K extends `${infer Resource}.${infer Operation}` ? Resource : K]: 
-		K extends `${infer Resource}.${infer Operation}`
-			? { [Op in Operation]: T[K] }
-			: T[K]
-} extends infer O ? {
-	[K in keyof O]: O[K] extends Record<string, any> 
-		? UnionToIntersection<O[K]> 
-		: O[K]
-} : never;
+	[K in keyof T as K extends `${infer Resource}.${infer Operation}`
+		? Resource
+		: K]: K extends `${infer Resource}.${infer Operation}`
+		? { [Op in Operation]: T[K] }
+		: T[K];
+} extends infer O
+	? {
+			[K in keyof O]: O[K] extends Record<string, any>
+				? UnionToIntersection<O[K]>
+				: O[K];
+		}
+	: never;
 
-type UnionToIntersection<U> = 
-  (U extends any ? (k: U)=>void : never) extends ((k: infer I)=>void) ? I : never;
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
+	k: infer I,
+) => void
+	? I
+	: never;
 
 export class BetterQueryClient<API extends Record<string, any> = any> {
 	private transport: RealtimeTransport;
 	private api: any;
+	public auth: any;
 
 	constructor(options: ClientOptions) {
+		this.auth = options.auth;
 		const baseRealtimeUrl = options.realtimeUrl || options.url;
-		const wsUrl = baseRealtimeUrl.replace(/^http/, "ws") + (options.realtimeUrl ? "" : "/realtime");
+		const wsUrl =
+			baseRealtimeUrl.replace(/^http/, "ws") +
+			(options.realtimeUrl ? "" : "/realtime");
 		const sseUrl = baseRealtimeUrl + (options.realtimeUrl ? "" : "/sse");
 
 		if (options.transport === "sse") {
@@ -162,7 +188,8 @@ export class BetterQueryClient<API extends Record<string, any> = any> {
 
 		this.api = createBetterCallClient({
 			baseURL: options.url,
-			headers: options.headers as any
+			headers: options.headers as any,
+			credentials: "include",
 		});
 
 		const createProxy = (path: string[]): any => {
@@ -174,31 +201,32 @@ export class BetterQueryClient<API extends Record<string, any> = any> {
 				apply: (_, __, args) => {
 					const operation = path[path.length - 1];
 					if (!operation) throw new Error("Invalid operation call");
-					
+
 					const resource = path.slice(0, -1).join("/");
 
 					// Intercept watch/on methods to use local real-time logic instead of API calls
 					if (operation === "watch" || operation === "on") {
 						return this.watch(resource, args[0], args[1]);
 					}
-					
+
 					// Map 'get' to 'read' for consistency with server endpoints
 					const actualOperation = operation === "get" ? "read" : operation;
 					let fullPath = `/${resource}/${actualOperation}`;
-					
+
 					// Special case for get/read/update/delete which might need :id
 					if (["get", "read", "update", "delete"].includes(operation)) {
 						fullPath += "/:id";
 					}
 
 					let method = "POST";
-					if (["list", "get", "read", "count"].includes(operation)) method = "GET";
+					if (["list", "get", "read", "count"].includes(operation))
+						method = "GET";
 					if (operation === "update") method = "PATCH";
 					if (operation === "delete") method = "DELETE";
 
 					const options = args[0] || {};
 					let finalPath = fullPath;
-					
+
 					// Interpolate params into path
 					if (options.params) {
 						for (const [key, value] of Object.entries(options.params)) {
@@ -210,7 +238,7 @@ export class BetterQueryClient<API extends Record<string, any> = any> {
 					if (typeof this.api === "function") {
 						return (this.api as any)(finalPath, {
 							method,
-							...options
+							...options,
 						});
 					}
 
@@ -219,13 +247,16 @@ export class BetterQueryClient<API extends Record<string, any> = any> {
 					for (const segment of path) {
 						fn = fn?.[segment];
 					}
-					
+
 					if (typeof fn?.[method.toLowerCase()] === "function") {
 						return fn[method.toLowerCase()](...args);
 					}
 
-					throw new Error(`[DEBUG-V6] Failed to call endpoint "${finalPath}". Client type: ${typeof this.api}`);
-				}
+					throw new Error(
+						`[DEBUG-V6] Failed to call endpoint "${finalPath}". Client type: ${typeof this
+							.api}`,
+					);
+				},
 			});
 		};
 
@@ -239,7 +270,8 @@ export class BetterQueryClient<API extends Record<string, any> = any> {
 			transport: this.transport,
 			connect: this.connect.bind(this),
 			watch: this.watch.bind(this),
-			status: this.status
+			status: this.status,
+			auth: this.auth,
 		});
 
 		return new Proxy(clientFn, {
@@ -248,7 +280,7 @@ export class BetterQueryClient<API extends Record<string, any> = any> {
 					return (target as any)[prop];
 				}
 				return createProxy([prop]);
-			}
+			},
 		}) as any;
 	}
 
@@ -256,7 +288,11 @@ export class BetterQueryClient<API extends Record<string, any> = any> {
 		await this.transport.connect();
 	}
 
-	watch(resource: string, idOrCallback: string | ((data: any) => void), callback?: (data: any) => void) {
+	watch(
+		resource: string,
+		idOrCallback: string | ((data: any) => void),
+		callback?: (data: any) => void,
+	) {
 		let channel = `resource:${resource}`;
 		let cb: (data: any) => void;
 
@@ -277,7 +313,9 @@ export class BetterQueryClient<API extends Record<string, any> = any> {
 	}
 }
 
-export function createClient<API extends Record<string, any>>(options: ClientOptions): BetterQueryClient<API> & NestedAPI<API> & ((resource: string) => any) {
+export function createClient<API extends Record<string, any>>(
+	options: ClientOptions,
+): BetterQueryClient<API> & NestedAPI<API> & ((resource: string) => any) {
 	return new BetterQueryClient<API>(options) as any;
 }
 
@@ -292,3 +330,5 @@ export const QUERY_ERROR_CODES = {
 } as const;
 
 export type QueryErrorCode = keyof typeof QUERY_ERROR_CODES;
+
+export * from "./live-query";

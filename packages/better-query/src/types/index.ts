@@ -1,7 +1,8 @@
 import { Endpoint } from "better-call";
 import { ZodSchema, z } from "zod";
 import { QueryAdapter } from "./adapter";
-import { Plugin } from "./plugins";
+import { QueryPlugin, ExtendedQueryPlugin, Plugin, ExtendedPlugin } from "./plugins";
+export type { QueryPlugin, ExtendedQueryPlugin, Plugin, ExtendedPlugin };
 import { AuthOptions } from "./auth";
 
 export type QueryOperation = "create" | "read" | "update" | "delete" | "list";
@@ -36,11 +37,21 @@ export interface QueryResourceConfig {
 	customEndpoints?: Record<string, Endpoint>;
 	middlewares?: QueryMiddleware[];
 	policies?: {
-		create?: (context: QueryPermissionContext) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
-		read?: (context: QueryPermissionContext) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
-		update?: (context: QueryPermissionContext) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
-		delete?: (context: QueryPermissionContext) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
-		list?: (context: QueryPermissionContext) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
+		create?: (
+			context: QueryPermissionContext,
+		) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
+		read?: (
+			context: QueryPermissionContext,
+		) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
+		update?: (
+			context: QueryPermissionContext,
+		) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
+		delete?: (
+			context: QueryPermissionContext,
+		) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
+		list?: (
+			context: QueryPermissionContext,
+		) => Promise<boolean | Record<string, any>> | boolean | Record<string, any>;
 	};
 	scopes?: {
 		create?: string[];
@@ -86,16 +97,26 @@ export interface QueryResourceConfig {
 			permission?: (ctx: QueryPermissionContext) => boolean | Promise<boolean>;
 		}>;
 	};
-	fields?: Record<string, {
-		hidden?: boolean | ((ctx: QueryPermissionContext) => boolean | Promise<boolean>);
-		readOnly?: boolean | ((ctx: QueryPermissionContext) => boolean | Promise<boolean>);
-		defaultValue?: any | ((ctx: QueryHookContext) => any | Promise<any>);
-	}>;
-	aggregations?: Record<string, {
-		relation: string;
-		type: "count" | "sum" | "avg" | "min" | "max";
-		field?: string;
-	}>;
+	fields?: Record<
+		string,
+		{
+			hidden?:
+				| boolean
+				| ((ctx: QueryPermissionContext) => boolean | Promise<boolean>);
+			readOnly?:
+				| boolean
+				| ((ctx: QueryPermissionContext) => boolean | Promise<boolean>);
+			defaultValue?: any | ((ctx: QueryHookContext) => any | Promise<any>);
+		}
+	>;
+	aggregations?: Record<
+		string,
+		{
+			relation: string;
+			type: "count" | "sum" | "avg" | "min" | "max";
+			field?: string;
+		}
+	>;
 	search?: {
 		fields: string[];
 		strategy?: "contains" | "startsWith" | "exact" | "fuzzy";
@@ -106,11 +127,14 @@ export interface QueryResourceConfig {
 		field?: string;
 		contextKey?: string;
 	};
-	actions?: Record<string, {
-		method?: "GET" | "POST" | "PUT" | "DELETE";
-		handler: (ctx: QueryActionContext) => Promise<any>;
-		permission?: (ctx: QueryPermissionContext) => boolean | Promise<boolean>;
-	}>;
+	actions?: Record<
+		string,
+		{
+			method?: "GET" | "POST" | "PUT" | "DELETE";
+			handler: (ctx: QueryActionContext) => Promise<any>;
+			permission?: (ctx: QueryPermissionContext) => boolean | Promise<boolean>;
+		}
+	>;
 	masking?: Record<string, (value: any, ctx: QueryPermissionContext) => any>;
 }
 
@@ -166,7 +190,7 @@ export interface QueryOptions {
 	basePath?: string;
 	requireAuth?: boolean;
 	middlewares?: QueryMiddleware[];
-	plugins?: Plugin[];
+	plugins?: QueryPlugin[];
 	auth?: AuthOptions;
 	/** Enable debug logging */
 	debug?: boolean;
