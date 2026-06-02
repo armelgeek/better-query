@@ -32,6 +32,7 @@ export interface QueryResourceConfig {
 	schema: ZodSchema;
 	tableName?: string;
 	relationships?: Record<string, RelationshipConfig>;
+	relationshipsEndpoints?: boolean | Record<string, { create?: boolean; list?: boolean }>;
 	endpoints?: {
 		create?: boolean;
 		read?: boolean;
@@ -199,6 +200,8 @@ export interface QueryOptions {
 	auth?: AuthOptions;
 	/** Enable debug logging */
 	debug?: boolean;
+	/** Dynamic application branding name */
+	appName?: string;
 	hooks?: {
 		onCreate?: (context: QueryHookContext) => Promise<void> | void;
 		onUpdate?: (context: QueryHookContext) => Promise<void> | void;

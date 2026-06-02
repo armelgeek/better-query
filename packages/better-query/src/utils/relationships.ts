@@ -167,7 +167,7 @@ export class RelationshipManager {
 		if (sourceSchema && targetSchema) {
 			switch (config.type) {
 				case "belongsTo":
-					if (config.foreignKey && !sourceSchema.fields[config.foreignKey]) {
+					if (config.foreignKey && config.foreignKey !== "id" && !sourceSchema.fields[config.foreignKey]) {
 						errors.push(
 							`Foreign key '${config.foreignKey}' not found in source model '${resourceName}'`,
 						);
@@ -175,9 +175,9 @@ export class RelationshipManager {
 					break;
 				case "hasOne":
 				case "hasMany":
-					if (config.targetKey && !targetSchema.fields[config.targetKey]) {
+					if (config.targetKey && config.targetKey !== "id" && !sourceSchema.fields[config.targetKey]) {
 						errors.push(
-							`Target key '${config.targetKey}' not found in target model '${config.target}'`,
+							`Target key '${config.targetKey}' not found in source model '${resourceName}'`,
 						);
 					}
 					break;

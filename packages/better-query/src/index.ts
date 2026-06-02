@@ -45,3 +45,6 @@ export {
 	createQueryEndpoints as createCrudEndpoints,
 	createQueryEndpoint as createCrudEndpoint,
 } from "./endpoints";
+
+export { getPlaygroundHTML } from "./views/playground";
+

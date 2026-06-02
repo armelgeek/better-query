@@ -1,4 +1,4 @@
-import { Endpoint, EndpointOptions } from "better-call";
+import { Endpoint, EndpointOptions, createEndpoint } from "better-call";
 
 /**
  * Simple wrapper around better-call endpoint creation for CRUD plugins
@@ -9,11 +9,7 @@ export function createCrudEndpoint(
 	options: EndpointOptions,
 	handler: (ctx: any) => Promise<Response> | Response,
 ): Endpoint {
-	return {
-		path,
-		options,
-		handler,
-		method: options.method || "POST",
-		headers: (options as any).headers || {},
-	} as any; // Use any to avoid complex type issues with better-call
+	return createEndpoint(path, options, async (ctx) => {
+		return await handler(ctx);
+	});
 }

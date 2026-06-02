@@ -65,7 +65,7 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 			);
 		}
 
-		const resourceEndpoints = createQueryEndpoints(resourceConfig);
+		const resourceEndpoints = createQueryEndpoints(resourceConfig, allResources);
 
 		Object.assign(allEndpoints, resourceEndpoints);
 
@@ -180,6 +180,7 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 		api[key] = (context: any) => {
 			return value({
 				...context,
+				options: queryContext.options,
 				context: {
 					...queryContext,
 					...context.context,

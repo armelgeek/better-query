@@ -224,6 +224,18 @@ export class BetterQueryClient<API extends Record<string, any> = any> {
 					if (operation === "update") method = "PATCH";
 					if (operation === "delete") method = "DELETE";
 
+					// Check if it's a nested relationship operation: client.parent.relation.list/create
+					if (path.length === 3) {
+						const parentResource = path[0] as string;
+						const relationName = path[1] as string;
+						const op = path[2] as string;
+
+						if (["list", "create"].includes(op)) {
+							fullPath = `/${parentResource}/:parentId/${relationName}`;
+							method = op === "list" ? "GET" : "POST";
+						}
+					}
+
 					const options = args[0] || {};
 					let finalPath = fullPath;
 
