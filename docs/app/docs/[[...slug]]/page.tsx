@@ -11,7 +11,7 @@ import { absoluteUrl } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { LLMCopyButton, ViewOptions } from "./page.client";
 
 export default async function Page({
@@ -20,6 +20,9 @@ export default async function Page({
 	params: Promise<{ slug?: string[] }>;
 }) {
 	const { slug } = await params;
+	if (!slug || slug.length === 0) {
+		redirect("/docs/introduction");
+	}
 	const page = source.getPage(slug);
 
 	if (!page) {
@@ -121,6 +124,12 @@ export async function generateMetadata({
 	params: Promise<{ slug?: string[] }>;
 }) {
 	const { slug } = await params;
+	if (!slug || slug.length === 0) {
+		return {
+			title: "Better Query Documentation",
+			description: "Standardized query and mutation layer built on Zod, TanStack Query, and framework-agnostic APIs.",
+		};
+	}
 	const page = source.getPage(slug);
 	if (page == null) notFound();
 	const baseUrl =

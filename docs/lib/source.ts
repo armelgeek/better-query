@@ -8,4 +8,4 @@ export let source = loader({
 	source: docs.toFumadocsSource(),
 });
 
-source = { ...source, pageTree: getPageTree() };
+source.pageTree = getPageTree();
