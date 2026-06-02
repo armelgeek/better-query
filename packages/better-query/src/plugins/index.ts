@@ -63,8 +63,8 @@ export type {
 export { betterAuthRLS } from "./better-auth-rls";
 export type { BetterAuthRLSOptions } from "./better-auth-rls";
 
-export { adminPlugin } from "./admin";
-export type { AdminPluginOptions } from "./admin";
+// export { adminPlugin } from "./admin";
+// export type { AdminPluginOptions } from "./admin";
 
 // Plugin utilities
 export { createCrudEndpoint } from "../endpoints/crud-endpoint";

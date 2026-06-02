@@ -1073,9 +1073,6 @@ export class KyselyQueryAdapter implements QueryAdapter {
 	}
 }
 
-/**
- * Creates a Kysely database instance based on the configuration
- */
 export function createKyselyDatabase(config: {
 	provider: string;
 	url: string;
@@ -1084,54 +1081,77 @@ export function createKyselyDatabase(config: {
 	// This is a simplified implementation
 	// In a real scenario, you'd handle different database providers
 	if (config.provider === "sqlite") {
+		let Database;
+		let Kysely;
+		let SqliteDialect;
 		try {
-			const Database = require("better-sqlite3");
-			const { Kysely, SqliteDialect } = require("kysely");
-
-			return new Kysely({
-				dialect: new SqliteDialect({
-					database: new Database(config.url.replace("sqlite:", "")),
-				}),
-			});
-		} catch (error) {
-			throw new Error(
-				"better-sqlite3 is required for SQLite support. Please install it: npm install better-sqlite3",
-			);
+			Database = require("better-sqlite3");
+			const kyselyModule = require("kysely");
+			Kysely = kyselyModule.Kysely;
+			SqliteDialect = kyselyModule.SqliteDialect;
+		} catch (error: any) {
+			if (error.code === "MODULE_NOT_FOUND") {
+				throw new Error(
+					"better-sqlite3 is required for SQLite support. Please install it: npm install better-sqlite3",
+				);
+			}
+			throw error;
 		}
+
+		const dbPath = config.url.replace(/^sqlite:\/\//, "").replace(/^sqlite:/, "");
+		return new Kysely({
+			dialect: new SqliteDialect({
+				database: new Database(dbPath),
+			}),
+		});
 	} else if (config.provider === "postgres") {
+		let Pool;
+		let Kysely;
+		let PostgresDialect;
 		try {
-			// For PostgreSQL
-			const { Pool } = require("pg");
-			const { Kysely, PostgresDialect } = require("kysely");
-
-			return new Kysely({
-				dialect: new PostgresDialect({
-					pool: new Pool({
-						connectionString: config.url,
-					}),
-				}),
-			});
-		} catch (error) {
-			throw new Error(
-				"pg is required for PostgreSQL support. Please install it: npm install pg @types/pg",
-			);
+			Pool = require("pg").Pool;
+			const kyselyModule = require("kysely");
+			Kysely = kyselyModule.Kysely;
+			PostgresDialect = kyselyModule.PostgresDialect;
+		} catch (error: any) {
+			if (error.code === "MODULE_NOT_FOUND") {
+				throw new Error(
+					"pg is required for PostgreSQL support. Please install it: npm install pg @types/pg",
+				);
+			}
+			throw error;
 		}
+
+		return new Kysely({
+			dialect: new PostgresDialect({
+				pool: new Pool({
+					connectionString: config.url,
+				}),
+			}),
+		});
 	} else if (config.provider === "mysql") {
+		let createPool;
+		let Kysely;
+		let MysqlDialect;
 		try {
-			// For MySQL
-			const { createPool } = require("mysql2");
-			const { Kysely, MysqlDialect } = require("kysely");
-
-			return new Kysely({
-				dialect: new MysqlDialect({
-					pool: createPool(config.url),
-				}),
-			});
-		} catch (error) {
-			throw new Error(
-				"mysql2 is required for MySQL support. Please install it: npm install mysql2",
-			);
+			createPool = require("mysql2").createPool;
+			const kyselyModule = require("kysely");
+			Kysely = kyselyModule.Kysely;
+			MysqlDialect = kyselyModule.MysqlDialect;
+		} catch (error: any) {
+			if (error.code === "MODULE_NOT_FOUND") {
+				throw new Error(
+					"mysql2 is required for MySQL support. Please install it: npm install mysql2",
+				);
+			}
+			throw error;
 		}
+
+		return new Kysely({
+			dialect: new MysqlDialect({
+				pool: createPool(config.url),
+			}),
+		});
 	}
 
 	throw new Error(`Unsupported database provider: ${config.provider}`);
