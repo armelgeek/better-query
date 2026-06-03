@@ -63,6 +63,9 @@ export type {
 export { betterAuthRLS } from "./better-auth-rls";
 export type { BetterAuthRLSOptions } from "./better-auth-rls";
 
+export { mailPlugin } from "./mail";
+export type { MailPluginOptions, MailPluginInstance } from "./mail";
+
 // export { adminPlugin } from "./admin";
 // export type { AdminPluginOptions } from "./admin";
 
