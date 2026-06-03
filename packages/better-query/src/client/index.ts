@@ -147,13 +147,23 @@ class SSETransport implements RealtimeTransport {
 	}
 }
 
-type NestedAPI<T> = {
-	[K in keyof T as K extends `${infer Resource}.${infer Operation}`
-		? Resource
-		: K]: K extends `${infer Resource}.${infer Operation}`
-		? { [Op in Operation extends "get" ? "get" | "read" : Operation]: T[K] }
-		: T[K];
-} extends infer O
+type NestedAPI<T> = string extends keyof T
+	? Record<string, any>
+	: {
+			[K in keyof T as K extends `${infer Resource}.${infer Relation}.${infer Operation}`
+				? Resource
+				: K extends `${infer Resource}.${infer Operation}`
+				? Resource
+				: K]: K extends `${infer Resource}.${infer Relation}.${infer Operation}`
+				? {
+						[Rel in Relation]: {
+							[Op in Operation extends "get" ? "get" | "read" : Operation]: T[K];
+						};
+				  }
+				: K extends `${infer Resource}.${infer Operation}`
+				? { [Op in Operation extends "get" ? "get" | "read" : Operation]: T[K] }
+				: T[K];
+	  } extends infer O
 	? {
 			[K in keyof O]: O[K] extends Record<string, any>
 				? UnionToIntersection<O[K]>

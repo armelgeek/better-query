@@ -149,8 +149,10 @@ export interface OpenAPIPath {
 type AllowedType = "string" | "number" | "boolean" | "array" | "object";
 
 function processZodType(zodType: ZodType<any>): any {
+	const typeName = (zodType as any)?._def?.typeName;
+
 	// Handle optional types
-	if (zodType instanceof ZodOptional) {
+	if (typeName === "ZodOptional") {
 		const innerType = (zodType as any)._def.innerType;
 		const innerSchema = processZodType(innerType);
 		return {
@@ -160,15 +162,15 @@ function processZodType(zodType: ZodType<any>): any {
 	}
 
 	// Handle object types
-	if (zodType instanceof ZodObject) {
+	if (typeName === "ZodObject") {
 		const shape = (zodType as any).shape;
 		if (shape) {
 			const properties: Record<string, any> = {};
 			const required: string[] = [];
 			Object.entries(shape).forEach(([key, value]) => {
-				if (value instanceof ZodType) {
+				if (value && typeof value === "object" && "_def" in value) {
 					properties[key] = processZodType(value as ZodType<any>);
-					if (!(value instanceof ZodOptional)) {
+					if ((value as any)?._def?.typeName !== "ZodOptional") {
 						required.push(key);
 					}
 				}
@@ -599,12 +601,231 @@ export async function generator(context: CrudContext): Promise<any> {
 		},
 	};
 
+	const storagePluginInstance = options.plugins?.find((p) => p.id === "storage");
+	const uploadPluginInstance = options.plugins?.find((p) => p.id === "upload");
+
+	if (storagePluginInstance) {
+		const uploadPath = "/upload";
+		paths[uploadPath] = {
+			post: {
+				tags: ["Storage"],
+				operationId: "uploadFile",
+				description: "Upload a file or image directly to the storage provider",
+				requestBody: {
+					content: {
+						"multipart/form-data": {
+							schema: {
+								type: "object",
+								properties: {
+									file: {
+										type: "string",
+										format: "binary",
+										description: "The file or image to upload",
+									},
+									path: {
+										type: "string",
+										description: "Optional folder/sub-directory path to upload to",
+									},
+								},
+								required: ["file"],
+							},
+						},
+					},
+				},
+				responses: {
+					"200": {
+						description: "Upload successful",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										url: { type: "string", description: "The public URL of the uploaded file" },
+										key: { type: "string", description: "The storage key of the uploaded file" },
+										size: { type: "number", description: "The file size in bytes" },
+									},
+									required: ["url", "key", "size"],
+								},
+							},
+						},
+					},
+					...getStandardResponses(),
+				},
+			},
+		};
+
+		paths[`${uploadPath}/signed-url`] = {
+			get: {
+				tags: ["Storage"],
+				operationId: "getSignedUrl",
+				description: "Generate a signed URL for a specific file key",
+				parameters: [
+					{
+						name: "key",
+						in: "query",
+						schema: { type: "string" },
+						required: true,
+						description: "The storage key of the file",
+					},
+				],
+				responses: {
+					"200": {
+						description: "Signed URL generated successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										url: { type: "string", description: "The temporary signed URL to access the file" },
+									},
+									required: ["url"],
+								},
+							},
+						},
+					},
+					...getStandardResponses(),
+				},
+			},
+		};
+	}
+
+	if (uploadPluginInstance) {
+		paths["/upload/file"] = {
+			post: {
+				tags: ["Upload"],
+				operationId: "uploadBase64File",
+				description: "Upload a file or image as a Base64-encoded string",
+				requestBody: {
+					content: {
+						"application/json": {
+							schema: {
+								type: "object",
+								properties: {
+									file: { type: "string", description: "Base64 encoded file string" },
+									filename: { type: "string", description: "Original filename" },
+									mimeType: { type: "string", description: "MIME type (e.g. image/png)" },
+									metadata: { type: "object", description: "Additional metadata" },
+								},
+								required: ["file", "filename", "mimeType"],
+							},
+						},
+					},
+				},
+				responses: {
+					"201": {
+						description: "File uploaded successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										id: { type: "string" },
+										filename: { type: "string" },
+										originalName: { type: "string" },
+										mimeType: { type: "string" },
+										size: { type: "number" },
+										path: { type: "string" },
+										url: { type: "string" },
+										uploadedAt: { type: "string" },
+									},
+								},
+							},
+						},
+					},
+					...getStandardResponses(),
+				},
+			},
+		};
+
+		paths["/upload/file/{id}"] = {
+			get: {
+				tags: ["Upload"],
+				operationId: "getFileMetadata",
+				description: "Get metadata for an uploaded file by ID",
+				parameters: [
+					{
+						name: "id",
+						in: "path",
+						schema: { type: "string" },
+						required: true,
+					},
+				],
+				responses: {
+					"200": {
+						description: "File metadata retrieved successfully",
+					},
+					...getStandardResponses(),
+				},
+			},
+			delete: {
+				tags: ["Upload"],
+				operationId: "deleteFile",
+				description: "Delete an uploaded file from storage and database",
+				parameters: [
+					{
+						name: "id",
+						in: "path",
+						schema: { type: "string" },
+						required: true,
+					},
+				],
+				responses: {
+					"200": {
+						description: "File deleted successfully",
+					},
+					...getStandardResponses(),
+				},
+			},
+		};
+
+		paths["/upload/download/{id}"] = {
+			get: {
+				tags: ["Upload"],
+				operationId: "downloadFile",
+				description: "Download or stream the file content by ID",
+				parameters: [
+					{
+						name: "id",
+						in: "path",
+						schema: { type: "string" },
+						required: true,
+					},
+				],
+				responses: {
+					"200": {
+						description: "File stream/download success",
+					},
+					...getStandardResponses(),
+				},
+			},
+		};
+
+		paths["/upload/files"] = {
+			get: {
+				tags: ["Upload"],
+				operationId: "listFiles",
+				description: "List all uploaded files with pagination and filtering",
+				parameters: [
+					{ name: "page", in: "query", schema: { type: "number" } },
+					{ name: "limit", in: "query", schema: { type: "number" } },
+					{ name: "mimeType", in: "query", schema: { type: "string" } },
+				],
+				responses: {
+					"200": {
+						description: "List of files retrieved successfully",
+					},
+					...getStandardResponses(),
+				},
+			},
+		};
+	}
+
 	const basePath = options.basePath || "/api";
 
 	return {
 		openapi: "3.1.0",
 		info: {
-			title: "Better Query API",
+			title: options.appName ? `${options.appName} API` : "Better Query API",
 			description:
 				"Auto-generated API documentation for Better Query resources",
 			version: "1.0.0",
@@ -622,6 +843,14 @@ export async function generator(context: CrudContext): Promise<any> {
 				name: resource.name.charAt(0).toUpperCase() + resource.name.slice(1),
 				description: `Operations for ${resource.name} resource`,
 			})),
+			...(storagePluginInstance ? [{
+				name: "Storage",
+				description: "File and image storage operations",
+			}] : []),
+			...(uploadPluginInstance ? [{
+				name: "Upload",
+				description: "File and image upload tracking operations",
+			}] : []),
 			{
 				name: "OpenAPI",
 				description: "OpenAPI specification endpoints",

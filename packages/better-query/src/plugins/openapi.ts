@@ -506,6 +506,219 @@ export function openApiPlugin(options: OpenAPIPluginOptions = {}): Plugin {
 						}
 					}
 
+					// Dynamic documentation for Storage and Upload plugins
+					const storagePluginInstance = ctx.options.plugins?.find((p: any) => p.id === "storage");
+					const uploadPluginInstance = ctx.options.plugins?.find((p: any) => p.id === "upload");
+
+					if (storagePluginInstance) {
+						const uploadPath = "/upload";
+						paths[uploadPath] = {
+							post: {
+								tags: ["Storage"],
+								summary: "Upload file or image directly to storage",
+								description: "Upload a file or image directly to the storage provider via Multipart Form Data",
+								requestBody: {
+									content: {
+										"multipart/form-data": {
+											schema: {
+												type: "object",
+												properties: {
+													file: {
+														type: "string",
+														format: "binary",
+														description: "The file or image to upload",
+													},
+													path: {
+														type: "string",
+														description: "Optional folder/sub-directory path to upload to",
+													},
+												},
+												required: ["file"],
+											},
+										},
+									},
+								},
+								responses: {
+									200: {
+										description: "Upload successful",
+										content: {
+											"application/json": {
+												schema: {
+													type: "object",
+													properties: {
+														url: { type: "string", description: "The public URL of the uploaded file" },
+														key: { type: "string", description: "The storage key of the uploaded file" },
+														size: { type: "number", description: "The file size in bytes" },
+													},
+													required: ["url", "key", "size"],
+												},
+											},
+										},
+									},
+								},
+							},
+						};
+
+						paths[`${uploadPath}/signed-url`] = {
+							get: {
+								tags: ["Storage"],
+								summary: "Get signed URL for storage key",
+								description: "Generate a signed URL for a specific file key",
+								parameters: [
+									{
+										name: "key",
+										in: "query",
+										schema: { type: "string" },
+										required: true,
+										description: "The storage key of the file",
+									},
+								],
+								responses: {
+									200: {
+										description: "Signed URL generated successfully",
+										content: {
+											"application/json": {
+												schema: {
+													type: "object",
+													properties: {
+														url: { type: "string", description: "The temporary signed URL to access the file" },
+													},
+													required: ["url"],
+												},
+											},
+										},
+									},
+								},
+							},
+						};
+					}
+
+					if (uploadPluginInstance) {
+						paths["/upload/file"] = {
+							post: {
+								tags: ["Upload"],
+								summary: "Upload Base64 file",
+								description: "Upload a file or image as a Base64-encoded string",
+								requestBody: {
+									content: {
+										"application/json": {
+											schema: {
+												type: "object",
+												properties: {
+													file: { type: "string", description: "Base64 encoded file string" },
+													filename: { type: "string", description: "Original filename" },
+													mimeType: { type: "string", description: "MIME type (e.g. image/png)" },
+													metadata: { type: "object", description: "Additional metadata" },
+												},
+												required: ["file", "filename", "mimeType"],
+											},
+										},
+									},
+								},
+								responses: {
+									201: {
+										description: "File uploaded successfully",
+										content: {
+											"application/json": {
+												schema: {
+													type: "object",
+													properties: {
+														id: { type: "string" },
+														filename: { type: "string" },
+														originalName: { type: "string" },
+														mimeType: { type: "string" },
+														size: { type: "number" },
+														path: { type: "string" },
+														url: { type: "string" },
+														uploadedAt: { type: "string" },
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						};
+
+						paths["/upload/file/{id}"] = {
+							get: {
+								tags: ["Upload"],
+								summary: "Get file metadata by ID",
+								description: "Get metadata for an uploaded file by ID",
+								parameters: [
+									{
+										name: "id",
+										in: "path",
+										schema: { type: "string" },
+										required: true,
+									},
+								],
+								responses: {
+									200: {
+										description: "File metadata retrieved successfully",
+									},
+								},
+							},
+							delete: {
+								tags: ["Upload"],
+								summary: "Delete uploaded file by ID",
+								description: "Delete an uploaded file from storage and database",
+								parameters: [
+									{
+										name: "id",
+										in: "path",
+										schema: { type: "string" },
+										required: true,
+									},
+								],
+								responses: {
+									200: {
+										description: "File deleted successfully",
+									},
+								},
+							},
+						};
+
+						paths["/upload/download/{id}"] = {
+							get: {
+								tags: ["Upload"],
+								summary: "Download or stream file",
+								description: "Download or stream the file content by ID",
+								parameters: [
+									{
+										name: "id",
+										in: "path",
+										schema: { type: "string" },
+										required: true,
+									},
+								],
+								responses: {
+									200: {
+										description: "File stream/download success",
+									},
+								},
+							},
+						};
+
+						paths["/upload/files"] = {
+							get: {
+								tags: ["Upload"],
+								summary: "List all uploaded files",
+								description: "List all uploaded files with pagination and filtering",
+								parameters: [
+									{ name: "page", in: "query", schema: { type: "number" } },
+									{ name: "limit", in: "query", schema: { type: "number" } },
+									{ name: "mimeType", in: "query", schema: { type: "string" } },
+								],
+								responses: {
+									200: {
+										description: "List of files retrieved successfully",
+									},
+								},
+							},
+						};
+					}
+
 					const basePath = ctx.options.basePath || "/api/query";
 					return ctx.json({
 						openapi: "3.0.0",

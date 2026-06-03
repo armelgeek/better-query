@@ -231,7 +231,19 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 	type Endpoint = typeof endpoints;
 
 	const result = {
-		handler,
+		handler: async (request: Request) => {
+			const response = await handler(request);
+			if (!response.headers.has("content-type")) {
+				const newHeaders = new Headers(response.headers);
+				newHeaders.set("content-type", "application/json");
+				return new Response(response.body, {
+					status: response.status,
+					statusText: response.statusText,
+					headers: newHeaders,
+				});
+			}
+			return response;
+		},
 		api: endpoints as Endpoint & PluginEndpoint,
 		options,
 		context: queryContext,

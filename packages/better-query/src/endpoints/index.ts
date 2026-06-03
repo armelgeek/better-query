@@ -425,13 +425,11 @@ export function createQueryEndpoints(
 				return ctx.json({ error: "Forbidden" }, { status: 403 });
 			}
 
-			// Generate ID if not present AND schema expects a string ID
+			// Generate ID if not present
+			// The id field is auto-added by the adapter even if not in the user's Zod schema,
+			// so we always generate one when missing.
 			if (!data.id) {
-				const resourceSchema = context.schemas?.get(name);
-				const idField = resourceSchema?.fields?.id;
-				if (idField?.type === "string") {
-					data.id = generateId();
-				}
+				data.id = generateId();
 			}
 
 			// Automatically set tenantId if multiTenancy is enabled
@@ -1755,6 +1753,11 @@ export function createQueryEndpoints(
 						}
 
 						try {
+							// Generate ID if not present
+							if (!data.id) {
+								data.id = generateId();
+							}
+
 							// Perform db create
 							const result = await adapter.create({
 								model: targetTableName,

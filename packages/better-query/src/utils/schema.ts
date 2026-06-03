@@ -15,8 +15,9 @@ export function zodSchemaToFields(
 ): Record<string, FieldAttribute> {
 	const fields: Record<string, FieldAttribute> = {};
 
-	if (zodSchema instanceof z.ZodObject) {
-		const shape = zodSchema.shape;
+	const typeName = (zodSchema as any)?._def?.typeName;
+	if (typeName === "ZodObject") {
+		const shape = (zodSchema as any).shape;
 
 		for (const [key, fieldDef] of Object.entries(shape)) {
 			fields[key] = inferFieldAttribute(fieldDef as ZodTypeAny);
@@ -36,22 +37,23 @@ export function inferFieldAttribute(fieldDef: ZodTypeAny): FieldAttribute {
 	let length: number | undefined = undefined;
 
 	// Handle optional and nullable fields
-	let innerType = fieldDef;
-	if (fieldDef instanceof z.ZodOptional) {
-		required = false;
-		innerType = fieldDef.unwrap();
-	}
-	if (innerType instanceof z.ZodNullable) {
+	let innerType = fieldDef as any;
+	if (innerType?._def?.typeName === "ZodOptional") {
 		required = false;
 		innerType = innerType.unwrap();
 	}
-	if (innerType instanceof z.ZodDefault) {
+	if (innerType?._def?.typeName === "ZodNullable") {
+		required = false;
+		innerType = innerType.unwrap();
+	}
+	if (innerType?._def?.typeName === "ZodDefault") {
 		defaultValue = innerType._def.defaultValue();
 		innerType = innerType.removeDefault();
 	}
 
 	// Determine the base type
-	if (innerType instanceof z.ZodString) {
+	const innerTypeName = innerType?._def?.typeName;
+	if (innerTypeName === "ZodString") {
 		type = "string";
 		if (innerType._def.checks) {
 			for (const check of innerType._def.checks) {
@@ -60,19 +62,19 @@ export function inferFieldAttribute(fieldDef: ZodTypeAny): FieldAttribute {
 				}
 			}
 		}
-	} else if (innerType instanceof z.ZodNumber) {
+	} else if (innerTypeName === "ZodNumber") {
 		type = "number";
-	} else if (innerType instanceof z.ZodBoolean) {
+	} else if (innerTypeName === "ZodBoolean") {
 		type = "boolean";
-	} else if (innerType instanceof z.ZodDate) {
+	} else if (innerTypeName === "ZodDate") {
 		type = "date";
 	} else if (
-		innerType instanceof z.ZodArray ||
-		innerType instanceof z.ZodObject ||
-		innerType instanceof z.ZodRecord
+		innerTypeName === "ZodArray" ||
+		innerTypeName === "ZodObject" ||
+		innerTypeName === "ZodRecord"
 	) {
 		type = "json";
-	} else if (innerType instanceof z.ZodEnum) {
+	} else if (innerTypeName === "ZodEnum") {
 		type = "string";
 	}
 

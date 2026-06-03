@@ -1283,17 +1283,17 @@ export function generateCreateTableSQL(
 	// Check both camelCase and snake_case variants to avoid duplicates
 	if (!fields.createdAt && !fields.created_at) {
 		if (provider === "postgres") {
-			columns.push("created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+			columns.push("createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
 		} else {
-			columns.push("created_at TEXT DEFAULT CURRENT_TIMESTAMP");
+			columns.push("createdAt TEXT DEFAULT CURRENT_TIMESTAMP");
 		}
 	}
 
 	if (!fields.updatedAt && !fields.updated_at) {
 		if (provider === "postgres") {
-			columns.push("updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+			columns.push("updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
 		} else {
-			columns.push("updated_at TEXT DEFAULT CURRENT_TIMESTAMP");
+			columns.push("updatedAt TEXT DEFAULT CURRENT_TIMESTAMP");
 		}
 	}
 
