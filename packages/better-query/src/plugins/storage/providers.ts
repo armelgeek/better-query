@@ -1,3 +1,11 @@
+import {
+	S3Client,
+	PutObjectCommand,
+	DeleteObjectCommand,
+	GetObjectCommand,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
 /**
  * Interface for File Storage Providers
  */
@@ -41,26 +49,86 @@ export class LocalStorageProvider implements StorageProvider {
  * S3 / Cloudflare R2 Storage Provider
  */
 export class S3StorageProvider implements StorageProvider {
+	protected s3Client: S3Client;
+	protected bucket: string;
+
 	constructor(
-		private options: {
+		protected options: {
 			bucket: string;
-			region: string;
+			region?: string;
 			endpoint?: string;
 			credentials: { accessKeyId: string; secretAccessKey: string };
+			forcePathStyle?: boolean;
 		},
-	) {}
+	) {
+		this.bucket = options.bucket;
+		this.s3Client = new S3Client({
+			endpoint: options.endpoint,
+			region: options.region || "us-east-1",
+			credentials: options.credentials,
+			forcePathStyle: options.forcePathStyle ?? true,
+		});
+	}
 
 	async upload(params: { file: File | Blob; path: string; filename?: string }) {
-		// Implementation using @aws-sdk/client-s3
-		return { url: "", key: "", size: 0 };
+		const filename = params.filename || `file-${Date.now()}`;
+		const key = `${params.path}/${filename}`;
+		
+		const buffer = Buffer.from(await params.file.arrayBuffer());
+
+		await this.s3Client.send(
+			new PutObjectCommand({
+				Bucket: this.bucket,
+				Key: key,
+				Body: buffer,
+				ContentType: params.file.type,
+			}),
+		);
+
+		const endpointUrl = this.options.endpoint || `https://s3.${this.options.region || "us-east-1"}.amazonaws.com`;
+		const url = `${endpointUrl}/${this.bucket}/${key}`;
+
+		return {
+			url,
+			key,
+			size: params.file.size,
+		};
 	}
 
 	async delete(key: string) {
-		// S3 Delete
+		await this.s3Client.send(
+			new DeleteObjectCommand({
+				Bucket: this.bucket,
+				Key: key,
+			}),
+		);
 	}
 
-	async getSignedUrl(key: string) {
-		// S3 GetObject with signing
-		return "";
+	async getSignedUrl(key: string, expiresIn = 3600) {
+		const command = new GetObjectCommand({
+			Bucket: this.bucket,
+			Key: key,
+		});
+		return getSignedUrl(this.s3Client, command, { expiresIn });
+	}
+}
+
+/**
+ * MinIO Storage Provider (Extends S3StorageProvider with MinIO defaults)
+ */
+export class MinioStorageProvider extends S3StorageProvider {
+	constructor(options: {
+		bucket: string;
+		endpoint: string;
+		credentials: { accessKeyId: string; secretAccessKey: string };
+		region?: string;
+	}) {
+		super({
+			bucket: options.bucket,
+			endpoint: options.endpoint,
+			credentials: options.credentials,
+			region: options.region || "us-east-1",
+			forcePathStyle: true,
+		});
 	}
 }

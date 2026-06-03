@@ -17,6 +17,7 @@ export function storagePlugin(options: StoragePluginOptions): Plugin {
 
 	return {
 		id: "storage",
+		options,
 		init: () => {},
 		endpoints: {
 			// Generic upload endpoint
@@ -24,9 +25,8 @@ export function storagePlugin(options: StoragePluginOptions): Plugin {
 				uploadPath,
 				{ method: "POST" },
 				async (ctx) => {
-					// In a real environment, we'd use ctx.request.formData()
-					// This is a simplified demo of the plugin structure
-					const formData = await (ctx.request as any).formData();
+					const req = (ctx as any).rawRequest || ctx.request;
+					const formData = await req.formData();
 					const file = formData.get("file");
 					const path = formData.get("path") || "uploads";
 

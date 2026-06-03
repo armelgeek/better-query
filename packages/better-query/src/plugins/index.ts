@@ -33,7 +33,7 @@ export type { OpenAPIPluginOptions } from "./openapi";
 
 export { storagePlugin } from "./storage";
 export type { StoragePluginOptions } from "./storage";
-export { LocalStorageProvider, S3StorageProvider } from "./storage/providers";
+export { LocalStorageProvider, S3StorageProvider, MinioStorageProvider } from "./storage/providers";
 
 export { uploadPlugin } from "./upload";
 export type { UploadPluginOptions } from "./upload";

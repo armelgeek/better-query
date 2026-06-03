@@ -42,6 +42,65 @@ function initQuery(options: QueryOptions): QueryContext {
 	return context;
 }
 
+export type PathToNested<Key extends string, Value> = Key extends `${infer Part}.${infer Rest}`
+	? { [P in Part]: PathToNested<Rest, Value> }
+	: { [P in Key]: Value };
+
+export type MakeNested<T> = UnionToIntersection<
+	{
+		[K in keyof T]: K extends string ? PathToNested<K, T[K]> : never;
+	}[keyof T]
+>;
+
+export function createNestedApiProxy(endpoints: any): any {
+	const cache = new Map<string, any>();
+
+	const createSubProxy = (target: any, path: string): any => {
+		return new Proxy(
+			() => {},
+			{
+				get(_, prop) {
+					if (typeof prop !== "string") {
+						return undefined;
+					}
+
+					const fullPath = `${path}.${prop}`;
+
+					if (fullPath in target) {
+						return target[fullPath];
+					}
+
+					return createSubProxy(target, fullPath);
+				},
+				apply(target, thisArg, argArray) {
+					const fn = (endpoints as any)[path];
+					if (typeof fn === "function") {
+						return fn.apply(thisArg, argArray);
+					}
+					throw new TypeError(`${path} is not a function`);
+				}
+			}
+		);
+	};
+
+	return new Proxy(endpoints, {
+		get(target, prop) {
+			if (typeof prop !== "string") {
+				return Reflect.get(target, prop);
+			}
+
+			if (prop in target) {
+				return Reflect.get(target, prop);
+			}
+
+			if (!cache.has(prop)) {
+				cache.set(prop, createSubProxy(target, prop));
+			}
+			return cache.get(prop);
+		}
+	});
+}
+
 export function betterQuery<O extends QueryOptions>(options: O) {
 	const queryContext = initQuery(options);
 
@@ -232,7 +291,8 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 
 	const result = {
 		handler: async (request: Request) => {
-			const response = await handler(request);
+			const rawRequest = request.clone();
+			const response = await (handler as any)(request, { rawRequest });
 			if (!response.headers.has("content-type")) {
 				const newHeaders = new Headers(response.headers);
 				newHeaders.set("content-type", "application/json");
@@ -244,11 +304,13 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 			}
 			return response;
 		},
-		api: endpoints as Endpoint & PluginEndpoint,
+		api: createNestedApiProxy(endpoints) as MakeNested<Endpoint & PluginEndpoint> & Endpoint & PluginEndpoint,
 		options,
 		context: queryContext,
 		schema,
-		transaction: async <T>(fn: (api: any) => Promise<T>): Promise<T> => {
+		transaction: async <T>(
+			fn: (api: MakeNested<Endpoint & PluginEndpoint> & Endpoint & PluginEndpoint) => Promise<T>,
+		): Promise<T> => {
 			if (!queryContext.adapter.transaction) {
 				throw new Error("Adapter does not support transactions");
 			}
@@ -257,7 +319,7 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 				const { endpoints: trxEndpoints } = createRouter(api, {
 					extraContext: transactionalContext,
 				});
-				return await fn(trxEndpoints);
+				return await fn(createNestedApiProxy(trxEndpoints));
 			});
 		},
 	};
@@ -325,12 +387,12 @@ export type BetterQuery<
 	>,
 > = {
 	handler: (request: Request) => Promise<Response>;
-	api: Endpoints & PluginEndpoints;
+	api: MakeNested<Endpoints & PluginEndpoints> & Endpoints & PluginEndpoints;
 	options: O;
 	context: QueryContext;
 	schema: Record<string, { fields: Record<string, any> }>;
 	transaction: <T>(
-		fn: (api: Endpoints & PluginEndpoints) => Promise<T>,
+		fn: (api: MakeNested<Endpoints & PluginEndpoints> & Endpoints & PluginEndpoints) => Promise<T>,
 	) => Promise<T>;
 } & (O["database"] extends { adapter: infer A }
 	? A extends { customOperations: infer C }

@@ -155,16 +155,80 @@ function zodToOpenAPI(schema: any, isPartial = false): any {
 /**
  * OpenAPI & Swagger UI Plugin
  */
+const DEFAULT_DESCRIPTION = `# Better Query - Guides d'Implémentation & Référence
+
+Bienvenue dans la documentation d'API de **Better Query**. En plus des endpoints CRUD générés automatiquement ci-dessous, voici les guides d'implémentation pour le backend.
+
+---
+
+### 1. Appels Backend via l'API Imbriquée Typée (\`query.api\`)
+Vous pouvez invoquer directement les endpoints CRUD et les relations en TypeScript côté serveur de manière imbriquée :
+
+\`\`\`typescript
+// Créer un projet
+const project = await query.api.project.create({
+  body: { name: "Nouveau Projet" }
+});
+
+// Lister les tâches associées à un projet
+const tasks = await query.api.project.tasks.list({
+  params: { parentId: project.id }
+});
+\`\`\`
+
+---
+
+### 2. Configuration Universelle des Mails
+Le \`mailPlugin\` supporte n'importe quel provider Nodemailer (SMTP, Gmail, SES, etc.) :
+
+\`\`\`typescript
+import { mailPlugin } from "better-query";
+
+export const mailer = mailPlugin({
+  from: "Anonymous <anonymous@example.com>",
+  service: "gmail", // ou transport personnalisé
+  auth: {
+    user: "user@example.com",
+    pass: "app-password"
+  }
+});
+\`\`\`
+
+---
+
+### 3. Stockage de fichiers avec MinIO / S3
+Configurez le \`storagePlugin\` pour uploader vos fichiers sur un serveur MinIO local ou dans le Cloud (AWS S3, R2) :
+
+\`\`\`typescript
+import { storagePlugin, MinioStorageProvider } from "better-query";
+
+export const query = betterQuery({
+  plugins: [
+    storagePlugin({
+      provider: new MinioStorageProvider({
+        endpoint: "http://localhost:9000",
+        bucket: "uploads",
+        credentials: {
+          accessKeyId: "root",
+          secretAccessKey: "password"
+        }
+      })
+    })
+  ]
+});
+\`\`\``;
+
 export function openApiPlugin(options: OpenAPIPluginOptions = {}): Plugin {
 	const {
 		specPath = "/openapi.json",
 		uiPath = "/docs",
-		info = {
-			title: "Better Query API",
-			version: "1.0.0",
-			description: "Auto-generated CRUD API documentation",
-		},
 	} = options;
+
+	const info = {
+		title: options.info?.title || "Better Query API",
+		version: options.info?.version || "1.0.0",
+		description: options.info?.description || DEFAULT_DESCRIPTION,
+	};
 
 	return {
 		id: "openapi",

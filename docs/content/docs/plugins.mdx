@@ -26,17 +26,17 @@ export const { handler } = betterQuery({
 });
 ```
 
-#### Minio / S3 Compatible
-Since Minio is S3-compatible, you can use the `S3StorageProvider`:
+#### Minio Dedicated Provider
+
+Alternatively, you can use the dedicated `MinioStorageProvider` which comes pre-configured with Minio path-style defaults:
 
 ```typescript
-import { storagePlugin, S3StorageProvider } from "better-query/plugins";
+import { storagePlugin, MinioStorageProvider } from "better-query/plugins";
 
 const storage = storagePlugin({
-  provider: new S3StorageProvider({
-    endpoint: "http://localhost:9000", // Minio Endpoint
+  provider: new MinioStorageProvider({
+    endpoint: "http://localhost:9000",
     bucket: "uploads",
-    region: "us-east-1",
     credentials: {
       accessKeyId: "minioadmin",
       secretAccessKey: "minioadmin"
@@ -453,3 +453,36 @@ export const { handler } = betterQuery({
   ]
 });
 ```
+
+---
+
+### 📧 Mail Plugin
+
+The mail plugin provides an easy way to configure email sending templates and transports. It supports SMTP servers, well-known services (like Gmail, SendGrid, Mailgun), and custom Nodemailer transports.
+
+```typescript
+import { mailPlugin } from "better-query/plugins";
+
+export const mailer = mailPlugin({
+  from: "Anonymous <anonymous@example.com>",
+  // Option A: Custom SMTP host configuration
+  host: "smtp.mailtrap.io",
+  port: 2525,
+  auth: {
+    user: "username",
+    pass: "password"
+  },
+  // Option B: Well-known service name
+  // service: "gmail",
+  // Option C: Custom Nodemailer transporter object
+  // transport: { ... },
+  
+  templates: {
+    welcome: (args: { name: string }) => ({
+      subject: "Welcome to our application!",
+      text: `Hello ${args.name},\n\nThank you for signing up!`
+    })
+  }
+});
+```
+

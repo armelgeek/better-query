@@ -9,6 +9,8 @@ export interface MailPluginOptions {
 		user: string;
 		pass: string;
 	};
+	service?: string;
+	transport?: any;
 	from?: string;
 	templates?: Record<
 		string,
@@ -43,14 +45,26 @@ export function mailPlugin(options: MailPluginOptions = {}): MailPluginInstance 
 			: process.env.SMTP_SECURE === "true";
 	const user = options.auth?.user || process.env.SMTP_USER;
 	const pass = options.auth?.pass || process.env.SMTP_PASSWORD;
+	const service = options.service || process.env.SMTP_SERVICE;
 	const defaultFrom =
 		options.from ||
 		process.env.EMAIL_FROM ||
 		(user ? `BetterQuery <${user}>` : "BetterQuery <noreply@localhost>");
 
-	// Create transporter only if host is present
+	// Create transporter only if host, service, or custom transport is present
 	let transporter: nodemailer.Transporter | null = null;
-	if (host && host !== "localhost" && host !== "127.0.0.1" && host !== "0.0.0.0") {
+	
+	if (options.transport) {
+		transporter = nodemailer.createTransport(options.transport);
+	} else if (service) {
+		const transportConfig: any = {
+			service,
+		};
+		if (user && pass) {
+			transportConfig.auth = { user, pass };
+		}
+		transporter = nodemailer.createTransport(transportConfig);
+	} else if (host && host !== "localhost" && host !== "127.0.0.1" && host !== "0.0.0.0") {
 		const transportConfig: any = {
 			host,
 			port,

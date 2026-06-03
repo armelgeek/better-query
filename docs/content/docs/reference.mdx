@@ -47,3 +47,39 @@ Better Query returns standardized error codes:
 - `NOT_FOUND`: Record not found.
 - `VALIDATION_ERROR`: Zod validation failed.
 - `CONFLICT`: Database constraint violation.
+
+### Server API Invocation (`query.api`)
+
+You can invoke CRUD endpoints and relationship queries directly in the backend code using the `query.api` object proxy. The proxy automatically supports TypeScript autocomplete typings.
+
+#### Imbricated Calls
+
+```typescript
+// Create a new record
+const project = await query.api.project.create({
+  body: { name: "Nested Project" }
+});
+
+// Retrieve a list of child resources via relationship
+const tasks = await query.api.project.tasks.list({
+  params: { parentId: project.id }
+});
+```
+
+#### Transactional Invocation
+
+Transactions also benefit from nested object typings. Any operation made on the transaction client will be scoped to the active database transaction:
+
+```typescript
+await query.transaction(async (trx) => {
+  const project = await trx.project.create({
+    body: { name: "Transaction Project" }
+  });
+
+  await trx.project.tasks.create({
+    params: { parentId: project.id },
+    body: { title: "Subtask 1" }
+  });
+});
+```
+
