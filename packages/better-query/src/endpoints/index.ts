@@ -370,9 +370,8 @@ export function createQueryEndpoints(
 
 			// Rate limiting check
 			if (context.security?.rateLimit) {
-				const rateLimitKey = `${
-					securityContext.ipAddress || "unknown"
-				}-create-${name}`;
+				const rateLimitKey = `${securityContext.ipAddress || "unknown"
+					}-create-${name}`;
 				const isAllowed = rateLimiter.isAllowed(
 					rateLimitKey,
 					context.security.rateLimit.windowMs,
@@ -1261,6 +1260,9 @@ export function createQueryEndpoints(
 						});
 					}
 				}
+
+				// Apply global filters (Multi-Tenancy, Soft Delete)
+				whereConditions = applyGlobalFilters(whereConditions, user);
 
 				// Get total count for pagination
 				const total = await adapter.count({

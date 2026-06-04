@@ -256,8 +256,9 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		const activeWhere = [...where];
 		if (resourceConfig?.softDelete?.enabled === true) {
 			const softDeleteField = resourceConfig?.softDelete?.field || "deletedAt";
-			// Only add if field exists in schema
-			if (resourceConfig?.schema) {
+			const hasSoftDeleteFilter = activeWhere.some((w) => w.field === softDeleteField);
+			// Only add if field exists in schema and not already present
+			if (resourceConfig?.schema && !hasSoftDeleteFilter) {
 				activeWhere.push({
 					field: softDeleteField,
 					operator: "eq",
@@ -323,12 +324,15 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		const activeWhere = [...where];
 		if (resourceConfig?.softDelete?.enabled === true) {
 			const softDeleteField = resourceConfig?.softDelete?.field || "deletedAt";
+			const hasSoftDeleteFilter = activeWhere.some((w) => w.field === softDeleteField);
 			// Check if field exists in schema or if we should just try anyway
-			activeWhere.push({
-				field: softDeleteField,
-				operator: "eq",
-				value: null,
-			});
+			if (!hasSoftDeleteFilter) {
+				activeWhere.push({
+					field: softDeleteField,
+					operator: "eq",
+					value: null,
+				});
+			}
 		}
 
 		// If no includes, use simple query
