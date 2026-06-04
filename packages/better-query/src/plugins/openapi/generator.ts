@@ -15,12 +15,13 @@ export interface OpenAPIPath {
 				format?: string;
 			};
 			required?: boolean;
+			description?: string;
 		}>;
 		responses?: {
 			[key in string]: {
 				description?: string;
 				content: {
-					"application/json": {
+					[contentType: string]: {
 						schema: any;
 					};
 				};
@@ -39,10 +40,11 @@ export interface OpenAPIPath {
 				type?: "string" | "number" | "boolean" | "array" | "object";
 			};
 			required?: boolean;
+			description?: string;
 		}>;
 		requestBody?: {
 			content: {
-				"application/json": {
+				[contentType: string]: {
 					schema: any;
 				};
 			};
@@ -51,7 +53,7 @@ export interface OpenAPIPath {
 			[key in string]: {
 				description?: string;
 				content: {
-					"application/json": {
+					[contentType: string]: {
 						schema: any;
 					};
 				};
@@ -70,10 +72,11 @@ export interface OpenAPIPath {
 				type?: "string" | "number" | "boolean" | "array" | "object";
 			};
 			required?: boolean;
+			description?: string;
 		}>;
 		requestBody?: {
 			content: {
-				"application/json": {
+				[contentType: string]: {
 					schema: any;
 				};
 			};
@@ -82,7 +85,7 @@ export interface OpenAPIPath {
 			[key in string]: {
 				description?: string;
 				content: {
-					"application/json": {
+					[contentType: string]: {
 						schema: any;
 					};
 				};
@@ -101,10 +104,11 @@ export interface OpenAPIPath {
 				type?: "string" | "number" | "boolean" | "array" | "object";
 			};
 			required?: boolean;
+			description?: string;
 		}>;
 		requestBody?: {
 			content: {
-				"application/json": {
+				[contentType: string]: {
 					schema: any;
 				};
 			};
@@ -113,7 +117,7 @@ export interface OpenAPIPath {
 			[key in string]: {
 				description?: string;
 				content: {
-					"application/json": {
+					[contentType: string]: {
 						schema: any;
 					};
 				};
@@ -132,12 +136,13 @@ export interface OpenAPIPath {
 				type?: "string" | "number" | "boolean" | "array" | "object";
 			};
 			required?: boolean;
+			description?: string;
 		}>;
 		responses?: {
 			[key in string]: {
 				description?: string;
 				content: {
-					"application/json": {
+					[contentType: string]: {
 						schema: any;
 					};
 				};

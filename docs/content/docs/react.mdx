@@ -1,0 +1,466 @@
+---
+title: React Client & Headless UI
+description: Standardized hooks and composable UI primitives for React.
+---
+
+Better Query provides a first-class, unstyled React integration package (`better-query/react`) that abstracts state management, real-time synchronization, and form handling while giving you absolute style freedom.
+
+All hooks and components are exported as clean, prefix-free aliases (e.g. `useTable`, `useForm`, `Form`, `FormField`, `List`), with backwards-compatible `useResource...` prefixes still available.
+
+---
+
+### 1. Installation & Initialization
+
+To use the React client, wrap your application tree in the `QueryProvider` and register your initialized client instance:
+
+```tsx
+import React from "react";
+import { createClient } from "better-query/client";
+import { QueryProvider } from "better-query/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const client = createClient({
+  url: "/api/query",
+});
+
+const queryClient = new QueryClient();
+
+export function AppProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <QueryProvider 
+        client={client}
+        engine="tanstack" // Default query engine: "live" (Zustand SWR) or "tanstack" (React Query)
+      >
+        {children}
+      </QueryProvider>
+    </QueryClientProvider>
+  );
+}
+```
+
+---
+
+### 2. Standardized React Hooks
+
+Every hook is fully type-safe and shares standard, clean naming conventions.
+
+#### `useQuery`
+The all-in-one hook to query collections (if no `id` is provided) or a single record (if `id` is specified), exposing reactive variables and CRUD mutators.
+
+```typescript
+const { data, loading, error, create, update, delete: remove } = useQuery<Project>("project", {
+  id: projectId, // Optional. If omitted, lists all projects
+  queryParams: { limit: 10 },
+});
+```
+
+#### `useTable` (Refine-Style)
+Automatically manages pagination, server-side sorting, local or remote searching, and page sizing in a single hook. 
+
+By setting `syncWithUrl: true`, page parameters and search queries are automatically synchronized with the browser URL.
+
+```tsx
+import { useTable } from "better-query/react";
+
+export function ProjectTable() {
+  const {
+    tableData: projects,
+    loading,
+    pagination,
+    current,
+    setPage,
+    sorter,
+    setSorter,
+    setSearchQuery,
+  } = useTable<Project>("project", {
+    initialPageSize: 10,
+    engine: "tanstack",
+    syncWithUrl: true // Automatically syncs "?page=X&limit=Y&q=query" in browser url
+  });
+
+  return (
+    <div>
+      <input 
+        type="search" 
+        placeholder="Search projects..." 
+        onChange={(e) => setSearchQuery(e.target.value)} 
+      />
+      <table>
+        <thead>
+          <tr>
+            <th onClick={() => setSorter("name")}>
+              Name {sorter?.field === "name" && (sorter.order === "asc" ? "▲" : "▼")}
+            </th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {projects.map(p => (
+            <tr key={p.id}>
+              <td>{p.name}</td>
+              <td>{p.description}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+```
+
+#### `useSelect`
+Retrieves a target collection and maps items into `label`/`value` select options. Ideal for building dropdown inputs, Combobox components, and relationship assignments in forms:
+
+```tsx
+import { useSelect } from "better-query/react";
+
+export function TaskProjectSelector({ control }) {
+  // Fetches projects and maps to [{ label: project.name, value: project.id }]
+  const { options, loading } = useSelect<Project>({
+    resource: "project",
+    optionLabel: "name",
+    optionValue: "id",
+    engine: "tanstack",
+  });
+
+  if (loading) return <span>Loading projects...</span>;
+
+  return (
+    <select>
+      <option value="">Select project...</option>
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+```
+
+#### `useForm`
+React Hook Form adapter configured to use Zod validation schemas and execute mutations automatically.
+
+```tsx
+const { form, onSubmit, isSubmitting } = useForm<Project>({
+  resource: "project",
+  id: projectId, // Optional. If passed, triggers edit mode and autofills fields
+  schema: projectSchema,
+  onSubmitSuccess: (data) => console.log("Saved!", data),
+});
+```
+
+#### `useList` / `useMany`
+Gets a list of paginated items from the backend API.
+```typescript
+const { items, pagination, loading, error } = useList<Project>("project");
+// Or using useMany:
+const { items } = useMany<Project>("project");
+```
+
+#### `useDetail` / `useShow` / `useOne` / `useRecord`
+Gets detail information for a single record.
+```typescript
+const { data: project, loading } = useOne<Project>("project", projectId);
+// Or:
+const { data: task } = useRecord<Task>("task", taskId);
+```
+
+#### `useActions`
+Exposes mutation actions (`create`, `update`, `delete`) without subscribing to queries.
+```typescript
+const { create, update, delete: remove, isPending } = useActions<Project>("project");
+```
+
+---
+
+### 3. Composable Headless UI (Shadcn UI Style)
+
+Rather than rigid monolithic elements, all components support nested composition patterns matching Shadcn UI syntax.
+
+#### Composable Lists
+You can render custom lists by nesting sub-components, OR simply pass a render function as `children` directly to `<List />` for an ultra-fast, clean setup:
+
+##### Option A: Simplified List Syntax (Function-as-children)
+```tsx
+import { List } from "better-query/react";
+
+export function SimpleProjectList() {
+  return (
+    <List 
+      resource="project" 
+      engine="tanstack" 
+      showSearch 
+      showPagination
+    >
+      {(project) => (
+        <div className="p-4 border rounded shadow-sm">
+          <h2 className="font-semibold text-lg">{project.name}</h2>
+          <p className="text-sm text-neutral-500">{project.description}</p>
+        </div>
+      )}
+    </List>
+  );
+}
+```
+
+##### Option B: Granular Custom Layout
+Separate Search, List Container, and Pagination sub-components can be placed anywhere in your layout:
+```tsx
+import { 
+  List, 
+  ListSearch, 
+  ListItems, 
+  ListPagination 
+} from "better-query/react";
+
+export function CustomProjectPage() {
+  return (
+    <List resource="project" engine="tanstack">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Projects List</h1>
+        <ListSearch className="max-w-xs border rounded px-2 py-1" />
+      </div>
+
+      <ListItems className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {(project) => (
+          <div className="p-4 border rounded hover:bg-neutral-50">
+            <h2 className="font-semibold text-lg">{project.name}</h2>
+            <p className="text-sm text-neutral-500">{project.description}</p>
+          </div>
+        )}
+      </ListItems>
+
+      <ListPagination className="flex justify-between mt-6" />
+    </List>
+  );
+}
+```
+
+---
+
+#### Composable Forms (Controller Primitives)
+We provide custom RHF Controller-based primitives to compose form fields and bind inputs directly to `better-query` schemas.
+
+`FormField` automatically wraps the child input component inside FormLabel, FormItem, and FormMessage error controls, eliminating layout boilerplate. If no child element is provided, it automatically constructs a matching input according to the schema field type.
+
+```tsx
+import { 
+  Form, 
+  FormField, 
+  FormSubmit 
+} from "better-query/react";
+import { Input } from "@/components/ui/input";
+
+export function ComposableProjectForm({ id, onSuccess }) {
+  return (
+    <Form 
+      resource="project" 
+      id={id} 
+      engine="tanstack"
+      onSubmitSuccess={onSuccess}
+      className="space-y-4"
+    >
+      {/* Short & Clean: automatically maps value/onChange and binds labels/errors */}
+      <FormField
+        name="name"
+        label="Project Name"
+        description="Provide a clear, descriptive name."
+      >
+        <Input placeholder="PlanPilot" />
+      </FormField>
+
+      <FormField
+        name="description"
+        label="Description"
+      >
+        <textarea className="border rounded p-2" placeholder="Add some details..." />
+      </FormField>
+
+      <FormSubmit className="px-4 py-2 bg-indigo-600 text-white rounded">
+        Submit Project
+      </FormSubmit>
+    </Form>
+  );
+}
+```
+
+---
+
+### 4. Form Validation with Zod
+
+Form validation is configured directly via your **Zod schema**. 
+
+When passing the `schema` to `useForm` (or `<Form schema={...} />`), React Hook Form resolves it automatically.
+
+#### 1. Defining Validation Rules
+Specify custom error messages directly in the schema declaration:
+
+```typescript
+import { z } from "zod";
+
+export const projectSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Le nom du projet est obligatoire")
+    .max(50, "Le nom ne doit pas dépasser 50 caractères"),
+  
+  description: z
+    .string()
+    .min(10, "La description doit contenir au moins 10 caractères")
+    .optional(),
+  
+  membersCount: z
+    .coerce // Automatically converts input string to number
+    .number()
+    .min(1, "Il doit y avoir au moins 1 membre")
+    .max(10, "Maximum 10 membres autorisés"),
+});
+```
+
+#### 2. Automatic Error Display
+The `<FormField>` (or standalone `<FormMessage />`) reads validation failures from the Hook Form state context and renders them automatically under the input when the form is submitted:
+
+```tsx
+// Renders validation messages automatically if "name" or "membersCount" fails validation
+<Form schema={projectSchema} resource="project">
+  <FormField name="name" label="Project Name" />
+  <FormField name="membersCount" label="Number of Members" />
+  <FormSubmit>Submit</FormSubmit>
+</Form>
+```
+
+---
+
+### 5. Integration with Better Auth
+
+Better Query integrates seamlessly with **Better Auth** out-of-the-box. 
+
+#### Cookie-Based Authentication (Default)
+By default, the client is initialized with `credentials: "include"`. This ensures that all browser session cookies managed by Better Auth are automatically sent with every query and subscription request. No manually managed headers are necessary.
+
+#### Token-Based / Mobile Auth
+If your app is running on a separate domain or needs to pass session tokens via headers (e.g. mobile or desktop applications), configure dynamic headers in `createClient`:
+
+```typescript
+import { createClient } from "better-query/client";
+
+const client = createClient({
+  url: "https://api.yourdomain.com",
+  headers: () => {
+    const token = localStorage.getItem("auth_token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+});
+```
+
+#### Global Unauthorized Handling
+You can hook into the global TanStack `QueryClient` error handler to catch `401 Unauthorized` responses and redirect the user back to the login screen:
+
+```typescript
+import { QueryClient, QueryCache } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error: any) => {
+      // Catch 401 and redirect to Better Auth login screen
+      if (error.status === 401 || error.message?.includes("401")) {
+        window.location.href = "/login";
+      }
+    }
+  })
+});
+```
+
+#### Pre-built Headless Auth Components
+To completely avoid writing repetitive authentication screens, we provide pre-built, headless components. They automatically use native HTML tags and allow full customization.
+
+##### UserLoginForm & UserRegisterForm
+Render fully-functional sign in / sign up fields bound to your `better-auth` client instance:
+```tsx
+import { authClient } from "@/lib/auth-client"; // Your better-auth client instance
+import { UserLoginForm, UserRegisterForm } from "better-query/react";
+
+export function AuthPage() {
+  return (
+    <div className="max-w-md mx-auto p-6 border rounded shadow-md bg-white">
+      <h2 className="text-xl font-bold mb-4">Welcome back</h2>
+      <UserLoginForm 
+        auth={authClient} 
+        onSuccess={(data) => {
+          window.location.href = "/dashboard";
+        }}
+      />
+    </div>
+  );
+}
+```
+
+##### UserProfileFormCard
+An out-of-the-box user settings component that handles loading user data from the active session and executing updates:
+```tsx
+import { authClient } from "@/lib/auth-client";
+import { UserProfileFormCard } from "better-query/react";
+
+export function SettingsTab() {
+  return (
+    <div className="max-w-md p-6 bg-white border rounded">
+      <h3 className="text-lg font-semibold mb-4">Edit Profile</h3>
+      <UserProfileFormCard 
+        auth={authClient}
+        onSuccess={() => alert("Profile updated successfully!")}
+      />
+    </div>
+  );
+}
+```
+
+##### UserAuthenticated
+Guard routes or sections of layouts to only display them to logged-in users:
+```tsx
+import { authClient } from "@/lib/auth-client";
+import { UserAuthenticated, UserLoginForm } from "better-query/react";
+
+export function SecureLayout({ children }) {
+  return (
+    <UserAuthenticated 
+      auth={authClient}
+      fallback={<UserLoginForm auth={authClient} />}
+    >
+      <div className="admin-dashboard">{children}</div>
+    </UserAuthenticated>
+  );
+}
+```
+
+##### FileUploadField
+Integrates directly with your `storagePlugin` to handle file uploads in forms with preview and loading state:
+```tsx
+import { Form, FileUploadField, FormSubmit } from "better-query/react";
+
+export function AvatarSettingsForm() {
+  return (
+    <Form resource="user" id="current-user-id">
+      {/* Uploads file to '/upload', binds resulting url to 'avatarUrl', and shows preview */}
+      <FileUploadField 
+        name="avatarUrl" 
+        label="Profile Picture" 
+        uploadPath="/upload"
+      />
+      <FormSubmit>Save Picture</FormSubmit>
+    </Form>
+  );
+}
+```
+
+---
+
+### 6. Performance & Efficiency
+
+The React headless package is engineered for high performance:
+
+* **Uncontrolled Inputs**: Form typing is optimized via `react-hook-form` refs, preventing expensive full-form re-renders on every character entered.
+* **Automatic De-duplication**: Concurrent resource requests (e.g., in sub-components) are batched and fetched only once.
+* **Granular Zustand Sync**: When using the `"live"` query engine, real-time WebSocket updates execute localized memory merges in Zustand, triggering re-renders only on the affected UI trees.
+* **Zero Layout Paint Overhead**: By avoiding embedded stylesheets, the client is free of layout overhead, maximizing loading speed.
