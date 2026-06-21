@@ -1,0 +1,31 @@
+{
+	"name": "@better-query/client",
+	"version": "0.1.1",
+	"type": "module",
+	"description": "Client-side utilities for better-query",
+	"author": "armelgeek",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/armelgeek/better-query.git",
+		"directory": "packages/better-query-client"
+	},
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"scripts": {
+		"build": "tsup --clean",
+		"dev": "tsup --watch",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"tsup": "^8.2.4",
+		"typescript": "^5.5.0-dev.20240508"
+	},
+	"dependencies": {
+		"better-call": "^0.1.20",
+		"@better-fetch/fetch": "^1.1.4"
+	},
+	"peerDependencies": {
+		"@tanstack/react-query": "^5.0.0"
+	}
+}

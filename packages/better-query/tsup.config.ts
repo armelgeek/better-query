@@ -1,13 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-	entry: {
-		index: "./src/index.ts",
-		client: "./src/client/index.ts",
-		adapters: "./src/adapters/index.ts",
-		plugins: "./src/plugins/index.ts",
-		react: "./src/react/index.tsx",
-	},
+	entry: ["./src/index.ts"],
 	format: ["esm", "cjs"],
 	dts: true,
 	splitting: true,
@@ -15,14 +9,6 @@ export default defineConfig({
 	sourcemap: true,
 	clean: true,
 	external: [
-		"pg",
-		"mysql2",
-		"better-sqlite3",
-		"react",
-		"react-dom",
-		"@tanstack/react-query",
-		"react-hook-form",
-		"@hookform/resolvers",
-		"@hookform/resolvers/zod",
+		"@better-query/client",
 	],
 });

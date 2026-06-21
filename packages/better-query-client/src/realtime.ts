@@ -1,4 +1,4 @@
-import type { Atom, BetterQueryClientPlugin } from "../types/client-plugins";
+import type { Atom, BetterQueryClientPlugin } from "./types/client-plugins";
 
 /**
  * Realtime client plugin options

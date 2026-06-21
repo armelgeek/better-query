@@ -1,5 +1,4 @@
 import type { BetterFetchOption, BetterFetchPlugin } from "@better-fetch/fetch";
-import type { Plugin } from "./plugins";
 
 /**
  * Atom type for reactive state management
@@ -23,7 +22,7 @@ export interface BetterQueryClientPlugin {
 	 * Infer server plugin type for endpoint type safety
 	 * Usage: $InferServerPlugin: {} as ReturnType<typeof myServerPlugin>
 	 */
-	$InferServerPlugin?: Plugin;
+	$InferServerPlugin?: any;
 
 	/**
 	 * Custom actions/methods to add to the client
@@ -61,15 +60,6 @@ export interface BetterQueryClientPlugin {
 	 */
 	atomListeners?: (atoms: Record<string, Atom<any>>, $fetch: any) => void;
 }
-
-/**
- * Extract inferred endpoints from a server plugin
- */
-export type InferPluginEndpoints<T extends Plugin> = T extends {
-	endpoints: infer E;
-}
-	? E
-	: never;
 
 /**
  * Convert kebab-case path to camelCase object path

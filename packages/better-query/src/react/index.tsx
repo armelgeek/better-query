@@ -9,10 +9,10 @@ import React, {
 import { useForm as useRHFForm, UseFormReturn, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery as useTanStackQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createLiveQuery } from "../client/live-query";
-import { createClient as createCoreClient } from "../client/index";
-import type { BetterQueryClient, ClientOptions } from "../client/index";
-import type { LiveQueryOptions, LiveQueryState, PaginationMeta } from "../client/live-query";
+import { createLiveQuery } from "@better-query/client";
+import { createClient as createCoreClient } from "@better-query/client";
+import type { BetterQueryClient, ClientOptions } from "@better-query/client";
+import type { LiveQueryOptions, LiveQueryState, PaginationMeta } from "@better-query/client";
 
 // --- Types & Component Slot Overrides ---
 
