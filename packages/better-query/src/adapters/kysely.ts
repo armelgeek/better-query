@@ -13,64 +13,6 @@ import { RelationshipManager } from "../utils/relationships";
 /**
  * Transform data before sending to database based on schema
  */
-function transformFromData(
-	data: Record<string, any>,
-	modelSchema?: Record<string, FieldAttribute>,
-	config?: QueryAdapter["config"],
-): Record<string, any> {
-	const transformed = { ...data };
-	const transformBooleans = config?.transform?.boolean ?? true;
-	const transformDates = config?.transform?.date ?? true;
-
-	for (const key in transformed) {
-		const value = transformed[key];
-		const fieldSchema = modelSchema?.[key];
-
-		// Remove undefined values
-		if (value === undefined) {
-			delete transformed[key];
-			continue;
-		}
-
-		// Use schema information if available
-		if (fieldSchema) {
-			if (
-				fieldSchema.type === "date" &&
-				value instanceof Date &&
-				transformDates
-			) {
-				transformed[key] = value.toISOString();
-			} else if (
-				fieldSchema.type === "boolean" &&
-				typeof value === "boolean" &&
-				transformBooleans
-			) {
-				transformed[key] = value ? 1 : 0;
-			} else if (
-				fieldSchema.type === "json" &&
-				value !== null &&
-				typeof value === "object"
-			) {
-				transformed[key] = JSON.stringify(value);
-			}
-		} else {
-			// Fallback for fields not in schema (like timestamps added by adapter)
-			if (value instanceof Date && transformDates) {
-				transformed[key] = value.toISOString();
-			} else if (typeof value === "boolean" && transformBooleans) {
-				transformed[key] = value ? 1 : 0;
-			} else if (
-				value !== null &&
-				typeof value === "object" &&
-				!(value instanceof Date)
-			) {
-				transformed[key] = JSON.stringify(value);
-			}
-		}
-	}
-
-	return transformed;
-}
 
 /**
  * Map our QueryWhere operators to Kysely operators
@@ -105,65 +47,6 @@ function mapOperatorToKysely(operator?: string): string {
 /**
  * Transform data after reading from database based on schema
  */
-function transformToData(
-	data: Record<string, any>,
-	modelSchema?: Record<string, FieldAttribute>,
-	config?: QueryAdapter["config"],
-): Record<string, any> {
-	const transformed = { ...data };
-	const transformBooleans = config?.transform?.boolean ?? true;
-	const transformDates = config?.transform?.date ?? true;
-
-	for (const key in transformed) {
-		const value = transformed[key];
-		const fieldSchema = modelSchema?.[key];
-
-		// Skip null/undefined values
-		if (value === null || value === undefined) {
-			continue;
-		}
-
-		// Use schema information if available
-		if (fieldSchema) {
-			if (
-				fieldSchema.type === "date" &&
-				typeof value === "string" &&
-				transformDates
-			) {
-				const dateValue = new Date(value);
-				if (!isNaN(dateValue.getTime())) {
-					transformed[key] = dateValue;
-				}
-			} else if (fieldSchema.type === "json" && typeof value === "string") {
-				try {
-					transformed[key] = JSON.parse(value);
-				} catch {
-					// If parsing fails, keep as string
-				}
-			} else if (
-				fieldSchema.type === "boolean" &&
-				typeof value === "number" &&
-				transformBooleans
-			) {
-				transformed[key] = value === 1;
-			}
-		} else {
-			// Fallback/Legacy logic for known timestamp fields
-			if (
-				typeof value === "string" &&
-				transformDates &&
-				(key === "createdAt" || key === "updatedAt" || key === "publishedAt")
-			) {
-				const dateValue = new Date(value);
-				if (!isNaN(dateValue.getTime())) {
-					transformed[key] = dateValue;
-				}
-			}
-		}
-	}
-
-	return transformed;
-}
 
 export class KyselyQueryAdapter implements QueryAdapter {
 	private relationshipManager?: RelationshipManager;
@@ -196,7 +79,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		if (!data.updatedAt) data.updatedAt = now;
 
 		// Transform data for database compatibility
-		const transformedData = transformFromData(data, schema, this.config);
+		const transformedData = data;
 
 		const result = await this.db
 			.insertInto(model)
@@ -207,7 +90,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		if (!result) return result;
 
 		// Transform result back to proper types
-		const transformedResult = transformToData(result, schema, this.config);
+		const transformedResult = result;
 
 		// Include related data if requested
 		if (include && this.relationshipManager) {
@@ -226,7 +109,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		const transformedData = data.map((item) => {
 			if (!item.createdAt) item.createdAt = now;
 			if (!item.updatedAt) item.updatedAt = now;
-			return transformFromData(item, schema, this.config);
+			return item;
 		});
 
 		const results = await this.db
@@ -236,7 +119,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 			.execute();
 
 		return results.map((result) =>
-			transformToData(result, schema, this.config),
+			result,
 		);
 	}
 
@@ -282,7 +165,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 					model,
 				)?.fields;
 			const transformed = result
-				? transformToData(result, schema, this.config)
+				? result
 				: result;
 			return await this.applyComputedFields(model, transformed);
 		}
@@ -364,7 +247,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 				)?.fields;
 			const results = await query.execute();
 			const transformed = results.map((item) =>
-				transformToData(item, schema, this.config),
+				item,
 			);
 			return await Promise.all(
 				transformed.map((r) => this.applyComputedFields(model, r)),
@@ -395,7 +278,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		data.updatedAt = new Date();
 
 		// Transform data for database compatibility
-		const transformedData = transformFromData(data, schema, this.config);
+		const transformedData = data;
 
 		let query = this.db.updateTable(model).set(transformedData);
 
@@ -409,7 +292,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		if (!result) return result;
 
 		// Transform result back to proper types
-		const transformedResult = transformToData(result, schema, this.config);
+		const transformedResult = result;
 
 		// Include related data if requested
 		if (include && this.relationshipManager) {
@@ -766,7 +649,7 @@ export class KyselyQueryAdapter implements QueryAdapter {
 		const schema =
 			this.relationshipManager.relationshipContext.schemas.get(model)?.fields;
 		const transformedResults = results.map((item) =>
-			transformToData(item, schema, this.config),
+			item,
 		);
 
 		const nestedResults = this.relationshipManager.transformJoinedResults(

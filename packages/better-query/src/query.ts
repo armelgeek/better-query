@@ -52,55 +52,6 @@ export type MakeNested<T> = UnionToIntersection<
 	}[keyof T]
 >;
 
-export function createNestedApiProxy(endpoints: any): any {
-	const cache = new Map<string, any>();
-
-	const createSubProxy = (target: any, path: string): any => {
-		return new Proxy(
-			() => {},
-			{
-				get(_, prop) {
-					if (typeof prop !== "string") {
-						return undefined;
-					}
-
-					const fullPath = `${path}.${prop}`;
-
-					if (fullPath in target) {
-						return target[fullPath];
-					}
-
-					return createSubProxy(target, fullPath);
-				},
-				apply(target, thisArg, argArray) {
-					const fn = (endpoints as any)[path];
-					if (typeof fn === "function") {
-						return fn.apply(thisArg, argArray);
-					}
-					throw new TypeError(`${path} is not a function`);
-				}
-			}
-		);
-	};
-
-	return new Proxy(endpoints, {
-		get(target, prop) {
-			if (typeof prop !== "string") {
-				return Reflect.get(target, prop);
-			}
-
-			if (prop in target) {
-				return Reflect.get(target, prop);
-			}
-
-			if (!cache.has(prop)) {
-				cache.set(prop, createSubProxy(target, prop));
-			}
-			return cache.get(prop);
-		}
-	});
-}
-
 export function betterQuery<O extends QueryOptions>(options: O) {
 	const queryContext = initQuery(options);
 
@@ -304,7 +255,7 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 			}
 			return response;
 		},
-		api: createNestedApiProxy(endpoints) as MakeNested<Endpoint & PluginEndpoint> & Endpoint & PluginEndpoint,
+		api: endpoints as MakeNested<Endpoint & PluginEndpoint> & Endpoint & PluginEndpoint,
 		options,
 		context: queryContext,
 		schema,
@@ -319,7 +270,7 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 				const { endpoints: trxEndpoints } = createRouter(api, {
 					extraContext: transactionalContext,
 				});
-				return await fn(createNestedApiProxy(trxEndpoints));
+				return await fn(trxEndpoints as any);
 			});
 		},
 	};

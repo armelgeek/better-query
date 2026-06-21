@@ -10,7 +10,8 @@ import { useForm as useRHFForm, UseFormReturn, Controller } from "react-hook-for
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery as useTanStackQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createLiveQuery } from "../client/live-query";
-import type { BetterQueryClient } from "../client/index";
+import { createClient as createCoreClient } from "../client/index";
+import type { BetterQueryClient, ClientOptions } from "../client/index";
 import type { LiveQueryOptions, LiveQueryState, PaginationMeta } from "../client/live-query";
 
 // --- Types & Component Slot Overrides ---
@@ -35,6 +36,13 @@ interface QueryContextValue {
 	engine?: QueryEngine;
 	components?: CustomComponents;
 }
+
+// --- Globals for client-bound React hooks ---
+let globalClient: any = null;
+let globalEngine: QueryEngine = "live";
+let globalComponents: CustomComponents = {};
+let globalOptions: LiveQueryOptions | undefined = undefined;
+const globalQueries = new Map<string, any>();
 
 const QueryContext = createContext<QueryContextValue | null>(null);
 
@@ -68,15 +76,18 @@ export function QueryProvider({
 
 export function useClient(): BetterQueryClient {
 	const context = useContext(QueryContext);
-	if (!context) {
-		throw new Error("useClient must be used within a QueryProvider");
+	const client = context?.client || globalClient;
+	if (!client) {
+		throw new Error(
+			"useClient must be used within a QueryProvider or after createClient has been initialized"
+		);
 	}
-	return context.client;
+	return client;
 }
 
 function useComponents(): CustomComponents {
 	const context = useContext(QueryContext);
-	return context?.components || {};
+	return context?.components || globalComponents;
 }
 
 // --- LiveQuery Hooks (Zustand SWR / WebSocket Sync) ---
@@ -108,24 +119,27 @@ export function useLiveQuery<T extends { id: string } = any>(
 	actions: LiveQueryActions<T>;
 } {
 	const context = useContext(QueryContext);
-	if (!context) {
-		throw new Error("useLiveQuery must be used within a QueryProvider");
+	const activeClient = context?.client || globalClient;
+	const activeQueries = context?.queries || globalQueries;
+	const activeDefaultOptions = context?.options || globalOptions;
+
+	if (!activeClient || !activeQueries) {
+		throw new Error("No Better Query client found. Either use the hook from a client instance or wrap your app in QueryProvider.");
 	}
 
-	const { client, queries, options: defaultOptions } = context;
 	const mergedOptions = useMemo(
-		() => ({ ...defaultOptions, ...options }),
-		[options, defaultOptions],
+		() => ({ ...activeDefaultOptions, ...options }),
+		[options, activeDefaultOptions],
 	);
 
 	// Get or create the LiveQuery store instance
 	const liveQuery = useMemo(() => {
 		const cacheKey = `${resource}:${JSON.stringify(mergedOptions)}`;
-		if (!queries.has(cacheKey)) {
-			queries.set(cacheKey, createLiveQuery<T>(client, resource, mergedOptions));
+		if (!activeQueries.has(cacheKey)) {
+			activeQueries.set(cacheKey, createLiveQuery<T>(activeClient, resource, mergedOptions));
 		}
-		return queries.get(cacheKey)!;
-	}, [client, resource, mergedOptions, queries]);
+		return activeQueries.get(cacheKey)!;
+	}, [activeClient, resource, mergedOptions, activeQueries]);
 
 	const [state, setState] = useState<LiveQueryState<T>>(() =>
 		liveQuery.getState(),
@@ -302,7 +316,7 @@ export function useResourceList<T extends { id: string } = any>(
 	options?: ResourceListHookOptions,
 ) {
 	const context = useContext(QueryContext);
-	const activeEngine = options?.engine || context?.engine || "live";
+	const activeEngine = options?.engine || context?.engine || globalEngine;
 
 	const { state: liveState, actions: liveActions } = useLiveQuery<T>(resource, options?.options);
 
@@ -342,7 +356,7 @@ export function useResourceDetail<T extends { id: string } = any>(
 	options?: ResourceDetailHookOptions,
 ) {
 	const context = useContext(QueryContext);
-	const activeEngine = options?.engine || context?.engine || "live";
+	const activeEngine = options?.engine || context?.engine || globalEngine;
 
 	const { state: liveState, actions: liveActions } = useLiveQuery<T>(resource, options?.options);
 	const [localDetail, setLocalDetail] = useState<T | null>(null);
@@ -396,7 +410,7 @@ export function useResourceActions<T extends { id: string } = any>(
 	options?: ResourceActionsHookOptions,
 ) {
 	const context = useContext(QueryContext);
-	const activeEngine = options?.engine || context?.engine || "live";
+	const activeEngine = options?.engine || context?.engine || globalEngine;
 
 	const { actions: liveActions } = useLiveQuery<T>(resource, options?.options);
 	const createMutation = useResourceCreateMutation<T>(resource);
@@ -464,7 +478,7 @@ export function useResourceForm<T extends { id: string } = any>({
 	options,
 }: UseResourceFormOptions<T>) {
 	const context = useContext(QueryContext);
-	const activeEngine = engine || context?.engine || "live";
+	const activeEngine = engine || context?.engine || globalEngine;
 
 	const actionsHook = useResourceActions<T>(resource, { engine: activeEngine, options });
 	const { data: detailData } = useResourceDetail<T>(
@@ -536,7 +550,7 @@ export function useResourceTable<T extends { id: string } = any>(
 	options?: UseResourceTableOptions,
 ) {
 	const context = useContext(QueryContext);
-	const activeEngine = options?.engine || context?.engine || "live";
+	const activeEngine = options?.engine || context?.engine || globalEngine;
 
 	// States for page, pageSize, sorter, search
 	const [current, setCurrent] = useState(options?.initialCurrent || 1);
@@ -705,7 +719,7 @@ export function useResourceSelect<T extends { id: string } = any>(
 	options: UseResourceSelectOptions<T>,
 ) {
 	const context = useContext(QueryContext);
-	const activeEngine = options.engine || context?.engine || "live";
+	const activeEngine = options.engine || context?.engine || globalEngine;
 
 	const { items, loading, error, refetch } = useResourceList<T>(options.resource, {
 		queryParams: options.queryParams,
@@ -2279,3 +2293,104 @@ export const UserProfileFormCard = UserProfileForm;
 export const UserAuthenticated = Authenticated;
 export const RelationSelect = SelectField;
 export const FileUploadField = UploadField;
+
+export interface ReactClientOptions extends ClientOptions {
+	engine?: QueryEngine;
+	components?: CustomComponents;
+	options?: LiveQueryOptions;
+}
+
+export type ReactQueryClient<API extends Record<string, any> = any> = BetterQueryClient<API> & {
+	useList: <T extends { id: string } = any>(
+		resource: string,
+		options?: ResourceListHookOptions,
+	) => ReturnType<typeof useResourceList<T>>;
+	useDetail: <T extends { id: string } = any>(
+		resource: string,
+		id: string | null,
+		options?: ResourceDetailHookOptions,
+	) => ReturnType<typeof useResourceDetail<T>>;
+	useActions: <T extends { id: string } = any>(
+		resource: string,
+		options?: ResourceActionsHookOptions,
+	) => ReturnType<typeof useResourceActions<T>>;
+	useForm: <T extends { id: string } = any>(
+		options: UseResourceFormOptions<T>,
+	) => ReturnType<typeof useResourceForm<T>>;
+	useTable: <T extends { id: string } = any>(
+		resource: string,
+		options?: any,
+	) => ReturnType<typeof useResourceTable<T>>;
+	useSelect: <T extends { id: string } = any>(
+		options: any,
+	) => ReturnType<typeof useResourceSelect<T>>;
+	useLiveQuery: <T extends { id: string } = any>(
+		resource: string,
+		options?: any,
+	) => ReturnType<typeof useLiveQuery<T>>;
+	useQuery: <T extends { id: string } = any>(
+		resource: string,
+		options?: ResourceListHookOptions,
+	) => ReturnType<typeof useResourceList<T>>;
+	useMany: <T extends { id: string } = any>(
+		resource: string,
+		options?: ResourceListHookOptions,
+	) => ReturnType<typeof useResourceList<T>>;
+	useShow: <T extends { id: string } = any>(
+		resource: string,
+		id: string | null,
+		options?: ResourceDetailHookOptions,
+	) => ReturnType<typeof useResourceDetail<T>>;
+	useOne: <T extends { id: string } = any>(
+		resource: string,
+		id: string | null,
+		options?: ResourceDetailHookOptions,
+	) => ReturnType<typeof useResourceDetail<T>>;
+	useRecord: <T extends { id: string } = any>(
+		resource: string,
+		id: string | null,
+		options?: ResourceDetailHookOptions,
+	) => ReturnType<typeof useResourceDetail<T>>;
+} & Record<string, any>;
+
+export function createClient<API extends Record<string, any>>(options: ReactClientOptions): ReactQueryClient<API> {
+	const client = createCoreClient<API>(options);
+
+	globalClient = client as any;
+	if (options.engine) globalEngine = options.engine;
+	if (options.components) globalComponents = options.components;
+	if (options.options) globalOptions = options.options;
+
+	const reactClient = client as any;
+
+	reactClient.useList = <T extends { id: string } = any>(resource: string, listOptions?: ResourceListHookOptions) => {
+		return useResourceList<T>(resource, listOptions);
+	};
+	reactClient.useDetail = <T extends { id: string } = any>(resource: string, id: string | null, detailOptions?: ResourceDetailHookOptions) => {
+		return useResourceDetail<T>(resource, id, detailOptions);
+	};
+	reactClient.useActions = <T extends { id: string } = any>(resource: string, actionsOptions?: ResourceActionsHookOptions) => {
+		return useResourceActions<T>(resource, actionsOptions);
+	};
+	reactClient.useForm = <T extends { id: string } = any>(formOptions: UseResourceFormOptions<T>) => {
+		return useResourceForm<T>(formOptions);
+	};
+	reactClient.useTable = <T extends { id: string } = any>(resource: string, tableOptions?: any) => {
+		return useResourceTable<T>(resource, tableOptions);
+	};
+	reactClient.useSelect = (selectOptions: any) => {
+		return useResourceSelect(selectOptions);
+	};
+	reactClient.useLiveQuery = <T extends { id: string } = any>(resource: string, liveOptions?: any) => {
+		return useLiveQuery<T>(resource, liveOptions);
+	};
+
+	reactClient.useQuery = reactClient.useList;
+	reactClient.useMany = reactClient.useList;
+	reactClient.useShow = reactClient.useDetail;
+	reactClient.useOne = reactClient.useDetail;
+	reactClient.useRecord = reactClient.useDetail;
+
+	return reactClient;
+}
+
