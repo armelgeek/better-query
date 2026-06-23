@@ -8,9 +8,4 @@ export default defineConfig({
 	target: "es2022",
 	sourcemap: true,
 	clean: true,
-	external: [
-		"react",
-		"react-dom",
-		"@tanstack/react-query",
-	],
 });

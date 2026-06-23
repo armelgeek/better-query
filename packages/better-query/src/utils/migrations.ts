@@ -1,5 +1,5 @@
 import { ZodObject, ZodRawShape, ZodSchema } from "zod";
-import { FieldAttribute } from "../types";
+import { FieldAttribute, QueryContext } from "../types";
 import { QueryAdapter } from "../types/adapter";
 import { zodSchemaToFields } from "../utils/schema";
 
@@ -421,5 +421,30 @@ export function createSchemaMigration(
 	return { changes, migrations, report };
 }
 
-// Export the migration manager
-export default SchemaMigrationManager;
+
+/**
+ * Initialize tables from schema
+ */
+export async function initTables(
+	context: QueryContext,
+	schema: Record<string, { fields: Record<string, any> }>,
+) {
+	try {
+		const schemaData = Object.entries(schema).map(
+			([resourceName, resourceSchema]) => ({
+				model: resourceName,
+				fields: resourceSchema.fields,
+			}),
+		);
+
+		if (context.adapter.createSchema) {
+			await context.adapter.createSchema(schemaData);
+		} else {
+			console.warn(
+				"Adapter does not support createSchema method. Auto-migration skipped.",
+			);
+		}
+	} catch (error) {
+		console.error("Error initializing tables:", error);
+	}
+}

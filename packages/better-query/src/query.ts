@@ -7,7 +7,9 @@ import { PluginManager, shimPluginContext } from "./plugins/manager";
 import { QueryContext, QueryOptions } from "./types";
 import { PluginInitContext } from "./types/plugins";
 import { RelationshipManager } from "./utils/relationships";
+import { inferRelationships } from "./utils/relationship-inference";
 import { zodSchemaToFields } from "./utils/schema";
+import { initTables } from "./utils/migrations";
 
 function initQuery(options: QueryOptions): QueryContext {
 	const adapter = getQueryAdapter(options);
@@ -94,76 +96,8 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 
 	const relationshipManager = new RelationshipManager(queryContext);
 
-	const pluralize = (str: string) => {
-		if (str.endsWith("y")) return str.slice(0, -1) + "ies";
-		if (str.endsWith("s")) return str;
-		return str + "s";
-	};
+	inferRelationships(queryContext, allResources, relationshipManager);
 
-	// 1. Auto-infer belongsTo relationships from foreign keys (e.g. projectId -> project)
-	for (const resourceConfig of allResources) {
-		const existingRelationships = relationshipManager.getRelationships(
-			resourceConfig.name,
-		);
-		const resourceSchema = queryContext.schemas.get(resourceConfig.name);
-		if (resourceSchema?.fields) {
-			const autoRelationships = { ...existingRelationships };
-			let inferred = false;
-			for (const fieldName of Object.keys(resourceSchema.fields)) {
-				if (fieldName.endsWith("Id") && fieldName !== "id") {
-					const target = fieldName.slice(0, -2);
-					if (queryContext.schemas.has(target) && !autoRelationships[target]) {
-						autoRelationships[target] = {
-							type: "belongsTo" as const,
-							target,
-							foreignKey: fieldName,
-							targetKey: "id",
-						};
-						inferred = true;
-					}
-				}
-			}
-			if (inferred) {
-				relationshipManager.registerRelationships(
-					resourceConfig.name,
-					autoRelationships,
-				);
-			}
-		}
-	}
-
-	// 2. Auto-infer hasMany relationships back to the source (e.g. user hasMany posts)
-	for (const resourceConfig of allResources) {
-		const existingBelongsTo = relationshipManager.getRelationships(
-			resourceConfig.name,
-		);
-		for (const [relationName, relationConfig] of Object.entries(
-			existingBelongsTo,
-		)) {
-			if (relationConfig.type === "belongsTo") {
-				const targetResource = relationConfig.target;
-				const targetRelationships =
-					relationshipManager.getRelationships(targetResource);
-				const pluralName = pluralize(resourceConfig.name);
-
-				if (!targetRelationships[pluralName]) {
-					const updatedTargetRelationships = {
-						...targetRelationships,
-						[pluralName]: {
-							type: "hasMany" as const,
-							target: resourceConfig.name,
-							foreignKey: relationConfig.foreignKey,
-							targetKey: "id",
-						},
-					};
-					relationshipManager.registerRelationships(
-						targetResource,
-						updatedTargetRelationships,
-					);
-				}
-			}
-		}
-	}
 	for (const resourceConfig of allResources) {
 		if (resourceConfig.relationships) {
 			for (const [relationName, relationConfig] of Object.entries(
@@ -300,30 +234,6 @@ function applyBasePath(
 	}
 
 	return processedEndpoints;
-}
-
-async function initTables(
-	context: QueryContext,
-	schema: Record<string, { fields: Record<string, any> }>,
-) {
-	try {
-		const schemaData = Object.entries(schema).map(
-			([resourceName, resourceSchema]) => ({
-				model: resourceName,
-				fields: resourceSchema.fields,
-			}),
-		);
-
-		if (context.adapter.createSchema) {
-			await context.adapter.createSchema(schemaData);
-		} else {
-			console.warn(
-				"Adapter does not support createSchema method. Auto-migration skipped.",
-			);
-		}
-	} catch (error) {
-		console.error("Error initializing tables:", error);
-	}
 }
 
 export type BetterQuery<

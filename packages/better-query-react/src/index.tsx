@@ -462,6 +462,12 @@ export interface UseResourceFormOptions<T> {
 	options?: LiveQueryOptions;
 }
 
+export interface UseResourceFormReturn<T extends { id: string } = any> {
+	form: UseFormReturn<T>;
+	onSubmit: ReturnType<UseFormReturn<T>["handleSubmit"]>;
+	isSubmitting: boolean;
+}
+
 /**
  * STANDARD HOOK: Shadcn-friendly React Hook Form adapter.
  * Sets up UseForm, handles automatic initial value fetch for editing, Zod validation,
@@ -476,7 +482,7 @@ export function useResourceForm<T extends { id: string } = any>({
 	onSubmitError,
 	engine,
 	options,
-}: UseResourceFormOptions<T>) {
+}: UseResourceFormOptions<T>): UseResourceFormReturn<T> {
 	const context = useContext(QueryContext);
 	const activeEngine = engine || context?.engine || globalEngine;
 
