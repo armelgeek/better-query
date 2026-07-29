@@ -3,7 +3,7 @@ import { sql } from "kysely";
 import type { UnionToIntersection } from "type-fest";
 import { getQueryAdapter } from "./adapters/utils";
 import { createQueryEndpoints } from "./endpoints";
-import { PluginManager, shimPluginContext } from "./plugins/manager";
+import { PluginManager } from "./plugins/manager";
 import { QueryContext, QueryOptions } from "./types";
 import { PluginInitContext } from "./types/plugins";
 import { RelationshipManager } from "./utils/relationships";
@@ -218,22 +218,6 @@ export function betterQuery<O extends QueryOptions>(options: O) {
 	}
 
 	return result as BetterQuery<O, Endpoint, PluginEndpoint>;
-}
-
-function applyBasePath(
-	endpoints: Record<string, any>,
-	basePath: string,
-): Record<string, any> {
-	const processedEndpoints: Record<string, any> = {};
-
-	for (const [key, endpoint] of Object.entries(endpoints)) {
-		processedEndpoints[key] = {
-			...endpoint,
-			path: `${basePath}${endpoint.path}`,
-		};
-	}
-
-	return processedEndpoints;
 }
 
 export type BetterQuery<

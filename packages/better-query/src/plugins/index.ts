@@ -1,10 +1,5 @@
 // Core plugin infrastructure
-export {
-	PluginManager,
-	shimPluginContext,
-	createPlugin,
-	defaultPluginManager,
-} from "./manager";
+export { PluginManager } from "./manager";
 
 // Plugin types
 export type {

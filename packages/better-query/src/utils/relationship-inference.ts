@@ -1,9 +1,9 @@
-import { QueryContext, ResourceConfig } from "../types";
+import { QueryContext, QueryResourceConfig } from "../types";
 import { RelationshipManager } from "./relationships";
 
 export function inferRelationships(
 	context: QueryContext,
-	allResources: ResourceConfig[],
+	allResources: QueryResourceConfig[],
 	relationshipManager: RelationshipManager,
 ) {
 	const pluralize = (str: string) => {
